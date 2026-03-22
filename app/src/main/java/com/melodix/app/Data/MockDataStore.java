@@ -27,6 +27,8 @@ public final class MockDataStore {
     private static final List<Album> ALBUMS = Collections.unmodifiableList(createAlbums());
     private static final List<Song> SONGS = Collections.unmodifiableList(createSongs());
 
+    private static final List<String> RECENT_SEARCHES = new ArrayList<>(Arrays.asList("Nova Lane", "Synthwave", "Midnight Echo"));
+
     private MockDataStore() {
         // Utility class
     }
@@ -54,6 +56,36 @@ public final class MockDataStore {
             }
         }
         return null;
+    }
+
+    // --- CÁC HÀM CHO LỊCH SỬ TÌM KIẾM VÀ NGHỆ SĨ TƯƠNG TỰ ---
+    public static List<String> getRecentSearches() {
+        return new ArrayList<>(RECENT_SEARCHES);
+    }
+
+    public static void addRecentSearch(String keyword) {
+        if (isBlank(keyword)) return;
+        String query = keyword.trim();
+        RECENT_SEARCHES.remove(query); // Xóa cái cũ nếu trùng
+        RECENT_SEARCHES.add(0, query); // Thêm lên đầu
+        if (RECENT_SEARCHES.size() > 10) {
+            RECENT_SEARCHES.remove(RECENT_SEARCHES.size() - 1); // Chỉ giữ 10 cái gần nhất
+        }
+    }
+
+    public static void clearRecentSearches() {
+        RECENT_SEARCHES.clear();
+    }
+
+    public static List<Artist> getRelatedArtists(String currentArtistId) {
+        List<Artist> related = new ArrayList<>();
+        for (Artist artist : ARTISTS) {
+            if (!artist.getId().equals(currentArtistId)) {
+                related.add(artist);
+            }
+        }
+        Collections.shuffle(related); // Trộn ngẫu nhiên
+        return related.subList(0, Math.min(3, related.size())); // Lấy 3 người
     }
 
     public static Album getAlbumById(String albumId) {
