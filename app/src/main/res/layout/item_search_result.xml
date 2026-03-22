@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardResult"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="#182824"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="0dp"
+    app:rippleColor="#331DB983"
+    app:strokeColor="#243933"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="12dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginEnd="14dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/ivCover"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvResultTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Midnight Drive"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvResultSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Bài hát • Nova Lane • Neon Skyline"
+                android:textColor="#91A19A"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
