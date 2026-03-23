@@ -1,3 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Melodix</string>
+
+    <string name="phase_1_headline">Nền tảng Spotify-style đã sẵn sàng</string>
+    <string name="phase_1_stack">Firebase Authentication • Firestore • Storage • Media3 • Glide • MVVM</string>
+    <string name="phase_1_note">Phase 1 chỉ dựng nền project thật, chưa triển khai logic đăng nhập và phát nhạc hoàn chỉnh.</string>
+    <string name="phase_1_footer">Sync Gradle xong là mình qua Phase 2 để dựng Login/Register.</string>
+
+    <string name="auth_title">Millions of songs. Free on Melodix.</string>
+    <string name="auth_subtitle">Đăng nhập để đồng bộ thư viện, playlist và lịch sử nghe nhạc của bạn.</string>
+    <string name="auth_login_tab">Đăng nhập</string>
+    <string name="auth_register_tab">Đăng ký</string>
+    <string name="auth_login_heading">Chào mừng trở lại</string>
+    <string name="auth_register_heading">Tạo tài khoản mới</string>
+    <string name="auth_full_name_hint">Họ và tên</string>
+    <string name="auth_email_hint">Email</string>
+    <string name="auth_password_hint">Mật khẩu</string>
+    <string name="auth_confirm_password_hint">Nhập lại mật khẩu</string>
+    <string name="auth_login_button">Đăng nhập bằng Email</string>
+    <string name="auth_register_button">Tạo tài khoản</string>
+    <string name="auth_or_divider">hoặc tiếp tục với</string>
+    <string name="auth_google_button">Tiếp tục với Google</string>
+    <string name="auth_facebook_button">Tiếp tục với Facebook</string>
+
+    <string name="home_greeting_morning">Chào buổi sáng</string>
+    <string name="home_greeting_afternoon">Chào buổi chiều</string>
+    <string name="home_greeting_evening">Chào buổi tối</string>
+    <string name="home_greeting_fallback">Xin chào</string>
+    <string name="home_discovery_subtitle">Khám phá nhạc thịnh hành, chủ đề nổi bật và album mới trên Melodix.</string>
+    <string name="home_section_featured">Nổi bật hôm nay</string>
+    <string name="home_section_trending">Top Trending</string>
+    <string name="home_section_genres">Chủ đề &amp; thể loại</string>
+    <string name="home_section_new_albums">Album mới phát hành</string>
+    <string name="home_top_logout">Đăng xuất</string>
+    <string name="home_banner_badge">NỔI BẬT</string>
+
+    <string name="home_empty_banners">Chưa có banner nổi bật.</string>
+    <string name="home_empty_trending">Chưa có bài hát trending.</string>
+    <string name="home_empty_genres">Chưa có chủ đề hoặc thể loại.</string>
+    <string name="home_empty_albums">Chưa có album mới phát hành.</string>
+    <string name="home_empty_state">Chưa có dữ liệu cho trang Home. Hãy thêm dữ liệu vào Firestore rồi kéo xuống để tải lại.</string>
+
+    <string name="home_placeholder_banner">Phase 6 và Phase 9 sẽ nối banner sang chi tiết nội dung tương ứng.</string>
+    <string name="home_placeholder_album">Phase 9 sẽ nối sang Album Detail.</string>
+    <string name="home_placeholder_genre">Phase 8 sẽ nối sang Search hoặc lọc theo thể loại.</string>
+    <string name="home_placeholder_search">Tab Search sẽ được triển khai ở Phase 8.</string>
+    <string name="home_placeholder_library">Tab Your Library sẽ được triển khai ở Phase 10 và 11.</string>
+
+    <string name="home_unknown_error">Đã xảy ra lỗi không xác định.</string>
+    <string name="home_name_placeholder">Melodix</string>
+
+    <string name="home_bottom_nav_home">Home</string>
+    <string name="home_bottom_nav_search">Search</string>
+    <string name="home_bottom_nav_library">Your Library</string>
+
+    <string name="home_banner_image_desc">Banner trang chủ</string>
+    <string name="home_song_cover_desc">Ảnh bìa bài hát</string>
+    <string name="home_genre_image_desc">Ảnh thể loại</string>
+    <string name="home_album_cover_desc">Ảnh bìa album</string>
+
+    <string name="player_now_playing">Now Playing</string>
+    <string name="player_action_close">Đóng player</string>
+    <string name="player_action_previous">Bài trước</string>
+    <string name="player_action_next">Bài tiếp theo</string>
+    <string name="player_action_play_pause">Phát hoặc tạm dừng</string>
+    <string name="player_action_rewind_15">Tua lùi 15 giây</string>
+    <string name="player_action_forward_15">Tua nhanh 15 giây</string>
+    <string name="player_artwork_desc">Ảnh bìa đang phát</string>
+    <string name="player_mini_cover_desc">Ảnh bìa mini player</string>
+    <string name="player_queue_info_format">Track %1$d / %2$d</string>
+    <string name="player_queue_idle">Hàng đợi chưa sẵn sàng</string>
+    <string name="player_empty_title">No song playing</string>
+    <string name="player_empty_subtitle">Hãy quay lại Home và chọn một bài hát để phát.</string>
+    <string name="player_empty_message">Hiện chưa có bài hát nào trong hàng đợi. Chọn bài từ Home để bắt đầu phát nhạc bằng Media3.</string>
+    <string name="player_no_queue_message">Hiện chưa có danh sách phát hợp lệ để bắt đầu player.</string>
+    <string name="player_start_failed">Không thể khởi động player lúc này.</string>
+    <string name="player_speed_dialog_title">Chọn tốc độ phát</string>
+    <string name="player_speed_dialog_error">Không thể mở trình chọn tốc độ phát.</string>
+
+    <string name="lyrics_section_title">Lyrics</string>
+    <string name="lyrics_loading_label">Đang tải lyrics</string>
+    <string name="lyrics_loading_message">Melodix đang tải lời bài hát từ Firestore...</string>
+    <string name="lyrics_mode_synced_preview">SYNCED LYRICS</string>
+    <string name="lyrics_mode_static_preview">STATIC LYRICS</string>
+    <string name="lyrics_mode_synced_full">Lyrics đồng bộ theo thời gian</string>
+    <string name="lyrics_mode_static_full">Lyrics tĩnh</string>
+    <string name="lyrics_mode_unavailable">NO LYRICS</string>
+    <string name="lyrics_mode_no_data">Lyrics chưa sẵn sàng</string>
+    <string name="lyrics_unavailable_message">Bài hát này chưa có lời bài hát trong Firestore.</string>
+    <string name="lyrics_open_fullscreen_hint">Chạm để xem lyrics toàn màn hình với highlight theo thời gian.</string>
+    <string name="lyrics_open_fullscreen_button">Fullscreen</string>
+    <string name="lyrics_no_track_message">Chưa có bài hát nào đang phát để mở lyrics.</string>
+    <string name="lyrics_open_failed">Không thể mở màn hình lyrics lúc này.</string>
+
+    <string name="lyrics_fullscreen_title">Lyrics</string>
+    <string name="lyrics_action_back">Quay lại</string>
+    <string name="lyrics_track_title_fallback">No song playing</string>
+    <string name="lyrics_track_subtitle_fallback">Hãy phát một bài hát trước khi mở lyrics.</string>
+    <string name="lyrics_empty_no_track">Chưa có bài hát nào đang phát. Hãy quay lại player hoặc Home để chọn một bài hát.</string>
+    <string name="lyrics_empty_unavailable">Bài hát này chưa có lyrics hoặc chưa đồng bộ dữ liệu lyrics trong Firestore.</string>
+
+    <string name="media_notification_channel_name">Melodix Playback</string>
+
+    <string name="facebook_app_id" translatable="false">123456789012345</string>
+    <string name="facebook_application_id" translatable="false">123456789012345</string>
+    <string name="facebook_client_token" translatable="false">replace_me_with_real_facebook_client_token</string>
+    <string name="fb_login_protocol_scheme" translatable="false">fb123456789012345</string>
+    <string name="facebook_login_protocol_scheme" translatable="false">fb123456789012345</string>
 </resources>

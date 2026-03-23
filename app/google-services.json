@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "673265586156",
+    "project_id": "melodix-ac43e",
+    "storage_bucket": "melodix-ac43e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:673265586156:android:de4168cb00025080407ac9",
+        "android_client_info": {
+          "package_name": "com.melodix.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "673265586156-907avbq4sp0kjdsnunqs9nkq2buppo71.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.melodix.app",
+            "certificate_hash": "31a82d4797210999ef9d0e47093082ad039cdb09"
+          }
+        },
+        {
+          "client_id": "673265586156-cohm4uk10oc2u4dl1l5tb78c8htcukdu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAK7JxVDtsB3Xlzv9XbQ-gqJinmYBTjpaw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "673265586156-cohm4uk10oc2u4dl1l5tb78c8htcukdu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
