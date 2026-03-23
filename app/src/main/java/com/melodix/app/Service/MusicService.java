@@ -12,6 +12,7 @@ import androidx.media3.session.MediaSession;
 import androidx.media3.session.MediaSessionService;
 
 public class MusicService extends MediaSessionService {
+    // Nhánh này là đầy đủ cả artist album và play music with notification
 
     private ExoPlayer player;
     private MediaSession mediaSession;
