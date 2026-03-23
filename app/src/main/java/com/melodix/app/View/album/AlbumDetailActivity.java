@@ -20,11 +20,10 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.melodix.app.Service.PlayerManager;
+
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.google.android.material.appbar.AppBarLayout;
@@ -133,12 +132,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
         tvMiniArtist = findViewById(R.id.tvMiniArtist);
         btnMiniPlayPause = findViewById(R.id.btnMiniPlayPause);
 
-        // Bắt sự kiện click nút Play/Pause trên Mini Player
-        if (btnMiniPlayPause != null) {
-            btnMiniPlayPause.setOnClickListener(v -> {
-                PlayerManager.getInstance(getApplicationContext()).togglePlayPause();
-            });
-        }
+
     }
 
     private void captureBaseUiMetrics() {
@@ -187,8 +181,6 @@ public class AlbumDetailActivity extends AppCompatActivity {
                 ArtistSongAdapter.MODE_ALBUM_DETAIL,
                 song -> {
                     int startIndex = findSongIndexById(song.getId());
-                    PlayerManager.getInstance(getApplicationContext())
-                            .playSongs(currentSongs, startIndex);
                 }
         );
 
@@ -273,7 +265,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
                 return;
             }
 
-            PlayerManager playerManager = PlayerManager.getInstance(getApplicationContext());
+
 
             // Kiểm tra xem bài hát đang phát có nằm trong Album này không
             boolean isPlayingThisAlbum = false;
@@ -284,11 +276,6 @@ public class AlbumDetailActivity extends AppCompatActivity {
                 }
             }
 
-            if (isPlayingThisAlbum) {
-                playerManager.togglePlayPause(); // Dừng / Phát tiếp
-            } else {
-                playerManager.playSongs(currentSongs, 0); // Phát từ đầu
-            }
         });
     }
 
@@ -321,45 +308,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
         // ---------------------------------------------------------
         // KẾT NỐI VỚI PLAYER MANAGER ĐỂ ĐỔI GIAO DIỆN & HIỆN MINI PLAYER
         // ---------------------------------------------------------
-        PlayerManager playerManager = PlayerManager.getInstance(this);
 
-        playerManager.getIsPlayingLiveData().observe(this, isPlaying -> {
-            // Đổi icon ở nút Play bự (FAB)
-            fabPlayAlbum.setImageResource(isPlaying ? R.drawable.ic_pause_24 : R.drawable.ic_play_arrow_24);
-
-            // Đổi icon ở nút Play nhỏ (Mini Player)
-            if (btnMiniPlayPause != null) {
-                btnMiniPlayPause.setImageResource(isPlaying ? R.drawable.ic_pause_24 : R.drawable.ic_play_arrow_24);
-            }
-        });
-
-        playerManager.getCurrentSongIdLiveData().observe(this, songId -> {
-            currentPlayingSongId = songId == null ? "" : songId;
-
-            // 1. Đổi màu chữ bài hát trong danh sách
-            if (songAdapter != null) {
-                songAdapter.setCurrentPlayingId(currentPlayingSongId);
-            }
-
-            // 2. Hiển thị thông tin lên Mini Player
-            if (!currentPlayingSongId.isEmpty()) {
-                Song playingSong = MockDataStore.getSongById(currentPlayingSongId);
-                if (playingSong != null && layoutMiniPlayer != null) {
-                    layoutMiniPlayer.setVisibility(View.VISIBLE); // Hiện thanh Mini Player
-                    tvMiniTitle.setText(playingSong.getTitle());
-                    tvMiniArtist.setText(playingSong.getArtistName());
-                    Glide.with(this)
-                            .load(playingSong.getCoverUrl())
-                            .placeholder(new ColorDrawable(Color.parseColor("#20312B")))
-                            .into(ivMiniCover);
-                }
-            } else {
-                // Nếu không có nhạc, giấu Mini Player đi
-                if (layoutMiniPlayer != null) {
-                    layoutMiniPlayer.setVisibility(View.GONE);
-                }
-            }
-        });
     }
 
     private void bindAlbum(Album album) {
