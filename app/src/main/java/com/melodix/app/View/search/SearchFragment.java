@@ -122,8 +122,7 @@ public class SearchFragment extends Fragment {
         }
         if (item.getType() == SearchResultItem.TYPE_ALBUM) {
             String albumId = item.getAlbumId();
-            if (!TextUtils.isEmpty(albumId)) startActivity(AlbumDetailActivity.newIntent(requireContext(), albumId));
-            return;
+
         }
         String artistIdFallback = item.getArtistId();
         if (!TextUtils.isEmpty(artistIdFallback)) {
