@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YouTube Metadata Viewer</title>
+  <style>
+    :root {
+      --bg: #f8f4ea;
+      --panel: #fffdf8;
+      --text: #1f2937;
+      --muted: #5b6472;
+      --line: #e7decf;
+      --primary: #b91c1c;
+      --primary-hover: #991b1b;
+      --chip: #f2f6ff;
+      --chip-text: #1e3a8a;
+      --error: #991b1b;
+      --ok: #166534;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1000px 400px at 12% -10%, #f7d7d7 0, transparent 70%),
+        radial-gradient(1000px 420px at 95% 0%, #d8efe9 0, transparent 70%),
+        var(--bg);
+      min-height: 100vh;
+      padding: 20px;
+      display: grid;
+      place-items: center;
+    }
+
+    .shell {
+      width: min(980px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+      padding: 20px;
+      animation: fadeUp 260ms ease-out;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.35rem, 2vw, 1.95rem);
+      letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+      margin: 8px 0 18px;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    input[type="url"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input[type="url"]:focus {
+      border-color: #f0bcbc;
+      box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.14);
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 0 16px;
+      min-height: 44px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 120ms ease, transform 120ms ease;
+    }
+
+    button:hover { background: var(--primary-hover); }
+    button:active { transform: translateY(1px); }
+    button:disabled { opacity: 0.7; cursor: wait; }
+
+    #status {
+      min-height: 24px;
+      margin: 6px 0 14px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    #status.error { color: var(--error); font-weight: 600; }
+    #status.ok { color: var(--ok); font-weight: 600; }
+
+    .result {
+      display: none;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .result.show { display: grid; grid-template-columns: 280px 1fr; }
+
+    .thumb {
+      width: 100%;
+      height: 100%;
+      min-height: 220px;
+      object-fit: cover;
+      background: #f1f5f9;
+    }
+
+    .info {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 1.2rem;
+      line-height: 1.35;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      background: var(--chip);
+      color: var(--chip-text);
+      border: 1px solid #dbe7ff;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .desc {
+      margin: 0;
+      white-space: pre-wrap;
+      line-height: 1.45;
+      max-height: 220px;
+      overflow: auto;
+      padding-right: 4px;
+      color: #334155;
+    }
+
+    details {
+      border-top: 1px dashed #e2e8f0;
+      padding-top: 8px;
+    }
+
+    summary {
+      cursor: pointer;
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .meta-link {
+      color: #1d4ed8;
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    @media (max-width: 860px) {
+      .result.show { grid-template-columns: 1fr; }
+      .thumb { min-height: 200px; }
+    }
+
+    @media (max-width: 620px) {
+      .shell { padding: 14px; }
+      .row { grid-template-columns: 1fr; }
+      button { width: 100%; }
+      .title { font-size: 1.05rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <h1>YouTube Metadata Viewer</h1>
+    <p class="subtitle">Nhập đường dẫn YouTube, hệ thống sẽ lấy metadata và hiển thị theo dạng dễ đọc.</p>
+
+    <div class="row">
+      <input id="urlInput" type="url" placeholder="https://www.youtube.com/watch?v=..." />
+      <button id="fetchBtn" type="button">Lấy Metadata</button>
+    </div>
+
+    <div id="status" aria-live="polite"></div>
+
+    <section id="result" class="result" aria-live="polite">
+      <img id="thumbnail" class="thumb" alt="Video thumbnail" />
+      <article class="info">
+        <h2 id="title" class="title"></h2>
+
+        <div class="chips">
+          <span id="channel" class="chip"></span>
+          <span id="duration" class="chip"></span>
+          <span id="uploadDate" class="chip"></span>
+        </div>
+
+        <a id="videoLink" class="meta-link" target="_blank" rel="noopener noreferrer"></a>
+
+        <details open>
+          <summary>Mô tả</summary>
+          <p id="description" class="desc"></p>
+        </details>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const urlInput = document.getElementById("urlInput");
+    const fetchBtn = document.getElementById("fetchBtn");
+    const statusEl = document.getElementById("status");
+    const resultEl = document.getElementById("result");
+
+    const titleEl = document.getElementById("title");
+    const channelEl = document.getElementById("channel");
+    const durationEl = document.getElementById("duration");
+    const uploadDateEl = document.getElementById("uploadDate");
+    const descriptionEl = document.getElementById("description");
+    const thumbnailEl = document.getElementById("thumbnail");
+    const videoLinkEl = document.getElementById("videoLink");
+
+    const formatDuration = (secondsValue) => {
+      const total = Number(secondsValue);
+      if (!Number.isFinite(total) || total <= 0) return "Thoi luong: N/A";
+
+      const hours = Math.floor(total / 3600);
+      const mins = Math.floor((total % 3600) / 60);
+      const secs = Math.floor(total % 60);
+
+      if (hours > 0) {
+        return `Thoi luong: ${hours}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+      }
+
+      return `Thoi luong: ${mins}:${String(secs).padStart(2, "0")}`;
+    };
+
+    const formatDate = (dateString) => {
+      if (!dateString) return "Dang tai: N/A";
+      const d = new Date(dateString);
+      if (Number.isNaN(d.getTime())) return `Dang tai: ${dateString}`;
+      return `Dang tai: ${d.toLocaleDateString("vi-VN")}`;
+    };
+
+    const setStatus = (message, type = "") => {
+      statusEl.className = type;
+      statusEl.textContent = message;
+    };
+
+    const hideResult = () => {
+      resultEl.classList.remove("show");
+    };
+
+    const showResult = (metadata, inputUrl) => {
+      titleEl.textContent = metadata.title || "Khong co tieu de";
+      channelEl.textContent = `Kenh: ${metadata.channel || "N/A"}`;
+      durationEl.textContent = formatDuration(metadata.duration);
+      uploadDateEl.textContent = formatDate(metadata.uploadDate);
+      descriptionEl.textContent = metadata.description || "Khong co mo ta.";
+
+      if (metadata.thumbnail) {
+        thumbnailEl.src = metadata.thumbnail;
+        thumbnailEl.alt = metadata.title || "YouTube thumbnail";
+      } else {
+        thumbnailEl.removeAttribute("src");
+        thumbnailEl.alt = "Khong co thumbnail";
+      }
+
+      videoLinkEl.href = inputUrl;
+      videoLinkEl.textContent = inputUrl;
+      resultEl.classList.add("show");
+    };
+
+    const fetchMetadata = async () => {
+      const url = urlInput.value.trim();
+      if (!url) {
+        hideResult();
+        setStatus("Vui long nhap duong dan YouTube.", "error");
+        return;
+      }
+
+      fetchBtn.disabled = true;
+      setStatus("Dang lay metadata...", "");
+
+      try {
+        const response = await fetch(`/metadata?url=${encodeURIComponent(url)}`);
+        const payload = await response.json();
+
+        if (!response.ok) {
+          hideResult();
+          setStatus(payload.error || "Lay metadata that bai.", "error");
+          return;
+        }
+
+        showResult(payload, url);
+        setStatus("Lay metadata thanh cong.", "ok");
+      } catch (_error) {
+        hideResult();
+        setStatus("Khong ket noi duoc server.", "error");
+      } finally {
+        fetchBtn.disabled = false;
+      }
+    };
+
+    fetchBtn.addEventListener("click", fetchMetadata);
+    urlInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") fetchMetadata();
+    });
+  </script>
+</body>
+</html>
