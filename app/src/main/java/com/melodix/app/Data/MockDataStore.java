@@ -1,8 +1,8 @@
 package com.melodix.app.Data;
 
-import com.melodix.app.Model.Album;
 import com.melodix.app.Model.Artist;
 import com.melodix.app.Model.Song;
+import com.melodix.app.Model.Album;
 
 import java.util.ArrayList;
 import java.util.Arrays;

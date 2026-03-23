@@ -12,7 +12,6 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -25,11 +24,9 @@ import com.melodix.app.R;
 import com.melodix.app.View.search.adapter.CategoryAdapter;
 import com.melodix.app.View.search.adapter.SearchResultAdapter;
 import com.melodix.app.ViewModel.SearchViewModel;
-import com.melodix.app.View.album.AlbumDetailActivity;
 import com.melodix.app.View.artist.ArtistDetailActivity;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class SearchFragment extends Fragment {
 

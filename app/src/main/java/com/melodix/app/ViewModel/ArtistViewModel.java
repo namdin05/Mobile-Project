@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.melodix.app.Data.MockDataStore;
-import com.melodix.app.Model.Album;
 import com.melodix.app.Model.Artist;
 import com.melodix.app.Model.Song;
 import com.melodix.app.Repository.ArtistRepository;

@@ -7,7 +7,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -15,12 +14,8 @@ import android.widget.Toast;
 import com.melodix.app.Data.MockDataStore;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,13 +26,10 @@ import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
-import com.melodix.app.Model.Album;
 import com.melodix.app.Model.Artist;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
 import com.melodix.app.Repository.ArtistRepository;
-import com.melodix.app.Service.PlayerManager;
-import com.melodix.app.View.album.AlbumDetailActivity;
 import com.melodix.app.View.artist.adapter.ArtistAlbumAdapter;
 import com.melodix.app.View.artist.adapter.ArtistSongAdapter;
 import com.melodix.app.View.artist.adapter.RelatedArtistAdapter;
@@ -130,17 +122,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
         tvMiniArtist = findViewById(R.id.tvMiniArtist);
         btnMiniPlayPause = findViewById(R.id.btnMiniPlayPause);
 
-        // Bắt sự kiện click nút Play/Pause trên Mini Player
-        btnMiniPlayPause.setOnClickListener(v -> {
-            PlayerManager.getInstance(getApplicationContext()).togglePlayPause();
-        });
 
-        if (layoutMiniPlayer != null) {
-            layoutMiniPlayer.setOnClickListener(v -> {
-                Intent intent = new Intent(this, com.melodix.app.NowPlayingActivity.class);
-                startActivity(intent);
-            });
-        }
     }
 
     private void setupSystemBars() {
@@ -161,7 +143,6 @@ public class ArtistDetailActivity extends AppCompatActivity {
         // Bài hát
         artistSongAdapter = new ArtistSongAdapter(song -> {
             int startIndex = findSongIndexById(song.getId());
-            PlayerManager.getInstance(getApplicationContext()).playSongs(currentSongs, startIndex);
         });
         rvPopularSongs.setLayoutManager(new LinearLayoutManager(this));
         rvPopularSongs.setAdapter(artistSongAdapter);
@@ -169,9 +150,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
         rvPopularSongs.setItemAnimator(null);
 
         // Album (Cuộn ngang)
-        artistAlbumAdapter = new ArtistAlbumAdapter(album -> {
-            startActivity(AlbumDetailActivity.newIntent(this, album.getId()));
-        });
+
         rvArtistAlbums.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         rvArtistAlbums.setAdapter(artistAlbumAdapter);
 
@@ -210,22 +189,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
                 return;
             }
 
-            PlayerManager playerManager = PlayerManager.getInstance(getApplicationContext());
 
-            // Kiểm tra xem bài hát đang phát có nằm trong danh sách của nghệ sĩ này không
-            boolean isPlayingThisArtist = false;
-            for (Song song : currentSongs) {
-                if (song.getId().equals(currentPlayingSongId)) {
-                    isPlayingThisArtist = true;
-                    break;
-                }
-            }
-
-            if (isPlayingThisArtist) {
-                playerManager.togglePlayPause(); // Dừng / Phát tiếp
-            } else {
-                playerManager.playSongs(currentSongs, 0); // Phát từ đầu danh sách
-            }
         });
     }
 
@@ -271,45 +235,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
         // ---------------------------------------------------------
         // KẾT NỐI VỚI PLAYER MANAGER ĐỂ ĐỔI GIAO DIỆN & HIỆN MINI PLAYER
         // ---------------------------------------------------------
-        PlayerManager playerManager = PlayerManager.getInstance(this);
 
-        playerManager.getIsPlayingLiveData().observe(this, isPlaying -> {
-            // Đổi icon ở nút Play bự (FAB)
-            fabPlayArtist.setImageResource(isPlaying ? R.drawable.ic_pause_24 : R.drawable.ic_play_arrow_24);
-
-            // Đổi icon ở nút Play nhỏ (Mini Player)
-            if (btnMiniPlayPause != null) {
-                btnMiniPlayPause.setImageResource(isPlaying ? R.drawable.ic_pause_24 : R.drawable.ic_play_arrow_24);
-            }
-        });
-
-        playerManager.getCurrentSongIdLiveData().observe(this, songId -> {
-            currentPlayingSongId = songId == null ? "" : songId;
-
-            // 1. Đổi màu chữ bài hát đang phát trong danh sách
-            if (artistSongAdapter != null) {
-                artistSongAdapter.setCurrentPlayingId(currentPlayingSongId);
-            }
-
-            // 2. Hiển thị thông tin lên thanh Mini Player
-            if (!currentPlayingSongId.isEmpty()) {
-                Song playingSong = MockDataStore.getSongById(currentPlayingSongId);
-                if (playingSong != null && layoutMiniPlayer != null) {
-                    layoutMiniPlayer.setVisibility(View.VISIBLE); // Hiện thanh Mini Player lên
-                    tvMiniTitle.setText(playingSong.getTitle());
-                    tvMiniArtist.setText(playingSong.getArtistName());
-                    Glide.with(this)
-                            .load(playingSong.getCoverUrl())
-                            .placeholder(new ColorDrawable(Color.parseColor("#20312B")))
-                            .into(ivMiniCover);
-                }
-            } else {
-                // Nếu không có bài nào đang phát, giấu thanh Mini Player đi
-                if (layoutMiniPlayer != null) {
-                    layoutMiniPlayer.setVisibility(View.GONE);
-                }
-            }
-        });
     }
     private void bindArtist(Artist artist) {
         if (artist == null) return;
