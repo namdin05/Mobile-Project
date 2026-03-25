@@ -1,6 +1,12 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
+
     alias(libs.plugins.android.application)
+
 }
+
 
 android {
     namespace = "com.melodix.app"
@@ -16,6 +22,23 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+
+        val properties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            properties.load(FileInputStream(localPropertiesFile))
+        }
+
+        // 2. Tạo biến toàn cục (Lưu ý: Bắt buộc phải có dấu \" ở quanh biến)
+        buildConfigField("String", "BASE_URL", "\"${properties.getProperty("SUPABASE_BASE_URL")}\"")
+        buildConfigField("String", "API_KEY", "\"${properties.getProperty("SUPABASE_API_KEY")}\"")
+
+
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {

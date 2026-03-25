@@ -6,4 +6,10 @@
     </style>
 
     <style name="Theme.Melodix" parent="Base.Theme.Melodix" />
+
+    <style name="RoundedSquare" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
 </resources>

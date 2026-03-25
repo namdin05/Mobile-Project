@@ -6,12 +6,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.melodix.app.AdminActivity;
+import com.melodix.app.BuildConfig;
 import com.melodix.app.MainActivity;
 import com.melodix.app.R;
 import com.melodix.app.ViewModel.AuthViewModel;
@@ -22,7 +25,9 @@ public class LoginActivity extends AppCompatActivity {
     private EditText edtEmail, edtPassword;
     private Button btnLoginEmail, btnLoginGoogle, btnLoginFacebook;
 
-    private static final String BASE_URL = "https://ggektdtrjagrmfnimmaw.supabase.co/";
+    private TextView tvGoToRegister;
+
+    private static final String BASE_URL = BuildConfig.BASE_URL;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +42,7 @@ public class LoginActivity extends AppCompatActivity {
         btnLoginEmail = findViewById(R.id.btnLoginEmail);
         btnLoginGoogle = findViewById(R.id.btnLoginGoogle);
         btnLoginFacebook = findViewById(R.id.btnLoginFacebook);
+        tvGoToRegister = findViewById(R.id.tvGoToRegister);
 
         // 1. Xử lý đăng nhập Email
         btnLoginEmail.setOnClickListener(v -> {
@@ -45,20 +51,35 @@ public class LoginActivity extends AppCompatActivity {
             if (!email.isEmpty() && !pass.isEmpty()) {
 
                 // GỌI VIEW MODEL VÀ QUAN SÁT KẾT QUẢ (LIVEDATA)
-                authViewModel.login(email, pass).observe(this, new Observer<String>() {
-                    @Override
-                    public void onChanged(String result) {
-                        if (result.startsWith("ERROR")) {
-                            Toast.makeText(LoginActivity.this, result, Toast.LENGTH_SHORT).show();
+                authViewModel.login(email, pass).observe(LoginActivity.this, loginResult -> {
+                    if (loginResult.isSuccess()) {
+                        // KIỂM TRA PHÂN QUYỀN TẠI ĐÂY
+                        String role = loginResult.getRole();
+
+                        Log.d("ROLE", role);
+
+                        if ("admin".equals(role)) {
+                            // NẾU LÀ ADMIN -> Mở màn hình AdminActivity (Trang duyệt nhạc)
+                            Toast.makeText(this, "Xin chào Quản trị viên!", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(LoginActivity.this, AdminActivity.class));
+
                         } else {
-                            Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
-                            // Nhận được Token (result) -> Chuyển màn hình
+                            // NẾU LÀ USER / ARTIST -> Mở màn hình MainActivity (Trang nghe nhạc)
+                            Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                            finish();
                         }
+
+                        finish(); // Đóng màn hình đăng nhập
+                    } else {
+                        // Báo lỗi
+                        Toast.makeText(LoginActivity.this, loginResult.getErrorMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
             }
+        });
+
+        tvGoToRegister.setOnClickListener(v -> {
+            startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
         });
 
         // 2. Xử lý đăng nhập Mạng xã hội (Cần dùng Intent nên giữ ở View)
