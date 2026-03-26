@@ -71,4 +71,7 @@ dependencies {
     // THƯ VIỆN MỚI CHO MVVM (ViewModel & LiveData)
     implementation("androidx.lifecycle:lifecycle-viewmodel:2.6.2")
     implementation("androidx.lifecycle:lifecycle-livedata:2.6.2")
+
+    implementation("androidx.media3:media3-exoplayer:1.2.1")
+    implementation("androidx.media3:media3-common:1.2.1")
 }
