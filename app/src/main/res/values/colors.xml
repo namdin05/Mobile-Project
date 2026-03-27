@@ -2,4 +2,13 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="melodix_bg_dark">#0F1714</color>
+    <color name="melodix_card_bg">#16221D</color>
+    <color name="melodix_accent_green">#10B981</color>
+    <color name="melodix_accent_green_dark">#047857</color>
+    <color name="melodix_text_primary">#FFFFFF</color>
+    <color name="melodix_text_secondary">#8B9A92</color>
+    <color name="melodix_danger">#EF4444</color>
+
 </resources>

@@ -22,3 +22,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 }
+
+
+// String selectQuery = "id, title, audio_url, song_artists(profiles(display_name))";
