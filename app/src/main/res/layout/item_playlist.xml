@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardBackgroundColor="@color/melodix_card_bg"
+    app:cardCornerRadius="16dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="#213028">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/imgCover"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:scaleType="centerCrop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:src="@drawable/ic_music_placeholder" />
+
+        <TextView
+            android:id="@+id/tvPlaylistName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Playlist Name"
+            android:textColor="@color/melodix_text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/imgCover"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/imgCover"
+            android:layout_marginStart="16dp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="0 bài hát"
+            android:textColor="@color/melodix_text_secondary"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="@id/tvPlaylistName"
+            app:layout_constraintTop_toBottomOf="@id/tvPlaylistName"
+            android:layout_marginTop="4dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

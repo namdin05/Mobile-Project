@@ -5,6 +5,7 @@ import com.melodix.app.Model.Playlist;
 import com.melodix.app.Model.PlaylistSong;
 import com.melodix.app.Model.PlaylistUpdateRequest;
 import com.melodix.app.Model.UpdateOrderRequest;
+import com.melodix.app.Model.PlaylistCreateRequest;
 
 import java.util.List;
 
