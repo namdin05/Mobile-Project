@@ -1,7 +1,39 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.Melodix" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+<resources>
+    <style name="Theme.Melodix" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/mdx_primary</item>
+        <item name="colorPrimaryVariant">@color/mdx_primary_dark</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorSecondary">@color/mdx_primary</item>
+        <item name="android:statusBarColor">@color/mdx_bg</item>
+        <item name="android:navigationBarColor">@color/mdx_bg</item>
+        <item name="android:windowBackground">@color/mdx_bg</item>
+        <item name="colorSurface">@color/mdx_surface</item>
+        <item name="colorOnSurface">@color/mdx_text</item>
+    </style>
+    <style name="Theme.Melodix.PopupMenu" parent="Theme.AppCompat.DayNight">
+        <item name="android:textColor">@color/mdx_text</item>
+        <item name="android:popupBackground">@drawable/bg_mini_player</item>
+    </style>
+    <style name="Widget.Melodix.Chip" parent="Widget.MaterialComponents.Chip.Choice">
+        <item name="android:textColor">@color/mdx_text</item>
+        <item name="chipBackgroundColor">@color/chip_bg_state</item>
+        <item name="checkedIconVisible">false</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.Melodix.Cover.Small">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.Melodix.Cover.Large">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
+
+    <style name="Widget.Melodix.OutlinedButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textAllCaps">false</item>
+        <item name="cornerRadius">18dp</item>
+        <item name="strokeColor">@color/mdx_line</item>
+        <item name="android:textColor">@color/mdx_text</item>
     </style>
 </resources>

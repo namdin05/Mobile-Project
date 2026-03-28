@@ -20,6 +20,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".View.AlbumDetailActivity" android:exported="false" />
+        <activity android:name=".View.ArtistDetailActivity" android:exported="false" />
     </application>
 
 </manifest>
