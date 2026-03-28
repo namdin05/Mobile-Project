@@ -5,12 +5,15 @@ import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
 
 import com.melodix.app.Model.AuthResponse;
+import com.melodix.app.Model.Genre;
 import com.melodix.app.Model.SignInRequest;
 import com.melodix.app.Model.SignUpRequest;
 import com.melodix.app.Model.LoginResult;
 import com.melodix.app.Model.Profile;
+import com.melodix.app.Model.Genre;
 
 import com.melodix.app.Service.AuthAPIService;
+import com.melodix.app.Service.GenreAPIService;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -27,6 +30,7 @@ public class AuthRepository {
     private static final String API_KEY = BuildConfig.API_KEY;
 
     private AuthAPIService apiService;
+    private GenreAPIService genreAPIService;
 
     public AuthRepository() {
         Retrofit retrofit = new Retrofit.Builder()
@@ -34,6 +38,7 @@ public class AuthRepository {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         apiService = retrofit.create(AuthAPIService.class);
+        genreAPIService = retrofit.create(GenreAPIService.class);
     }
 
     // Trả về MutableLiveData để ViewModel quan sát
@@ -131,5 +136,25 @@ public class AuthRepository {
         });
 
         return registerResult;
+    }
+
+    public MutableLiveData<List<Genre>> fetchGenres(){ // su dung MutableLiveData vi chay ham bat dong bo
+        MutableLiveData<List<Genre>> genres = new MutableLiveData<>();
+
+        genreAPIService.getGenres(API_KEY).enqueue(new Callback<List<Genre>>() { // ham callback se chay khi server gui phan hoi
+            @Override
+            public void onResponse(Call<List<Genre>> call, Response<List<Genre>> response) {
+                if(response.isSuccessful() || response.body() != null){
+                    genres.setValue(response.body());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Genre>> call, Throwable t) {
+                Log.e("API ERROR", "Loi mang: " + t.getMessage());
+                genres.setValue(null);
+            }
+        });
+        return genres;
     }
 }
