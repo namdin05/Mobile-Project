@@ -1,27 +1,45 @@
 package com.melodix.app.Model;
 
+import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
-import java.util.ArrayList;
 
 public class Song implements Serializable {
+    @SerializedName("id")
     public String id;
+
+    @SerializedName("title")
     public String title;
+
+    @SerializedName("artist_id")
     public String artistId;
-    public String artistName;
+
+    @SerializedName("album_id")
     public String albumId;
-    public String albumName;
+
+    @SerializedName("cover_url")
     public String coverRes;
+
+    @SerializedName("audio_url")
     public String audioRes;
-    public String genre;
-    public String description;
+
+    @SerializedName("duration_seconds")
     public int durationSec;
+
+    @SerializedName("stream_count")
     public int plays;
-    public int likes;
+
+    @SerializedName("is_published")
     public boolean approved = true;
 
+    // Các trường dưới đây không có trực tiếp trong bảng songs (do dùng DB quan hệ)
+    // Mình giữ nguyên để không làm lỗi app, nhưng dữ liệu trả về tạm thời sẽ là null/mặc định
+    public String artistName;
+    public String albumName;
+    public String genre;
+    public String description;
+    public int likes;
 
-    public Song() {
-    }
+    public Song() {}
 
     public Song(String id, String title, String artistId, String artistName, String albumId,
                 String albumName, String coverRes, String audioRes, String genre,

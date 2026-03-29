@@ -135,10 +135,24 @@ public class SearchFragment extends Fragment {
         tvResultsLabel.setVisibility(View.VISIBLE);
         rvResults.setVisibility(View.VISIBLE);
 
-        // GỌI HÀM TÌM KIẾM CỐT LÕI
-        ArrayList<SearchResultItem> results = repository.search(keyword, filter);
-        resultAdapter.update(results);
-        renderRecentSearches();
+        // =======================================================
+        // ĐÂY LÀ PHẦN LỘT XÁC: GỌI MẠNG BẤT ĐỒNG BỘ (ASYNC)
+        // =======================================================
+        repository.search(keyword, filter, new AppRepository.SearchCallback() {
+            @Override
+            public void onSuccess(ArrayList<SearchResultItem> results) {
+                // Retrofit rất thông minh, nó tự động trả kết quả về Luồng chính (Main Thread)
+                // Nên bạn cứ thoải mái cập nhật giao diện ở đây mà không sợ crash app!
+                resultAdapter.update(results);
+                renderRecentSearches();
+            }
+
+            @Override
+            public void onError(String message) {
+                // Hiển thị thông báo nhỏ ở dưới đáy màn hình nếu mạng chập chờn
+                android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void showDefaultResults() {
