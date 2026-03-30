@@ -49,7 +49,7 @@ public class LoginActivity extends AppCompatActivity {
             String email = edtEmail.getText().toString().trim();
             String pass = edtPassword.getText().toString().trim();
             if (!email.isEmpty() && !pass.isEmpty()) {
-
+                btnLoginEmail.setEnabled(false); // khoa de ko bi spam, tao nhieu luong
                 // GỌI VIEW MODEL VÀ QUAN SÁT KẾT QUẢ (LIVEDATA)
                 authViewModel.login(email, pass, this).observe(LoginActivity.this, loginResult -> {
                     if (loginResult.isSuccess()) {
