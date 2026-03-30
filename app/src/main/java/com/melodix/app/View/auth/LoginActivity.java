@@ -51,7 +51,7 @@ public class LoginActivity extends AppCompatActivity {
             if (!email.isEmpty() && !pass.isEmpty()) {
 
                 // GỌI VIEW MODEL VÀ QUAN SÁT KẾT QUẢ (LIVEDATA)
-                authViewModel.login(email, pass).observe(LoginActivity.this, loginResult -> {
+                authViewModel.login(email, pass, this).observe(LoginActivity.this, loginResult -> {
                     if (loginResult.isSuccess()) {
                         // KIỂM TRA PHÂN QUYỀN TẠI ĐÂY
                         String role = loginResult.getRole();

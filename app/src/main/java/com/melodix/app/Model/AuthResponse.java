@@ -11,14 +11,14 @@ public class AuthResponse {
         this.accessToken = accessToken;
     }
     @SerializedName("user")
-    private User user;
+    private Profile user;
 
     // 2. THÊM HÀM GETTER NÀY LÀ HẾT LỖI ĐỎ Ở REPOSITORY
-    public User getUser() {
+    public Profile getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(Profile user) {
         this.user = user;
     }
 }

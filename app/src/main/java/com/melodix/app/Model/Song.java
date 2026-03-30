@@ -9,4 +9,7 @@ public class Song {
     @SerializedName("title")
     private String title;
 
+    public String getTitle() {
+        return title;
+    }
 }

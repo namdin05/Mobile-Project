@@ -1,16 +1,19 @@
 package com.melodix.app.Repository.auth;
 
+import android.content.Context;
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.gson.Gson;
 import com.melodix.app.Model.AuthResponse;
 import com.melodix.app.Model.Genre;
+import com.melodix.app.Model.SessionManager;
 import com.melodix.app.Model.SignInRequest;
 import com.melodix.app.Model.SignUpRequest;
 import com.melodix.app.Model.LoginResult;
 import com.melodix.app.Model.Profile;
-import com.melodix.app.Model.Genre;
+import com.melodix.app.Model.SessionManager;
 
 import com.melodix.app.Model.Song;
 import com.melodix.app.Service.AuthAPIService;
@@ -46,7 +49,7 @@ public class AuthRepository {
     }
 
     // Trả về MutableLiveData để ViewModel quan sát
-    public MutableLiveData<LoginResult> signIn(String email, String password) {
+    public MutableLiveData<LoginResult> signIn(String email, String password, Context context) {
         MutableLiveData<LoginResult> result = new MutableLiveData<>();
         SignInRequest request = new SignInRequest(email, password);
 
@@ -60,7 +63,11 @@ public class AuthRepository {
 
                     // 2. Gọi API hỏi xem ông này role gì
                     fetchUserRole(userId, token, result);
+                    fetchCurrentUser(userId, token, context);
 
+                    // Log.d("test_u", new Gson().toJson(response.body().getUser()));
+
+                    SessionManager.getInstance(context).saveLogInSession(response.body().getUser(), token);
                 } else {
                     result.setValue(new LoginResult(false, "Sai tài khoản hoặc mật khẩu", true));
                 }
@@ -115,6 +122,32 @@ public class AuthRepository {
                 result.setValue(new LoginResult(false, "Lỗi tải thông tin phân quyền", true));
             }
         });
+    }
+
+    public MutableLiveData<Profile> fetchCurrentUser(String userId, String token, Context context){
+        MutableLiveData<Profile> current_user = new MutableLiveData<>();
+        String modified_token = "Bearer " + token;
+        String modified_user_id = "eq." + userId;
+
+        apiService.getProfile(API_KEY, modified_token, modified_user_id).enqueue(new Callback<List<Profile>>() {
+            @Override
+            public void onResponse(Call<List<Profile>> call, Response<List<Profile>> response) {
+                if(response.isSuccessful() && response.body() != null){
+                    Profile profile = response.body().get(0);
+                    current_user.setValue(profile);
+                    SessionManager.getInstance(context).saveLogInSession(profile, token);
+                } else {
+                    current_user.setValue(null);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Profile>> call, Throwable t) {
+                Log.e("FETCH_CURRENT_USER", t.getMessage());
+                current_user.setValue(null);
+            }
+        });
+        return current_user;
     }
 
     public MutableLiveData<String> signUp(String email, String password, String fullName) {
