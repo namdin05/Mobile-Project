@@ -1,7 +1,11 @@
 package com.melodix.app.Model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Genre {
+    @SerializedName("id")
     private int id;
+    @SerializedName("name")
     private String name;
 
     public int getId() {

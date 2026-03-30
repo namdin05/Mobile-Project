@@ -12,6 +12,7 @@ import com.melodix.app.Model.LoginResult;
 import com.melodix.app.Model.Profile;
 import com.melodix.app.Model.Genre;
 
+import com.melodix.app.Model.Song;
 import com.melodix.app.Service.AuthAPIService;
 import com.melodix.app.Service.GenreAPIService;
 
@@ -22,6 +23,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import com.melodix.app.BuildConfig;
+import com.melodix.app.Service.SongAPIService;
 
 import java.util.List;
 
@@ -31,6 +33,7 @@ public class AuthRepository {
 
     private AuthAPIService apiService;
     private GenreAPIService genreAPIService;
+    private SongAPIService songAPIService;
 
     public AuthRepository() {
         Retrofit retrofit = new Retrofit.Builder()
@@ -39,6 +42,7 @@ public class AuthRepository {
                 .build();
         apiService = retrofit.create(AuthAPIService.class);
         genreAPIService = retrofit.create(GenreAPIService.class);
+        songAPIService = retrofit.create(SongAPIService.class);
     }
 
     // Trả về MutableLiveData để ViewModel quan sát
@@ -144,7 +148,7 @@ public class AuthRepository {
         genreAPIService.getGenres(API_KEY).enqueue(new Callback<List<Genre>>() { // ham callback se chay khi server gui phan hoi
             @Override
             public void onResponse(Call<List<Genre>> call, Response<List<Genre>> response) {
-                if(response.isSuccessful() || response.body() != null){
+                if(response.isSuccessful() && response.body() != null){
                     genres.setValue(response.body());
                 }
             }
@@ -156,5 +160,27 @@ public class AuthRepository {
             }
         });
         return genres;
+    }
+
+    public MutableLiveData<List<Song>> fetchNewReleaseSongs(){
+        MutableLiveData<List<Song>> songs = new MutableLiveData<>();
+
+        songAPIService.getNewReleaseSongs(API_KEY, 3).enqueue(new Callback<List<Song>>() {
+            @Override
+            public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
+                if(response.isSuccessful() && response.body() != null){
+                    songs.setValue(response.body());
+                } else {
+                    songs.setValue(null);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Song>> call, Throwable t) {
+                Log.e("API ERROR", "Loi mang: " + t.getMessage());
+                songs.setValue(null);
+            }
+        });
+        return songs;
     }
 }
