@@ -34,6 +34,8 @@
                 <data android:scheme="melodix" android:host="callback" />
             </intent-filter>
         </activity>
+        <activity android:name=".View.AlbumDetailActivity" android:exported="false" />
+        <activity android:name=".View.ArtistDetailActivity" android:exported="false" />
 
         <activity android:name=".View.auth.RegisterActivity" />
 

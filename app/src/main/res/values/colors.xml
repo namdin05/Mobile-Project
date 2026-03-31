@@ -1,14 +1,21 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-
-    <color name="melodix_bg_dark">#0F1714</color>
-    <color name="melodix_card_bg">#16221D</color>
-    <color name="melodix_accent_green">#10B981</color>
-    <color name="melodix_accent_green_dark">#047857</color>
-    <color name="melodix_text_primary">#FFFFFF</color>
-    <color name="melodix_text_secondary">#8B9A92</color>
-    <color name="melodix_danger">#EF4444</color>
-
+    <color name="mdx_bg">#051D18</color>
+    <color name="mdx_bg_secondary">#082821</color>
+    <color name="mdx_surface">#0A2E26</color>
+    <color name="mdx_surface_alt">#103A30</color>
+    <color name="mdx_primary">#2CC695</color>
+    <color name="mdx_primary_dark">#1AA87B</color>
+    <color name="mdx_primary_soft">#153E35</color>
+    <color name="mdx_text">#F2F5F4</color>
+    <color name="mdx_text_secondary">#9AB1AB</color>
+    <color name="mdx_text_muted">#6E847D</color>
+    <color name="mdx_warning">#FFB648</color>
+    <color name="mdx_danger">#FF6B6B</color>
+    <color name="mdx_info">#4AA3FF</color>
+    <color name="mdx_chip">#143E34</color>
+    <color name="mdx_line">#1D5447</color>
+    <color name="mdx_card">#0C3128</color>
+    <color name="mdx_card_alt">#10281F</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
 </resources>
