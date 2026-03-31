@@ -1,7 +1,9 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     android:background="@drawable/bg_screen">
 
     <LinearLayout
@@ -15,83 +17,90 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical">
 
-            <ImageButton
+            <ImageView
                 android:id="@+id/btn_back"
                 android:layout_width="42dp"
                 android:layout_height="42dp"
                 android:background="@drawable/bg_circle_surface"
-                android:src="@drawable/ic_prev" />
+                android:src="@drawable/ic_prev"
+                android:scaleType="centerInside" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="Album Detail"
+                android:text="Album"
                 android:textColor="@color/mdx_text"
-                android:textSize="22sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
-            <ImageButton
+            <ImageView
                 android:id="@+id/btn_share"
                 android:layout_width="42dp"
                 android:layout_height="42dp"
                 android:background="@drawable/bg_circle_surface"
-                android:src="@drawable/ic_share" />
+                android:src="@drawable/ic_share"
+                android:scaleType="centerInside" />
         </LinearLayout>
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/img_cover"
-            android:layout_width="220dp"
-            android:layout_height="220dp"
+            android:layout_width="240dp"
+            android:layout_height="240dp"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="24dp"
             android:contentDescription="cover"
             android:scaleType="centerCrop"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Melodix.Cover.Large" />
 
         <TextView
             android:id="@+id/tv_title"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Album"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:text="Đang tải..."
             android:textColor="@color/mdx_text"
-            android:textSize="30sp"
+            android:textSize="28sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tv_subtitle"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="Artist • 2024"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="Xin chờ một chút"
             android:textColor="@color/mdx_primary"
-            android:textSize="17sp" />
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/tv_description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="20dp"
             android:background="@drawable/bg_card"
             android:padding="16dp"
-            android:textColor="@color/mdx_text_secondary" />
+            android:lineSpacingExtra="4dp"
+            android:textColor="@color/mdx_text_secondary"
+            android:visibility="gone" />
 
         <TextView
+            android:id="@+id/tv_track_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="22dp"
-            android:text="Track List"
+            android:layout_marginTop="32dp"
+            android:text="Danh sách bài hát"
             android:textColor="@color/mdx_text"
-            android:textSize="22sp"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_tracks"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="16dp"
             android:nestedScrollingEnabled="false" />
     </LinearLayout>
-</ScrollView>
+</androidx.core.widget.NestedScrollView>

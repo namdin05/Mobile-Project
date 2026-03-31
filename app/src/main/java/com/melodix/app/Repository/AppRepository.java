@@ -37,7 +37,10 @@ public class AppRepository {
     private final Gson gson;
     private final SessionManager sessionManager;
     private MockDatabase.DataState state;
-    private final SupabaseApi supabaseApi; // THÊM DÒNG NÀY
+    private final SupabaseApi supabaseApi;
+
+    // Giữ lại bộ đếm thời gian để chống giật lag khi gõ phím
+    private long lastSearchTime = 0;
 
     private AppRepository(Context context) {
         this.appContext = context.getApplicationContext();
@@ -46,7 +49,6 @@ public class AppRepository {
         this.sessionManager = new SessionManager(appContext);
         load();
         this.supabaseApi = SupabaseClient.getClient().create(SupabaseApi.class);
-        load();
     }
 
     public static synchronized AppRepository getInstance(Context context) {
@@ -70,28 +72,58 @@ public class AppRepository {
             }
         }
     }
-    public Album getAlbumById(String id) {
-        for (Album album : state.albums) {
-            if (album.id.equals(id)) return album;
-        }
-        return null;
+
+    public void getAlbumById(String id, AlbumCallback callback) {
+        supabaseApi.getAlbumById("eq." + id).enqueue(new Callback<List<Album>>() {
+            @Override
+            public void onResponse(Call<List<Album>> call, retrofit2.Response<List<Album>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    callback.onSuccess(response.body().get(0));
+                } else {
+                    callback.onError("Không tìm thấy dữ liệu Album! Mã lỗi: " + response.code());
+                }
+            }
+            @Override
+            public void onFailure(Call<List<Album>> call, Throwable t) {
+                callback.onError("Lỗi kết nối mạng: " + t.getMessage());
+            }
+        });
     }
+
     public Artist getArtistById(String id) {
         for (Artist artist : state.artists) {
             if (artist.id.equals(id)) return artist;
         }
         return null;
     }
+
+    public interface SongListCallback {
+        void onSuccess(ArrayList<Song> songs);
+        void onError(String message);
+    }
+
+    public void getSongsByAlbum(String albumId, SongListCallback callback) {
+        supabaseApi.getSongsByAlbumId("eq." + albumId).enqueue(new Callback<List<Song>>() {
+            @Override
+            public void onResponse(Call<List<Song>> call, retrofit2.Response<List<Song>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(new ArrayList<>(response.body()));
+                } else {
+                    callback.onError("Không tải được danh sách bài hát.");
+                }
+            }
+            @Override
+            public void onFailure(Call<List<Song>> call, Throwable t) {
+                callback.onError("Lỗi mạng: " + t.getMessage());
+            }
+        });
+    }
+
     private void save() {
         prefs.edit().putString(KEY_STATE, gson.toJson(state)).apply();
     }
 
-    // =========================================================================
-    // CÁC HÀM PHỤ THUỘC (CẦN THIẾT ĐỂ TÌM KIẾM VÀ LƯU LỊCH SỬ HOẠT ĐỘNG)
-    // =========================================================================
-
     public AppUser getCurrentUser() {
-        // Bỏ qua sessionManager, ép cứng app luôn nhận diện tài khoản test "user_listener"
         return getUserById("user_listener");
     }
 
@@ -134,12 +166,22 @@ public class AppRepository {
     }
 
     // =========================================================================
-    // NHÓM CHỨC NĂNG TÌM KIẾM NÂNG CAO & LỊCH SỬ TÌM KIẾM
+    // HÀM LƯU LỊCH SỬ (Đã được tách riêng ra để phục vụ SearchFragment)
     // =========================================================================
+    public void saveToRecentSearch(String keyword) {
+        String q = keyword == null ? "" : keyword.trim();
+        if (q.isEmpty()) return;
+        AppUser user = getCurrentUser();
+        if (user != null) {
+            user.recentSearches.remove(q);
+            user.recentSearches.add(0, q);
+            if (user.recentSearches.size() > 8) user.recentSearches.remove(user.recentSearches.size() - 1);
+            save();
+        }
+    }
 
-    // HÀM SEARCH PHIÊN BẢN MẠNG THẬT
     // =========================================================================
-    // HÀM SEARCH FULL-TEXT (TÌM BÀI HÁT, NGHỆ SĨ, ALBUM, PLAYLIST SONG SONG)
+    // HÀM SEARCH FULL-TEXT (CÚ PHÁP CHUẨN KẾT HỢP DEBOUNCE)
     // =========================================================================
     public void search(String keyword, String filter, SearchCallback callback) {
         ArrayList<SearchResultItem> results = new ArrayList<>();
@@ -149,21 +191,25 @@ public class AppRepository {
             return;
         }
 
-        // 1. Cập nhật lịch sử tìm kiếm
-        AppUser user = getCurrentUser();
-        if (user != null) {
-            user.recentSearches.remove(keyword);
-            user.recentSearches.add(0, keyword);
-            while (user.recentSearches.size() > 8) {
-                user.recentSearches.remove(user.recentSearches.size() - 1);
-            }
-            save();
-        }
+        // Đánh dấu thời gian bắt đầu gọi mạng để chống lag
+        // Đánh dấu thời gian bắt đầu gọi mạng để chống lag
+        final long currentRequestTime = System.currentTimeMillis();
+        lastSearchTime = currentRequestTime;
 
-        // 2. Cú pháp FTS của PostgREST Supabase
-        String ftsQuery = "wfts." + q;
+        // =======================================================
+        // TÍNH NĂNG MỚI: TÌM KIẾM TIỀN TỐ (GÕ 1 CHỮ CŨNG RA)
+        // =======================================================
+        // 1. Biến đổi: "nhạc t" -> "nhạc & t:*"
+        String formattedKeyword = q.replaceAll("\\s+", " & ") + ":*";
 
-        // 3. Chuẩn bị biến đếm để gọi 4 luồng mạng song song
+        // 2. Mã hóa chữ tiếng Việt & các ký tự đặc biệt để an toàn truyền đi
+        String encodedKeyword = android.net.Uri.encode(formattedKeyword);
+
+        // 3. Đổi wfts thành fts nguyên bản để hỗ trợ dấu :*
+        String ftsQuery = "fts(simple)." + encodedKeyword;
+        // =======================================================
+
+
         boolean searchSongs = Constants.FILTER_ALL.equals(filter) || Constants.FILTER_SONG.equals(filter);
         boolean searchArtists = Constants.FILTER_ALL.equals(filter) || Constants.FILTER_ARTIST.equals(filter);
         boolean searchAlbums = Constants.FILTER_ALL.equals(filter) || Constants.FILTER_ALBUM.equals(filter);
@@ -180,43 +226,35 @@ public class AppRepository {
             return;
         }
 
-        // AtomicInteger giúp đếm lùi số lượng request một cách an toàn
         AtomicInteger pendingRequests = new AtomicInteger(totalRequests);
-
-        // Dùng danh sách đồng bộ để không bị lỗi khi 4 kết quả cùng ùa về 1 lúc
         List<SearchResultItem> syncResults = Collections.synchronizedList(new ArrayList<>());
 
-        // Lệnh kiểm tra: Nếu đếm ngược về 0 (tất cả API đã trả kết quả về), thì xuất lên màn hình
         Runnable checkCompletion = () -> {
             if (pendingRequests.decrementAndGet() == 0) {
-                callback.onSuccess(new ArrayList<>(syncResults));
+                // Chỉ trả kết quả về giao diện nếu đây là lần gõ phím mới nhất
+                if (currentRequestTime == lastSearchTime) {
+                    callback.onSuccess(new ArrayList<>(syncResults));
+                }
             }
         };
 
-        // 4. BẮT ĐẦU GỌI MẠNG ĐỒNG LOẠT
-        // TÌM BÀI HÁT
         if (searchSongs) {
             supabaseApi.searchSongs(ftsQuery).enqueue(new Callback<List<Song>>() {
                 @Override public void onResponse(Call<List<Song>> call, retrofit2.Response<List<Song>> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        for (Song song : response.body()) {
-                            syncResults.add(new SearchResultItem(Constants.FILTER_SONG, song.id, song.title, "Bài hát", song.coverRes));
-                        }
+                        for (Song song : response.body()) syncResults.add(new SearchResultItem(Constants.FILTER_SONG, song.id, song.title, "Bài hát", song.coverRes));
                     }
-                    checkCompletion.run(); // Báo cáo: "Tôi tìm xong bài hát rồi nhé!"
+                    checkCompletion.run();
                 }
                 @Override public void onFailure(Call<List<Song>> call, Throwable t) { checkCompletion.run(); }
             });
         }
 
-        // TÌM NGHỆ SĨ
         if (searchArtists) {
             supabaseApi.searchArtists(ftsQuery).enqueue(new Callback<List<Artist>>() {
                 @Override public void onResponse(Call<List<Artist>> call, retrofit2.Response<List<Artist>> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        for (Artist artist : response.body()) {
-                            syncResults.add(new SearchResultItem(Constants.FILTER_ARTIST, artist.id, artist.name, "Nghệ sĩ", artist.avatarRes));
-                        }
+                        for (Artist artist : response.body()) syncResults.add(new SearchResultItem(Constants.FILTER_ARTIST, artist.id, artist.name, "Nghệ sĩ", artist.avatarRes));
                     }
                     checkCompletion.run();
                 }
@@ -224,14 +262,11 @@ public class AppRepository {
             });
         }
 
-        // TÌM ALBUM
         if (searchAlbums) {
             supabaseApi.searchAlbums(ftsQuery).enqueue(new Callback<List<Album>>() {
                 @Override public void onResponse(Call<List<Album>> call, retrofit2.Response<List<Album>> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        for (Album album : response.body()) {
-                            syncResults.add(new SearchResultItem(Constants.FILTER_ALBUM, album.id, album.title, "Album", album.coverRes));
-                        }
+                        for (Album album : response.body()) syncResults.add(new SearchResultItem(Constants.FILTER_ALBUM, album.id, album.title, "Album", album.coverRes));
                     }
                     checkCompletion.run();
                 }
@@ -239,14 +274,11 @@ public class AppRepository {
             });
         }
 
-        // TÌM PLAYLIST
         if (searchPlaylists) {
             supabaseApi.searchPlaylists(ftsQuery).enqueue(new Callback<List<Playlist>>() {
                 @Override public void onResponse(Call<List<Playlist>> call, retrofit2.Response<List<Playlist>> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        for (Playlist playlist : response.body()) {
-                            syncResults.add(new SearchResultItem(Constants.FILTER_PLAYLIST, playlist.id, playlist.name, "Playlist", playlist.coverRes));
-                        }
+                        for (Playlist playlist : response.body()) syncResults.add(new SearchResultItem(Constants.FILTER_PLAYLIST, playlist.id, playlist.name, "Playlist", playlist.coverRes));
                     }
                     checkCompletion.run();
                 }
@@ -254,27 +286,57 @@ public class AppRepository {
             });
         }
     }
+    public interface ArtistCallback {
+        void onSuccess(Artist artist);
+        void onError(String message);
+    }
+
+    public void getArtistByIdAsync(String id, ArtistCallback callback) {
+        supabaseApi.getArtistByIdAPI("eq." + id).enqueue(new Callback<List<Artist>>() {
+            @Override
+            public void onResponse(Call<List<Artist>> call, Response<List<Artist>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    callback.onSuccess(response.body().get(0));
+                } else {
+                    callback.onError("Không tìm thấy dữ liệu Nghệ sĩ!");
+                }
+            }
+            @Override
+            public void onFailure(Call<List<Artist>> call, Throwable t) {
+                callback.onError("Lỗi kết nối mạng: " + t.getMessage());
+            }
+        });
+    }
     public interface SearchCallback {
         void onSuccess(ArrayList<SearchResultItem> results);
         void onError(String message);
     }
-    // Hàm hỗ trợ tìm kiếm Full-text bằng Keyword (Kiểm tra chuỗi con)
+    public interface AlbumCallback {
+        void onSuccess(Album album);
+        void onError(String message);
+    }
     private boolean contains(String value, String q) {
         return value != null && value.toLowerCase(Locale.ROOT).contains(q);
     }
 
-    // Lấy danh sách lịch sử tìm kiếm
     public ArrayList<String> getRecentSearches() {
         AppUser user = getCurrentUser();
         if (user == null) return new ArrayList<>();
         return new ArrayList<>(user.recentSearches);
     }
 
-    // Xóa lịch sử tìm kiếm
     public void clearRecentSearches() {
         AppUser user = getCurrentUser();
         if (user != null) {
             user.recentSearches.clear();
+            save();
+        }
+    }
+
+    public void removeRecentSearch(String keyword) {
+        AppUser user = getCurrentUser();
+        if (user != null && keyword != null) {
+            user.recentSearches.remove(keyword);
             save();
         }
     }

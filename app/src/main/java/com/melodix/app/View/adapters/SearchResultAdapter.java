@@ -8,9 +8,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+// Thêm thư viện tải ảnh Glide
+import com.bumptech.glide.Glide;
+
 import com.melodix.app.Model.SearchResultItem;
 import com.melodix.app.R;
-import com.melodix.app.Utils.ResourceUtils;
 import java.util.ArrayList;
 
 public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapter.ResultHolder> {
@@ -40,7 +43,14 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
     @Override
     public void onBindViewHolder(@NonNull ResultHolder holder, int position) {
         SearchResultItem item = items.get(position);
-        holder.cover.setImageResource(ResourceUtils.anyDrawable(context, item.coverRes));
+
+        // ==========================================
+        // SỰ THAY ĐỔI ĐÁNG GIÁ: DÙNG GLIDE TẢI ẢNH MẠNG
+        // ==========================================
+        Glide.with(context)
+                .load(item.coverRes) // Truyền thẳng đường link https://... vào đây
+                .into(holder.cover);
+
         holder.title.setText(item.title);
         holder.subtitle.setText(item.subtitle);
         holder.itemView.setOnClickListener(v -> {

@@ -1,4 +1,4 @@
-package com.melodix.app.Network; // Đổi lại package cho đúng với project của bạn
+package com.melodix.app.Network;
 
 import com.melodix.app.Model.Album;
 import com.melodix.app.Model.Artist;
@@ -11,19 +11,25 @@ import retrofit2.http.Query;
 
 public interface SupabaseApi {
 
-    // Tìm bài hát
-    @GET("songs?select=*")
-    Call<List<Song>> searchSongs(@Query("fts") String ftsQuery);
+    // CHÚ Ý: Đã thêm encoded = true để Retrofit không tự ý làm hỏng câu lệnh FTS
+    @GET("song_details_view?select=*")
+    Call<List<Song>> searchSongs(@Query(value = "fts", encoded = true) String ftsQuery);
 
-    // Tìm nghệ sĩ (thông qua Bảng ảo View)
     @GET("artist_search_view?select=*")
-    Call<List<Artist>> searchArtists(@Query("fts") String ftsQuery);
+    Call<List<Artist>> searchArtists(@Query(value = "fts", encoded = true) String ftsQuery);
 
-    // Tìm album
-    @GET("albums?select=*")
-    Call<List<Album>> searchAlbums(@Query("fts") String ftsQuery);
+    @GET("album_details_view?select=*")
+    Call<List<Album>> searchAlbums(@Query(value = "fts", encoded = true) String ftsQuery);
 
-    // Tìm playlist
     @GET("playlists?select=*")
-    Call<List<Playlist>> searchPlaylists(@Query("fts") String ftsQuery);
+    Call<List<Playlist>> searchPlaylists(@Query(value = "fts", encoded = true) String ftsQuery);
+
+    @GET("album_details_view?select=*")
+    Call<List<Album>> getAlbumById(@Query("id") String idQuery);
+
+    @GET("song_details_view?select=*")
+    Call<List<Song>> getSongsByAlbumId(@Query("album_id") String albumIdQuery);
+
+    @GET("artist_search_view?select=*")
+    Call<List<Artist>> getArtistByIdAPI(@Query("id") String idQuery);
 }
