@@ -1,5 +1,7 @@
 package com.melodix.app.ViewModel;
 
+import android.content.Context;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -15,8 +17,8 @@ public class AuthViewModel extends ViewModel {
     }
 
     // Hàm này được View gọi khi người dùng nhấn nút Đăng nhập
-    public LiveData<LoginResult> login(String email, String password) {
-        return authRepository.signIn(email, password);
+    public LiveData<LoginResult> login(String email, String password, Context context) {
+        return authRepository.signIn(email, password, context);
     }
 
     public LiveData<String> register(String email, String password, String fullName) {

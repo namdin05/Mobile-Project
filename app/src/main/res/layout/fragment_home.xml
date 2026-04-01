@@ -1,4 +1,4 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -48,14 +48,14 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/btn_discovery"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="@drawable/bg_circle_surface"
-                app:srcCompat="@drawable/ic_search"
-                android:scaleType="centerInside"
-                android:padding="10dp" />
+<!--            <ImageButton-->
+<!--                android:id="@+id/btn_discovery"-->
+<!--                android:layout_width="44dp"-->
+<!--                android:layout_height="44dp"-->
+<!--                android:background="@drawable/bg_circle_surface"-->
+<!--                app:srcCompat="@drawable/ic_search"-->
+<!--                android:scaleType="centerInside"-->
+<!--                android:padding="10dp" />-->
         </LinearLayout>
 
         <androidx.viewpager2.widget.ViewPager2
@@ -80,13 +80,13 @@
                 android:textSize="22sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tv_view_trending"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="View All"
-                android:textColor="@color/mdx_primary"
-                android:textSize="16sp" />
+<!--            <TextView-->
+<!--                android:id="@+id/tv_view_trending"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="View All"-->
+<!--                android:textColor="@color/mdx_primary"-->
+<!--                android:textSize="16sp" />-->
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -156,4 +156,4 @@
             android:nestedScrollingEnabled="false"
             android:paddingHorizontal="20dp" />
     </LinearLayout>
-</ScrollView>
+</androidx.core.widget.NestedScrollView>

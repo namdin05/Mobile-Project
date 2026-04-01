@@ -1,16 +1,25 @@
 package com.melodix.app.Repository.auth;
 
+import android.content.Context;
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.gson.Gson;
 import com.melodix.app.Model.AuthResponse;
+import com.melodix.app.Model.Banner;
+import com.melodix.app.Model.Genre;
+import com.melodix.app.Model.SessionManager;
 import com.melodix.app.Model.SignInRequest;
 import com.melodix.app.Model.SignUpRequest;
 import com.melodix.app.Model.LoginResult;
 import com.melodix.app.Model.Profile;
+import com.melodix.app.Model.SessionManager;
 
+import com.melodix.app.Model.Song;
 import com.melodix.app.Service.AuthAPIService;
+import com.melodix.app.Service.BannerAPIService;
+import com.melodix.app.Service.GenreAPIService;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -19,6 +28,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import com.melodix.app.BuildConfig;
+import com.melodix.app.Service.SongAPIService;
 
 import java.util.List;
 
@@ -27,6 +37,9 @@ public class AuthRepository {
     private static final String API_KEY = BuildConfig.API_KEY;
 
     private AuthAPIService apiService;
+    private GenreAPIService genreAPIService;
+    private SongAPIService songAPIService;
+    private BannerAPIService bannerAPIService;
 
     public AuthRepository() {
         Retrofit retrofit = new Retrofit.Builder()
@@ -34,10 +47,13 @@ public class AuthRepository {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         apiService = retrofit.create(AuthAPIService.class);
+        genreAPIService = retrofit.create(GenreAPIService.class);
+        songAPIService = retrofit.create(SongAPIService.class);
+        bannerAPIService = retrofit.create(BannerAPIService.class);
     }
 
     // Trả về MutableLiveData để ViewModel quan sát
-    public MutableLiveData<LoginResult> signIn(String email, String password) {
+    public MutableLiveData<LoginResult> signIn(String email, String password, Context context) {
         MutableLiveData<LoginResult> result = new MutableLiveData<>();
         SignInRequest request = new SignInRequest(email, password);
 
@@ -51,7 +67,11 @@ public class AuthRepository {
 
                     // 2. Gọi API hỏi xem ông này role gì
                     fetchUserRole(userId, token, result);
+                    fetchCurrentUser(userId, token, context);
 
+                    // Log.d("test_u", new Gson().toJson(response.body().getUser()));
+
+                    SessionManager.getInstance(context).saveLogInSession(response.body().getUser(), token);
                 } else {
                     result.setValue(new LoginResult(false, "Sai tài khoản hoặc mật khẩu", true));
                 }
@@ -108,6 +128,32 @@ public class AuthRepository {
         });
     }
 
+    public MutableLiveData<Profile> fetchCurrentUser(String userId, String token, Context context){
+        MutableLiveData<Profile> current_user = new MutableLiveData<>();
+        String modified_token = "Bearer " + token;
+        String modified_user_id = "eq." + userId;
+
+        apiService.getProfile(API_KEY, modified_token, modified_user_id).enqueue(new Callback<List<Profile>>() {
+            @Override
+            public void onResponse(Call<List<Profile>> call, Response<List<Profile>> response) {
+                if(response.isSuccessful() && response.body() != null){
+                    Profile profile = response.body().get(0);
+                    current_user.setValue(profile);
+                    SessionManager.getInstance(context).saveLogInSession(profile, token);
+                } else {
+                    current_user.setValue(null);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Profile>> call, Throwable t) {
+                Log.e("FETCH_CURRENT_USER", t.getMessage());
+                current_user.setValue(null);
+            }
+        });
+        return current_user;
+    }
+
     public MutableLiveData<String> signUp(String email, String password, String fullName) {
         MutableLiveData<String> registerResult = new MutableLiveData<>();
         SignUpRequest request = new SignUpRequest(email, password, fullName);
@@ -131,5 +177,94 @@ public class AuthRepository {
         });
 
         return registerResult;
+    }
+
+    public MutableLiveData<List<Genre>> fetchGenres(){ // su dung MutableLiveData vi chay ham bat dong bo
+        MutableLiveData<List<Genre>> genres = new MutableLiveData<>();
+
+        genreAPIService.getGenres(API_KEY).enqueue(new Callback<List<Genre>>() { // ham callback se chay khi server gui phan hoi
+            @Override
+            public void onResponse(Call<List<Genre>> call, Response<List<Genre>> response) {
+                if(response.isSuccessful() && response.body() != null){
+                    genres.setValue(response.body());
+                    Log.d("GENRES", "goi database thanh cong");
+                    Log.d("GENRES", new Gson().toJson(response.body()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Genre>> call, Throwable t) {
+                Log.e("API ERROR", "Loi mang: " + t.getMessage());
+                genres.setValue(null);
+            }
+        });
+        return genres;
+    }
+
+    public MutableLiveData<List<Song>> fetchNewReleaseSongs(){
+        MutableLiveData<List<Song>> songs = new MutableLiveData<>();
+
+        songAPIService.getNewReleaseSongs(API_KEY, 5).enqueue(new Callback<List<Song>>() {
+            @Override
+            public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
+                if(response.isSuccessful() && response.body() != null){
+                    songs.setValue(response.body());
+                    Log.d("NEW_RELEASE_SONGS", new Gson().toJson(response.body()));
+                } else {
+                    songs.setValue(null);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Song>> call, Throwable t) {
+                Log.e("API ERROR", "Loi mang: " + t.getMessage());
+                songs.setValue(null);
+            }
+        });
+        return songs;
+    }
+
+    public MutableLiveData<List<Song>> fetchTrendingSongs(){
+        MutableLiveData<List<Song>> songs = new MutableLiveData<>();
+
+        songAPIService.getTrendingSongs(API_KEY, 5).enqueue(new Callback<List<Song>>() {
+            @Override
+            public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
+                if(response.isSuccessful() && response.body() != null){
+                    Log.d("TRENDING", new Gson().toJson(response.body()));
+                    songs.setValue(response.body());
+                } else {
+                    Log.d("TRENDING", "K co bai hat trend");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Song>> call, Throwable t) {
+                Log.d("TRENDING", "fail");
+            }
+        });
+        return songs;
+    }
+
+    public MutableLiveData<List<Banner>> fetchBanners(){
+        MutableLiveData<List<Banner>> banners = new MutableLiveData<>();
+
+        bannerAPIService.getBanners(API_KEY).enqueue(new Callback<List<Banner>>() {
+            @Override
+            public void onResponse(Call<List<Banner>> call, Response<List<Banner>> response) {
+                if(response.isSuccessful() && response.body() != null){
+                    banners.setValue(response.body());
+                } else {
+                    banners.setValue(null);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Banner>> call, Throwable t) {
+                Log.e("GET_BANNER", t.getMessage());
+                banners.setValue(null);
+            }
+        });
+        return banners;
     }
 }

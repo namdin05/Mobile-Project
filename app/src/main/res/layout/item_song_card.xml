@@ -18,6 +18,7 @@
             android:scaleType="centerCrop"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Melodix.Cover.Small" />
 
+
         <TextView
             android:id="@+id/tv_badge"
             android:layout_width="42dp"
