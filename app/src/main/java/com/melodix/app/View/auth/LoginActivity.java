@@ -73,6 +73,7 @@ public class LoginActivity extends AppCompatActivity {
                     } else {
                         // Báo lỗi
                         Toast.makeText(LoginActivity.this, loginResult.getErrorMessage(), Toast.LENGTH_LONG).show();
+                        btnLoginEmail.setEnabled(true);
                     }
                 });
             }

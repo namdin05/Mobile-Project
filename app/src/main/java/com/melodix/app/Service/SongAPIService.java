@@ -15,4 +15,9 @@ public interface SongAPIService {
             @Header("apikey") String apiKey,
             @Query("limit") int limit
     );
+    @GET("rest/v1/trending_songs_view")
+    Call<List<Song>> getTrendingSongs(
+            @Header("apikey") String apiKey,
+            @Query("limit") int limit
+    );
 }

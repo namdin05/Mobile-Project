@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.google.gson.Gson;
 import com.melodix.app.Model.AuthResponse;
+import com.melodix.app.Model.Banner;
 import com.melodix.app.Model.Genre;
 import com.melodix.app.Model.SessionManager;
 import com.melodix.app.Model.SignInRequest;
@@ -17,6 +18,7 @@ import com.melodix.app.Model.SessionManager;
 
 import com.melodix.app.Model.Song;
 import com.melodix.app.Service.AuthAPIService;
+import com.melodix.app.Service.BannerAPIService;
 import com.melodix.app.Service.GenreAPIService;
 
 import retrofit2.Call;
@@ -37,6 +39,7 @@ public class AuthRepository {
     private AuthAPIService apiService;
     private GenreAPIService genreAPIService;
     private SongAPIService songAPIService;
+    private BannerAPIService bannerAPIService;
 
     public AuthRepository() {
         Retrofit retrofit = new Retrofit.Builder()
@@ -46,6 +49,7 @@ public class AuthRepository {
         apiService = retrofit.create(AuthAPIService.class);
         genreAPIService = retrofit.create(GenreAPIService.class);
         songAPIService = retrofit.create(SongAPIService.class);
+        bannerAPIService = retrofit.create(BannerAPIService.class);
     }
 
     // Trả về MutableLiveData để ViewModel quan sát
@@ -183,6 +187,8 @@ public class AuthRepository {
             public void onResponse(Call<List<Genre>> call, Response<List<Genre>> response) {
                 if(response.isSuccessful() && response.body() != null){
                     genres.setValue(response.body());
+                    Log.d("GENRES", "goi database thanh cong");
+                    Log.d("GENRES", new Gson().toJson(response.body()));
                 }
             }
 
@@ -198,11 +204,12 @@ public class AuthRepository {
     public MutableLiveData<List<Song>> fetchNewReleaseSongs(){
         MutableLiveData<List<Song>> songs = new MutableLiveData<>();
 
-        songAPIService.getNewReleaseSongs(API_KEY, 3).enqueue(new Callback<List<Song>>() {
+        songAPIService.getNewReleaseSongs(API_KEY, 5).enqueue(new Callback<List<Song>>() {
             @Override
             public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
                 if(response.isSuccessful() && response.body() != null){
                     songs.setValue(response.body());
+                    Log.d("NEW_RELEASE_SONGS", new Gson().toJson(response.body()));
                 } else {
                     songs.setValue(null);
                 }
@@ -215,5 +222,49 @@ public class AuthRepository {
             }
         });
         return songs;
+    }
+
+    public MutableLiveData<List<Song>> fetchTrendingSongs(){
+        MutableLiveData<List<Song>> songs = new MutableLiveData<>();
+
+        songAPIService.getTrendingSongs(API_KEY, 5).enqueue(new Callback<List<Song>>() {
+            @Override
+            public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
+                if(response.isSuccessful() && response.body() != null){
+                    Log.d("TRENDING", new Gson().toJson(response.body()));
+                    songs.setValue(response.body());
+                } else {
+                    Log.d("TRENDING", "K co bai hat trend");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Song>> call, Throwable t) {
+                Log.d("TRENDING", "fail");
+            }
+        });
+        return songs;
+    }
+
+    public MutableLiveData<List<Banner>> fetchBanners(){
+        MutableLiveData<List<Banner>> banners = new MutableLiveData<>();
+
+        bannerAPIService.getBanners(API_KEY).enqueue(new Callback<List<Banner>>() {
+            @Override
+            public void onResponse(Call<List<Banner>> call, Response<List<Banner>> response) {
+                if(response.isSuccessful() && response.body() != null){
+                    banners.setValue(response.body());
+                } else {
+                    banners.setValue(null);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Banner>> call, Throwable t) {
+                Log.e("GET_BANNER", t.getMessage());
+                banners.setValue(null);
+            }
+        });
+        return banners;
     }
 }

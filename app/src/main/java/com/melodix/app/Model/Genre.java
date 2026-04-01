@@ -7,6 +7,8 @@ public class Genre {
     private int id;
     @SerializedName("name")
     private String name;
+    @SerializedName("cover_url")
+    private String cover_url;
 
     public int getId() {
         return id;
@@ -14,5 +16,9 @@ public class Genre {
 
     public String getName() {
         return name;
+    }
+
+    public String getCover_url() {
+        return cover_url;
     }
 }
