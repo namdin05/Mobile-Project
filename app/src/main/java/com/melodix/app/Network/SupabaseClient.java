@@ -33,9 +33,9 @@ public class SupabaseClient {
 
                     Request newRequest = chain.request().newBuilder()
 
-                            .addHeader("apikey", BuildConfig.SUPABASE_API_KEY)
+                            .addHeader("apikey", BuildConfig.API_KEY)
 
-                            .addHeader("Authorization", "Bearer " + BuildConfig.SUPABASE_API_KEY)
+                            .addHeader("Authorization", "Bearer " + BuildConfig.API_KEY)
 
                             .build();
 
@@ -53,7 +53,7 @@ public class SupabaseClient {
 
             retrofit = new Retrofit.Builder()
 
-                    .baseUrl(BuildConfig.SUPABASE_BASE_URL + "rest/v1/")
+                    .baseUrl(BuildConfig.BASE_URL + "rest/v1/")
 
                     .client(client)
 

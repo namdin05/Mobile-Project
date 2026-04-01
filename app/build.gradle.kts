@@ -27,8 +27,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "SUPABASE_BASE_URL", "\"${properties.getProperty("SUPABASE_BASE_URL")}\"")
-        buildConfigField("String", "SUPABASE_API_KEY", "\"${properties.getProperty("SUPABASE_API_KEY")}\"")
+        buildConfigField("String", "BASE_URL", "\"${properties.getProperty("BASE_URL")}\"")
+        buildConfigField("String", "API_KEY", "\"${properties.getProperty("API_KEY")}\"")
     }
     buildFeatures {
         buildConfig = true

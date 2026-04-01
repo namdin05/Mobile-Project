@@ -19,7 +19,10 @@
         <item name="chipBackgroundColor">@color/chip_bg_state</item>
         <item name="checkedIconVisible">false</item>
     </style>
-
+    <style name="RoundedSquare" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
     <style name="ShapeAppearanceOverlay.Melodix.Cover.Small">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">16dp</item>

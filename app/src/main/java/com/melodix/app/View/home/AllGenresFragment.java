@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.melodix.app.Model.Genre;
 import com.melodix.app.R;
+import com.melodix.app.View.adapters.GenreAdapter;
 import com.melodix.app.ViewModel.HomeViewModel;
 
 public class AllGenresFragment extends Fragment {

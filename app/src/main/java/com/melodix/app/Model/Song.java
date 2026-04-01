@@ -58,4 +58,15 @@ public class Song implements Serializable {
         this.plays = plays;
         this.likes = likes;
     }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getCover_url() {
+        return coverRes;
+    }
+    public String getArtistName(){
+        return artistName;
+    }
 }

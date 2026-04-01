@@ -3,7 +3,6 @@ package com.melodix.app.View.home;
 import static android.widget.Toast.LENGTH_LONG;
 import static android.widget.Toast.LENGTH_SHORT;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,7 +30,9 @@ import com.melodix.app.Model.Profile;
 import com.melodix.app.Model.SessionManager;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
-import com.melodix.app.Repository.auth.AuthRepository;
+import com.melodix.app.View.adapters.BannerAdapter;
+import com.melodix.app.View.adapters.GenreAdapter;
+import com.melodix.app.View.adapters.SongCardAdapter;
 import com.melodix.app.ViewModel.HomeViewModel;
 
 public class HomeFragment extends Fragment {

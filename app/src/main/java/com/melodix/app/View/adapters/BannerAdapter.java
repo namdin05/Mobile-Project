@@ -1,4 +1,4 @@
-package com.melodix.app.View.home;
+package com.melodix.app.View.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;

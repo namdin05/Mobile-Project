@@ -17,6 +17,13 @@
         <activity
             android:name=".MainActivity"
             android:exported="false">
+            // tinh nang share bai hat
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="melodix" android:host="song" />
+            </intent-filter>
 
         </activity>
 

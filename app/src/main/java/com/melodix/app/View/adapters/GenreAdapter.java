@@ -1,4 +1,4 @@
-package com.melodix.app.View.home;
+package com.melodix.app.View.adapters;
 
 import android.content.Context;
 import android.util.Log;
@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.melodix.app.Model.Genre;
 import com.melodix.app.R;
-import java.util.ArrayList;
+
 import java.util.List;
 
 public class GenreAdapter extends RecyclerView.Adapter<GenreAdapter.GenreHolder> {
