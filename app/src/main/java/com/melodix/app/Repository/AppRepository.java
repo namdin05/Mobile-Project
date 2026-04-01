@@ -340,4 +340,46 @@ public class AppRepository {
             save();
         }
     }
+    public interface AlbumListCallback {
+        void onSuccess(ArrayList<Album> albums);
+        void onError(String message);
+    }
+
+    public interface ArtistListCallback {
+        void onSuccess(ArrayList<Artist> artists);
+        void onError(String message);
+    }
+
+    // 1. Lấy Bài hát
+    public void getSongsByArtist(String artistId, SongListCallback callback) {
+        supabaseApi.getSongsByArtistId("eq." + artistId).enqueue(new Callback<List<Song>>() {
+            @Override public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
+                if (response.isSuccessful() && response.body() != null) callback.onSuccess(new ArrayList<>(response.body()));
+                else callback.onError("Lỗi tải bài hát (Code: " + response.code() + ")");
+            }
+            @Override public void onFailure(Call<List<Song>> call, Throwable t) { callback.onError("Lỗi mạng"); }
+        });
+    }
+
+    // 2. Lấy Album
+    public void getAlbumsByArtist(String artistId, AlbumListCallback callback) {
+        supabaseApi.getAlbumsByArtistId("eq." + artistId).enqueue(new Callback<List<Album>>() {
+            @Override public void onResponse(Call<List<Album>> call, Response<List<Album>> response) {
+                if (response.isSuccessful() && response.body() != null) callback.onSuccess(new ArrayList<>(response.body()));
+                else callback.onError("Lỗi tải Album");
+            }
+            @Override public void onFailure(Call<List<Album>> call, Throwable t) { callback.onError("Lỗi mạng"); }
+        });
+    }
+
+    // 3. Lấy Nghệ sĩ liên quan (Dùng toán tử "neq." = Not Equal)
+    public void getRelatedArtists(String currentArtistId, ArtistListCallback callback) {
+        supabaseApi.getRelatedArtists("neq." + currentArtistId, 5).enqueue(new Callback<List<Artist>>() {
+            @Override public void onResponse(Call<List<Artist>> call, Response<List<Artist>> response) {
+                if (response.isSuccessful() && response.body() != null) callback.onSuccess(new ArrayList<>(response.body()));
+                else callback.onError("Lỗi tải Nghệ sĩ liên quan");
+            }
+            @Override public void onFailure(Call<List<Artist>> call, Throwable t) { callback.onError("Lỗi mạng"); }
+        });
+    }
 }
