@@ -2,19 +2,15 @@ package com.melodix.app.View.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
-import com.melodix.app.Utils.ResourceUtils;
 import com.melodix.app.Utils.TimeUtils;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,31 +48,45 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     @Override
     public void onBindViewHolder(@NonNull SongHolder holder, int position) {
         Song song = songs.get(position);
+
         com.bumptech.glide.Glide.with(context)
                 .load(song.coverRes)
-                .into(holder.cover);        holder.title.setText(song.title);
-        holder.subtitle.setText(song.artistName + " • " + song.genre);
+                .into(holder.cover);
+
+        holder.title.setText(song.title);
+
+        // ==========================================
+        // ĐOẠN CODE ĐÃ ĐƯỢC NÂNG CẤP ĐỂ XÓA SẠN "NULL"
+        // ==========================================
+        if (song.genre != null && !song.genre.trim().isEmpty() && !song.genre.equalsIgnoreCase("null")) {
+            holder.subtitle.setText(song.artistName + " • " + song.genre);
+        } else {
+            holder.subtitle.setText(song.artistName); // Nếu không có thể loại, chỉ hiện tên nghệ sĩ
+        }
+        // ==========================================
+
         holder.meta.setText(TimeUtils.formatDuration(song.durationSec));
+
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onSongClick(song, position);
         });
+
         holder.more.setOnClickListener(v -> showMenu(v, song, position));
     }
 
     private void showMenu(View anchor, Song song, int position) {
-
         com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet =
                 new com.google.android.material.bottomsheet.BottomSheetDialog(context, R.style.BottomSheetTheme);
         View bottomSheetView = LayoutInflater.from(context).inflate(R.layout.dialog_song_menu, null);
         bottomSheet.setContentView(bottomSheetView);
 
-        // 2. Xử lý nền trong suốt để viền bo góc của bg_card hiện ra
+        // Xử lý nền trong suốt để viền bo góc của bg_card hiện ra
         View parent = (View) bottomSheetView.getParent();
         if (parent != null) {
             parent.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         }
 
-        // 3. Gắn sự kiện click cho từng dòng menu và truyền actionId về cho Fragment/Activity xử lý
+        // Gắn sự kiện click cho từng dòng menu
         bottomSheetView.findViewById(R.id.menu_play).setOnClickListener(v -> {
             if (listener != null) listener.onMenuClick(song, position, "play");
             bottomSheet.dismiss();
@@ -112,11 +122,8 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             bottomSheet.dismiss();
         });
 
-        // 4. Hiển thị menu lên màn hình
         bottomSheet.show();
     }
-
-
 
     @Override
     public int getItemCount() { return songs.size(); }
@@ -132,9 +139,10 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             more = itemView.findViewById(R.id.btn_more);
         }
     }
+
     public void update(ArrayList<Song> newSongs) {
-        this.songs.clear();          // Xóa sạch dữ liệu hiện tại
-        this.songs.addAll(newSongs); // Đổ toàn bộ dữ liệu mới vào
-        notifyDataSetChanged();      // Báo cho màn hình vẽ lại
+        this.songs.clear();
+        this.songs.addAll(newSongs);
+        notifyDataSetChanged();
     }
 }

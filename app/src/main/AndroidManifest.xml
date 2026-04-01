@@ -22,6 +22,9 @@
         </activity>
         <activity android:name=".View.AlbumDetailActivity" android:exported="false" />
         <activity android:name=".View.ArtistDetailActivity" android:exported="false" />
+        <activity android:name=".View.ArtistSongsActivity" android:exported="false" />
+        <activity android:name=".View.ArtistAlbumsActivity" android:exported="false" />
+
     </application>
 
 </manifest>

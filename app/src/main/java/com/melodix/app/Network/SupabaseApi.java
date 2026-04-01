@@ -32,4 +32,17 @@ public interface SupabaseApi {
 
     @GET("artist_search_view?select=*")
     Call<List<Artist>> getArtistByIdAPI(@Query("id") String idQuery);
+
+    // Lấy bài hát của Nghệ sĩ
+// Trỏ thẳng vào cái View mới tạo, mọi thứ khác giữ nguyên!
+    @GET("artist_songs_view?select=*")
+    Call<List<Song>> getSongsByArtistId(@Query("artist_id") String artistIdQuery);
+
+    // Lấy Album của Nghệ sĩ
+    @GET("album_details_view?select=*")
+    Call<List<Album>> getAlbumsByArtistId(@Query("artist_id") String artistIdQuery);
+
+    // Lấy Nghệ sĩ liên quan (Loại trừ ID hiện tại, giới hạn 5 người)
+    @GET("artist_search_view?select=*")
+    Call<List<Artist>> getRelatedArtists(@Query("id") String excludeIdQuery, @Query("limit") int limit);
 }
