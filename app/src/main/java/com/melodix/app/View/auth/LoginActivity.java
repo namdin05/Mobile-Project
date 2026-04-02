@@ -1,6 +1,7 @@
 package com.melodix.app.View.auth;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,7 +25,6 @@ public class LoginActivity extends AppCompatActivity {
     private AuthViewModel authViewModel;
     private EditText edtEmail, edtPassword;
     private Button btnLoginEmail, btnLoginGoogle, btnLoginFacebook;
-
     private TextView tvGoToRegister;
 
     private static final String BASE_URL = BuildConfig.BASE_URL;
@@ -32,6 +32,26 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // =========================================================
+        // THÊM MỚI 1: KIỂM TRA AUTO-LOGIN NGAY KHI VỪA MỞ APP
+        // =========================================================
+        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
+        boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
+
+        if (isLoggedIn) {
+            String savedRole = prefs.getString("USER_ROLE", "user"); // Mặc định là user nếu không tìm thấy
+
+            if ("admin".equals(savedRole)) {
+                startActivity(new Intent(LoginActivity.this, AdminActivity.class));
+            } else {
+                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+            }
+            finish(); // Đóng màn hình Login
+            return;   // Thoát khỏi onCreate để không load giao diện nữa
+        }
+        // =========================================================
+
         setContentView(R.layout.activity_login);
 
         // Khởi tạo ViewModel
@@ -48,33 +68,48 @@ public class LoginActivity extends AppCompatActivity {
         btnLoginEmail.setOnClickListener(v -> {
             String email = edtEmail.getText().toString().trim();
             String pass = edtPassword.getText().toString().trim();
+
+            Log.d("MELODIX_DEBUG", "Trạm 4 (AuthRepo) - Bóc tách thành công -> Role: ");
             if (!email.isEmpty() && !pass.isEmpty()) {
 
-                // GỌI VIEW MODEL VÀ QUAN SÁT KẾT QUẢ (LIVEDATA)
                 authViewModel.login(email, pass).observe(LoginActivity.this, loginResult -> {
-                    if (loginResult.isSuccess()) {
-                        // KIỂM TRA PHÂN QUYỀN TẠI ĐÂY
-                        String role = loginResult.getRole();
 
+                    Log.d("MELODIX_DEBUG", "Trạm 2 (LoginActivity) - isSuccess: " + loginResult.isSuccess());
+                    if (loginResult.isSuccess()) {
+                        String role = loginResult.getRole();
                         Log.d("ROLE", role);
 
+                        Log.d("MELODIX_DEBUG", "Trạm 2 (LoginActivity) - Chuẩn bị lưu SharedPreferences với Role: " + role);
+
+                        // =========================================================
+                        // THÊM MỚI 2: LƯU TRẠNG THÁI KHI ĐĂNG NHẬP THÀNH CÔNG
+                        // =========================================================
+                        SharedPreferences.Editor editor = getSharedPreferences("MelodixPrefs", MODE_PRIVATE).edit();
+                        editor.putBoolean("IS_LOGGED_IN", true);
+                        editor.putString("USER_ROLE", role);
+                        editor.putString("USER_ID", loginResult.getUserId());
+
+                        editor.apply();
+                        // =========================================================
+
                         if ("admin".equals(role)) {
-                            // NẾU LÀ ADMIN -> Mở màn hình AdminActivity (Trang duyệt nhạc)
                             Toast.makeText(this, "Xin chào Quản trị viên!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, AdminActivity.class));
-
                         } else {
-                            // NẾU LÀ USER / ARTIST -> Mở màn hình MainActivity (Trang nghe nhạc)
                             Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         }
 
-                        finish(); // Đóng màn hình đăng nhập
+                        finish();
                     } else {
-                        // Báo lỗi
+                        Log.e("MELODIX_DEBUG", "Trạm 2 (LoginActivity) - Thất bại do: " + loginResult.getErrorMessage());
                         Toast.makeText(LoginActivity.this, loginResult.getErrorMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
+            }
+
+            else {
+                Log.d("MELODIX_DEBUG", "Trạm 6 (AuthRepo) - Bóc tách thành công -> Role: ");
             }
         });
 
@@ -82,7 +117,7 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
         });
 
-        // 2. Xử lý đăng nhập Mạng xã hội (Cần dùng Intent nên giữ ở View)
+        // 2. Xử lý đăng nhập Mạng xã hội
         btnLoginGoogle.setOnClickListener(v -> socialLogin("google"));
         btnLoginFacebook.setOnClickListener(v -> socialLogin("facebook"));
     }
@@ -99,18 +134,25 @@ public class LoginActivity extends AppCompatActivity {
         super.onResume();
         Uri uri = getIntent().getData();
         if (uri != null && uri.getScheme().equals("melodix")) {
-            // Dữ liệu Supabase trả về thường nằm ở dạng Fragment (#) thay vì Query (?)
             String fragment = uri.getFragment();
             if (fragment != null && fragment.contains("access_token=")) {
-                // Tách chuỗi để lấy Access Token
                 String[] params = fragment.split("&");
                 for (String param : params) {
                     if (param.startsWith("access_token=")) {
                         String accessToken = param.split("=")[1];
                         Log.d("MELODIX_OAUTH", "Google/FB Token: " + accessToken);
-                        Toast.makeText(this, "Đăng nhập MXH thành công!", Toast.LENGTH_SHORT).show();
 
-                        // Chuyển sang màn hình chính
+                        // =========================================================
+                        // THÊM MỚI 3: LƯU TRẠNG THÁI KHI LOGIN MXH THÀNH CÔNG
+                        // =========================================================
+                        SharedPreferences.Editor editor = getSharedPreferences("MelodixPrefs", MODE_PRIVATE).edit();
+                        editor.putBoolean("IS_LOGGED_IN", true);
+                        editor.putString("USER_ROLE", "user"); // Mặc định MXH là user thường
+                        // Nếu lấy được UID từ token, bạn cũng lưu vào "USER_ID" ở đây nhé
+                        editor.apply();
+                        // =========================================================
+
+                        Toast.makeText(this, "Đăng nhập MXH thành công!", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         finish();
                         break;

@@ -38,6 +38,9 @@
         <activity android:name=".View.auth.RegisterActivity" />
 
         <activity android:name=".AdminActivity" />"
+
+        <activity android:name=".View.profile.AdminProfileActivity"
+                  android:exported="false"/>
     </application>
 
 </manifest>

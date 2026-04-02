@@ -13,7 +13,6 @@ import java.util.List;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 
-
 public interface AuthAPIService {
     @POST("auth/v1/token?grant_type=password")
     Call<AuthResponse> signInWithEmail(

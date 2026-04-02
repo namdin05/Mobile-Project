@@ -33,6 +33,7 @@ android {
         // 2. Tạo biến toàn cục (Lưu ý: Bắt buộc phải có dấu \" ở quanh biến)
         buildConfigField("String", "BASE_URL", "\"${properties.getProperty("SUPABASE_BASE_URL")}\"")
         buildConfigField("String", "API_KEY", "\"${properties.getProperty("SUPABASE_API_KEY")}\"")
+        buildConfigField("String", "SERVICE_KEY", "\"${properties.getProperty("ADMIN_KEY")}\"")
 
 
     }
@@ -74,4 +75,7 @@ dependencies {
 
     implementation("androidx.media3:media3-exoplayer:1.2.1")
     implementation("androidx.media3:media3-common:1.2.1")
+
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 }

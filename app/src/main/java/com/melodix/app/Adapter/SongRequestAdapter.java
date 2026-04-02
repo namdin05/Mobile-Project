@@ -8,22 +8,22 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
-import com.melodix.app.Model.SongRequest;
+import com.melodix.app.Model.Song;
 import com.melodix.app.R;
 import java.util.List;
 
 public class SongRequestAdapter extends RecyclerView.Adapter<SongRequestAdapter.ViewHolder> {
 
-    private List<SongRequest> requestList;
+    private List<Song> requestList;
     private OnItemActionListener actionListener;
 
     public interface OnItemActionListener {
-        void onApproveClick(SongRequest request, int position);
-        void onRejectClick(SongRequest request, int position);
-        void onPlayClick(SongRequest request); // SỰ KIỆN MỚI: NGHE THỬ
+        void onApproveClick(Song request, int position);
+        void onRejectClick(Song request, int position);
+        void onPlayClick(Song request); // SỰ KIỆN MỚI: NGHE THỬ
     }
 
-    public SongRequestAdapter(List<SongRequest> requestList, OnItemActionListener actionListener) {
+    public SongRequestAdapter(List<Song> requestList, OnItemActionListener actionListener) {
         this.requestList = requestList;
         this.actionListener = actionListener;
     }
@@ -37,9 +37,9 @@ public class SongRequestAdapter extends RecyclerView.Adapter<SongRequestAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        SongRequest request = requestList.get(position);
+        Song request = requestList.get(position);
 
-        holder.tvSongTitle.setText(request.getSongTitle());
+        holder.tvSongTitle.setText(request.getTitle());
         holder.tvArtistName.setText(request.getArtistName()); // Bây giờ nó sẽ lấy được tên nhờ hàm Join
 
         // Lắng nghe sự kiện click

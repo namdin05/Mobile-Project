@@ -70,15 +70,21 @@ public class AuthRepository {
         String authHeader = "Bearer " + token;
         String idFilter = "eq." + userId; // Cú pháp lọc của Supabase: id = userId
 
+        Log.d("MELODIX_DEBUG", "Trạm 2");
+
         apiService.getProfile(BuildConfig.API_KEY, authHeader, idFilter).enqueue(new Callback<List<Profile>>() {
             @Override
             public void onResponse(Call<List<Profile>> call, Response<List<Profile>> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                     // 3. Lấy được role từ database
                     String role = response.body().get(0).getRole();
+                    String uid = response.body().get(0).getId();
 
-                    // Trả kết quả cuối cùng về cho Activity
-                    result.setValue(new LoginResult(true, role));
+                    // Truyền thêm uid vào vị trí thứ 3
+                    LoginResult successData = new LoginResult(true, role, uid);
+
+                    result.setValue(successData);
+
                 } else {
                     // Ép hệ thống in ra chi tiết lỗi
                     int statusCode = response.code();
@@ -96,8 +102,6 @@ public class AuthRepository {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-
-                    result.setValue(new LoginResult(true, "user")); // Tạm thời vẫn cho vào app
                 }
             }
 
