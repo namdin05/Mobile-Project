@@ -3,6 +3,7 @@ package com.melodix.app.View.home;
 import static android.widget.Toast.LENGTH_LONG;
 import static android.widget.Toast.LENGTH_SHORT;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,16 +31,23 @@ import com.melodix.app.Model.Profile;
 import com.melodix.app.Model.SessionManager;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
+import com.melodix.app.Repository.AppRepository;
+import com.melodix.app.PlayerActivity;
+import com.melodix.app.Utils.PlaybackUtils;
 import com.melodix.app.View.adapters.BannerAdapter;
 import com.melodix.app.View.adapters.GenreAdapter;
 import com.melodix.app.View.adapters.SongCardAdapter;
+import com.melodix.app.View.adapters.SongAdapter;
 import com.melodix.app.ViewModel.HomeViewModel;
+
+import java.util.ArrayList;
 
 public class HomeFragment extends Fragment {
     Profile user;
     ViewPager2 bannerPager;
     private android.os.Handler sliderHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable sliderRunnable;
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -48,18 +56,18 @@ public class HomeFragment extends Fragment {
         RecyclerView rvNewRelease = view.findViewById(R.id.rv_new_releases);
         RecyclerView rvTrending = view.findViewById(R.id.rv_trending);
 
-        // fetch new release
-        // in du lieu ra logcat, getViewLifecycleOwner giup ham chi chay khi user dang mo fragment
-        // bien songs co kieu du lieu dua theo du lieu tra ve cua ham fetchNewReleaseSongs
+         // ==========================================
+        // FETCH NEW RELEASE
+        // ==========================================
         viewModel.getNewReleases().observe(getViewLifecycleOwner(), songs -> {
-            SongAdapter songAdapter = new SongAdapter(requireContext(), songs, new SongAdapter.OnSongClickListener() {
+            SongAdapter songAdapter = new SongAdapter(requireContext(), songs, new SongAdapter.OnSongActionListener() {
                 @Override
-                public void onSongClick(Song song) {
-                    Toast.makeText(requireContext(), "PLAY NEW RELEASE", LENGTH_LONG).show();
+                public void onSongClick(Song song, int position) {
+                    playSongAndSetQueue(song, songs); // Gọi hàm phát nhạc
                 }
                 @Override
                 public void onMenuClick(Song song, int postion, String action){
-                    handleMenuClick(action);
+                    handleMenuClick(song, action); // Cập nhật lại hàm truyền thêm tham số Song
                 }
             });
             Log.d("NEW_RELEASE_SONG", new Gson().toJson(songs));
@@ -81,17 +89,17 @@ public class HomeFragment extends Fragment {
         if (user != null) {
             Glide.with(requireContext()).load(user.getAvatarUrl()).circleCrop().into(avatar);
             greeting.setText("Welcome back");
-            //   subGreeting.setText(user.headline == null ? "Good evening" : user.headline);
         }
 
-        // fetch trending songs
+        // ==========================================
+        // FETCH TRENDING SONGS
+        // ==========================================
         viewModel.getTrendingSongs().observe(getViewLifecycleOwner(), songs->{
             SongCardAdapter songCardAdapter = new SongCardAdapter(requireContext(), songs, true, new SongCardAdapter.OnSongClickListener() {
                 @Override
                 public void onSongClick(Song song) {
-                    Toast.makeText(requireContext(), "PLAY TRENDING SONGS", LENGTH_LONG).show();
+                    playSongAndSetQueue(song, songs); // Gọi hàm phát nhạc
                 }
-
             });
             Log.d("TRENDINGS", new Gson().toJson(songs));
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
@@ -130,9 +138,16 @@ public class HomeFragment extends Fragment {
             }));
             autoSlide();
         });
-
-
     }
+
+    // ==========================================
+    // HÀM XỬ LÝ PHÁT NHẠC (CUSTOM)
+    // ==========================================
+    private void playSongAndSetQueue(Song selectedSong, java.util.List<Song> currentList) {
+        // Gọi thẳng PlaybackUtils, nó sẽ tự lo việc lưu Queue vào PlaybackRepository và mở PlayerActivity
+        PlaybackUtils.playSong(requireContext(), (ArrayList<Song>) currentList, selectedSong.id);
+    }
+
     private void autoSlide(){
         sliderRunnable = () -> {
             if (bannerPager.getAdapter() != null) {
@@ -153,6 +168,7 @@ public class HomeFragment extends Fragment {
             sliderRunnable = null;
         }
     }
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState){
@@ -165,25 +181,30 @@ public class HomeFragment extends Fragment {
         stopAutoSlide();
     }
 
-    private void handleMenuClick(String action){
+    // Cập nhật lại hàm này: nhận thêm đối tượng Song để biết bài nào được bấm Menu
+    private void handleMenuClick(Song song, String action){
         switch (action){
             case "play":
-                Toast.makeText(requireContext(),"PLAY", LENGTH_SHORT).show();
+                java.util.List<Song> singleList = new ArrayList<>();
+                singleList.add(song);
+
+                // Sử dụng hàm vừa sửa ở trên (hoặc gọi trực tiếp PlaybackUtils)
+                playSongAndSetQueue(song, singleList);
                 break;
             case "like":
-                Toast.makeText(requireContext(),"LIKE", LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),"LIKE " + song.title, LENGTH_SHORT).show();
                 break;
             case "playlist":
-                Toast.makeText(requireContext(),"PLAYLIST", LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),"Thêm " + song.title + " vào PLAYLIST", LENGTH_SHORT).show();
                 break;
             case "comment":
-                Toast.makeText(requireContext(),"COMMENT", LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),"COMMENT " + song.title, LENGTH_SHORT).show();
                 break;
             case "share":
-                Toast.makeText(requireContext(),"SHARE", LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),"SHARE " + song.title, LENGTH_SHORT).show();
                 break;
             case "download":
-                Toast.makeText(requireContext(),"DOWNLOAD", LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),"DOWNLOAD " + song.title, LENGTH_SHORT).show();
                 break;
         }
     }

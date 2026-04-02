@@ -1,5 +1,7 @@
 package com.melodix.app.View;
 
+import static android.widget.Toast.LENGTH_SHORT;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -15,6 +17,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.melodix.app.Model.Album;
 import com.melodix.app.Model.Artist;
 import com.melodix.app.Model.Song;
+import com.melodix.app.PlayerActivity;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.View.adapters.SongAdapter;
@@ -48,9 +51,19 @@ public class ArtistDetailActivity extends AppCompatActivity {
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
 
-        // Nút tính năng mới
         findViewById(R.id.btn_follow).setOnClickListener(v -> Toast.makeText(this, "Đang phát triển", Toast.LENGTH_SHORT).show());
-        findViewById(R.id.btn_play_all).setOnClickListener(v -> Toast.makeText(this, "Đang phát triển", Toast.LENGTH_SHORT).show());
+
+        // ==========================================
+        // KÍCH HOẠT NÚT "PHÁT TẤT CẢ"
+        // ==========================================
+        findViewById(R.id.btn_play_all).setOnClickListener(v -> {
+            if (songAdapter != null && songAdapter.getSongs() != null && !songAdapter.getSongs().isEmpty()) {
+                // Lấy bài hát đầu tiên trong danh sách để phát, và đưa toàn bộ list vào Queue
+                playSongAndSetQueue(songAdapter.getSongs().get(0), songAdapter.getSongs());
+            } else {
+                Toast.makeText(this, "Chưa có bài hát để phát", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         tvSongsTitle = findViewById(R.id.tv_songs_title);
         tvAlbumsTitle = findViewById(R.id.tv_albums_title);
@@ -71,9 +84,20 @@ public class ArtistDetailActivity extends AppCompatActivity {
         rvAlbums.setAdapter(albumAdapter);
         rvRelated.setAdapter(artistAdapter);
 
+        // ==========================================
+        // BẮT SỰ KIỆN CLICK BÀI HÁT
+        // ==========================================
         songAdapter = new SongAdapter(this, new ArrayList<>(), new SongAdapter.OnSongActionListener() {
-            @Override public void onSongClick(Song song, int position) {}
-            @Override public void onMenuClick(Song song, int position, String actionId) {}
+            @Override
+            public void onSongClick(Song song, int position) {
+                // Gọi hàm phát nhạc và nhét toàn bộ bài hát trên màn hình vào Queue
+                playSongAndSetQueue(song, songAdapter.getSongs());
+            }
+            @Override
+            public void onMenuClick(Song song, int position, String actionId) {
+                // Truyền thêm biến song vào
+                handleMenuClick(song, actionId);
+            }
         });
         rvSongs.setAdapter(songAdapter);
 
@@ -94,31 +118,24 @@ public class ArtistDetailActivity extends AppCompatActivity {
                 if (TextUtils.isEmpty(artist.bio)) tvBio.setVisibility(View.GONE);
                 else { tvBio.setVisibility(View.VISIBLE); tvBio.setText(artist.bio); }
 
-                // ==========================================
-                // LẤY BÀI HÁT (ĐÃ FIX LỖI ẨN DANH SÁCH)
-                // ==========================================
+                // LẤY BÀI HÁT
                 repository.getSongsByArtist(artistId, new AppRepository.SongListCallback() {
                     @Override public void onSuccess(ArrayList<Song> songs) {
                         if (isFinishing() || isDestroyed()) return;
 
-                        // Nếu danh sách rỗng, hiện thông báo cho dễ debug
                         if (songs == null || songs.isEmpty()) {
                             tvSongsTitle.setVisibility(View.GONE);
                             rvSongs.setVisibility(View.GONE);
                             tvSeeAllSongs.setVisibility(View.GONE);
-                            Toast.makeText(ArtistDetailActivity.this, "Không tìm thấy bài hát nào của nghệ sĩ này", Toast.LENGTH_SHORT).show();
                             return;
                         }
 
-                        // Nếu có bài hát thì bật hiển thị
                         tvSongsTitle.setVisibility(View.VISIBLE);
                         rvSongs.setVisibility(View.VISIBLE);
 
-                        // Lấy tối đa 10 bài
                         ArrayList<Song> top10Songs = new ArrayList<>(songs.subList(0, Math.min(songs.size(), 10)));
                         songAdapter.update(top10Songs);
 
-                        // Mở nút Xem thêm nếu có trên 10 bài
                         if (songs.size() > 10) {
                             tvSeeAllSongs.setVisibility(View.VISIBLE);
                             tvSeeAllSongs.setOnClickListener(v -> {
@@ -143,7 +160,6 @@ public class ArtistDetailActivity extends AppCompatActivity {
                         rvAlbums.setVisibility(View.VISIBLE);
                         albumAdapter.update(albums);
 
-                        // Cứ có album là hiện nút Xem tất cả
                         tvSeeAllAlbums.setVisibility(View.VISIBLE);
                         tvSeeAllAlbums.setOnClickListener(v -> {
                             Intent intent = new Intent(ArtistDetailActivity.this, ArtistAlbumsActivity.class);
@@ -170,5 +186,44 @@ public class ArtistDetailActivity extends AppCompatActivity {
                 if (!isFinishing() && !isDestroyed()) finish();
             }
         });
+    }
+
+    // ==========================================
+    // HÀM XỬ LÝ PHÁT NHẠC (Y hệt HomeFragment)
+    // ==========================================
+    private void playSongAndSetQueue(Song selectedSong, java.util.List<Song> currentList) {
+        AppRepository.getInstance(this).setCurrentQueue(new ArrayList<>(currentList), selectedSong.id);
+        Intent intent = new Intent(this, PlayerActivity.class);
+        intent.putExtra(PlayerActivity.EXTRA_SONG_ID, selectedSong.id);
+        intent.putExtra("start_playback", true);
+        startActivity(intent);
+    }
+
+    // ==========================================
+    // MENU DẤU 3 CHẤM
+    // ==========================================
+    private void handleMenuClick(Song song, String action){
+        switch (action){
+            case "play":
+                java.util.List<Song> singleList = new ArrayList<>();
+                singleList.add(song);
+                playSongAndSetQueue(song, singleList);
+                break;
+            case "like":
+                Toast.makeText(this,"Đã thích " + song.title, LENGTH_SHORT).show();
+                break;
+            case "playlist":
+                Toast.makeText(this,"Thêm " + song.title + " vào Playlist", LENGTH_SHORT).show();
+                break;
+            case "comment":
+                Toast.makeText(this,"Bình luận về " + song.title, LENGTH_SHORT).show();
+                break;
+            case "share":
+                Toast.makeText(this,"Chia sẻ " + song.title, LENGTH_SHORT).show();
+                break;
+            case "download":
+                Toast.makeText(this,"Tải xuống " + song.title, LENGTH_SHORT).show();
+                break;
+        }
     }
 }

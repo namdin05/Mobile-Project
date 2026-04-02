@@ -63,6 +63,14 @@ public class Song implements Serializable {
         return title;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public String getAudioRes() {
+        return audioRes;
+    }
+
     public String getCover_url() {
         return coverRes;
     }
