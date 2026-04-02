@@ -78,15 +78,18 @@ public class PlaylistViewModel extends ViewModel {
             @Override
             public void onResponse(Call<Playlist> call, Response<Playlist> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    listener.onSuccess("Tạo playlist thành công");
+                    loadMyPlaylists(request.getUserId());
+                    listener.onSuccess("Tạo playlist thành công!");
+                    // Tự động tải lại danh sách sau khi tạo
+                    // Giả sử bạn có cách lấy userId, hoặc truyền userId vào đây
                 } else {
-                    listener.onError("Không thể tạo playlist");
+                    listener.onError("Không thể tạo playlist. Mã lỗi: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(Call<Playlist> call, Throwable t) {
-                listener.onError("Lỗi kết nối khi tạo playlist");
+                listener.onError("Lỗi kết nối mạng khi tạo playlist");
             }
         });
     }
@@ -152,6 +155,56 @@ public class PlaylistViewModel extends ViewModel {
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
                 listener.onError("Lỗi kết nối");
+            }
+        });
+    }
+
+    // ==================== REORDER SONGS (Drag & Drop) ====================
+
+    /**
+     * Cập nhật thứ tự bài hát sau khi kéo thả
+     */
+    public void reorderSongs(String playlistId, List<PlaylistSong> currentList) {
+        if (currentList == null || currentList.isEmpty()) return;
+
+        for (int i = 0; i < currentList.size(); i++) {
+            PlaylistSong playlistSong = currentList.get(i);
+            int newOrderIndex = i;
+
+            // Gọi trực tiếp repository (không dùng viewModel)
+            repository.updateSongOrder(playlistId, playlistSong.getSongId(), newOrderIndex,
+                    new OnOperationCompleteListener() {
+                        @Override
+                        public void onSuccess(String message) {
+                            // Thứ tự đã được cập nhật thành công (có thể bỏ qua thông báo)
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            // Log lỗi nếu cần, nhưng thường không hiển thị cho user
+                            // errorMessage.setValue("Lỗi cập nhật thứ tự: " + error);
+                        }
+                    });
+        }
+
+    }
+    public void deletePlaylist(String playlistId, final OnOperationCompleteListener listener) {
+        isLoading.setValue(true); // Hiển thị trạng thái đang xử lý
+        repository.deletePlaylist(playlistId, new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                isLoading.setValue(false);
+                if (response.isSuccessful()) {
+                    listener.onSuccess("Playlist đã được xóa khỏi hệ thống");
+                } else {
+                    listener.onError("Lỗi Server: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                isLoading.setValue(false);
+                listener.onError("Lỗi kết nối: " + t.getMessage());
             }
         });
     }

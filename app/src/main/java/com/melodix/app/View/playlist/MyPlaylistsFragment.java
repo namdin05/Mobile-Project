@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,13 +15,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputEditText;
 import com.melodix.app.Adapter.PlaylistAdapter;
 import com.melodix.app.Model.Playlist;
+import com.melodix.app.Model.PlaylistCreateRequest;
 import com.melodix.app.R;
 import com.melodix.app.Utils.SessionManager;
 import com.melodix.app.ViewModel.PlaylistViewModel;
-
-import java.util.List;
 
 public class MyPlaylistsFragment extends Fragment {
 
@@ -43,25 +45,23 @@ public class MyPlaylistsFragment extends Fragment {
         sessionManager = new SessionManager(requireContext());
         viewModel = new ViewModelProvider(this).get(PlaylistViewModel.class);
 
+        // Ánh xạ views
         rvPlaylists = view.findViewById(R.id.rvPlaylists);
-        btnCreatePlaylist = view.findViewById(R.id.btnCreatePlaylist);
+        btnCreatePlaylist = view.findViewById(R.id.fabCreatePlaylist);   // hoặc fabCreatePlaylist nếu bạn dùng FAB
 
         // Setup RecyclerView
         adapter = new PlaylistAdapter(this::onPlaylistClicked);
         rvPlaylists.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvPlaylists.setAdapter(adapter);
 
-        // Observe data
+        // Observe LiveData
         observeViewModel();
 
         // Load dữ liệu
         loadPlaylists();
 
-        // Sự kiện nút tạo playlist
-        btnCreatePlaylist.setOnClickListener(v -> {
-            // Tạm thời chỉ Toast, sau sẽ mở dialog tạo playlist
-            Toast.makeText(requireContext(), "Chức năng tạo playlist sẽ được triển khai ở đợt sau", Toast.LENGTH_SHORT).show();
-        });
+        // Sự kiện tạo playlist mới
+        btnCreatePlaylist.setOnClickListener(v -> showCreatePlaylistDialog());
     }
 
     private void observeViewModel() {
@@ -71,9 +71,6 @@ public class MyPlaylistsFragment extends Fragment {
             }
         });
 
-        viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
-            // Có thể thêm ProgressBar sau
-        });
 
         viewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
             if (error != null) {
@@ -84,15 +81,94 @@ public class MyPlaylistsFragment extends Fragment {
 
     private void loadPlaylists() {
         String userId = sessionManager.getUserId();
+
+        Log.d("PLAYLIST_DEBUG", "User ID từ Session: " + userId);   // ← Thêm dòng này
+
         if (userId != null && !userId.isEmpty()) {
             viewModel.loadMyPlaylists(userId);
         } else {
-            Toast.makeText(requireContext(), "Chưa đăng nhập hoặc không tìm thấy user ID", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Không tìm thấy User ID. Vui lòng đăng nhập lại.", Toast.LENGTH_LONG).show();
+            Log.e("PLAYLIST_DEBUG", "User ID bị null hoặc rỗng!");
         }
     }
 
-    private void onPlaylistClicked(Playlist playlist) {
-        Toast.makeText(requireContext(), "Clicked: " + playlist.getName(), Toast.LENGTH_SHORT).show();
+    // ==================== TẠO PLAYLIST ====================
+    private void showCreatePlaylistDialog() {
+        View dialogView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.dialog_create_playlist, null);
 
+        TextInputEditText edtPlaylistName = dialogView.findViewById(R.id.edtPlaylistName);
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Tạo Playlist Mới")
+                .setView(dialogView)
+                .setPositiveButton("Tạo", (dialog, which) -> {
+                    String name = edtPlaylistName.getText().toString().trim();
+
+                    if (name.isEmpty()) {
+                        Toast.makeText(requireContext(), "Vui lòng nhập tên playlist", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    String userId = sessionManager.getUserId();
+                    if (userId == null || userId.isEmpty()) {
+                        Toast.makeText(requireContext(), "Không tìm thấy User ID. Vui lòng đăng nhập lại.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    // Truyền userId vào request
+                    PlaylistCreateRequest request = new PlaylistCreateRequest(name, null, userId);
+
+                    viewModel.createPlaylist(request, new PlaylistViewModel.OnOperationCompleteListener() {
+                        @Override
+                        public void onSuccess(String message) {
+                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                            loadPlaylists();        // Refresh danh sách
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    // Click vào một playlist → Mở chi tiết
+    private void onPlaylistClicked(Playlist playlist) {
+        PlaylistDetailFragment detailFragment = PlaylistDetailFragment.newInstance(
+                playlist.getId(),
+                playlist.getName()
+        );
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main, detailFragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void confirmDeletePlaylist(Playlist playlist) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Xóa Playlist")
+                .setMessage("Bạn có chắc chắn muốn xóa playlist '" + playlist.getName() + "' không?")
+                .setPositiveButton("Xóa", (dialog, which) -> {
+                    viewModel.deletePlaylist(playlist.getId(), new PlaylistViewModel.OnOperationCompleteListener() {
+                        @Override
+                        public void onSuccess(String message) {
+                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                            loadPlaylists(); // Tải lại danh sách sau khi xóa thành công
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
     }
 }

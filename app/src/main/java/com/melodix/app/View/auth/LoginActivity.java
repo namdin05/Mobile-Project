@@ -18,6 +18,7 @@ import com.melodix.app.BuildConfig;
 import com.melodix.app.MainActivity;
 import com.melodix.app.R;
 import com.melodix.app.ViewModel.AuthViewModel;
+import com.melodix.app.Utils.SessionManager;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -50,26 +51,28 @@ public class LoginActivity extends AppCompatActivity {
             String pass = edtPassword.getText().toString().trim();
             if (!email.isEmpty() && !pass.isEmpty()) {
 
-                // GỌI VIEW MODEL VÀ QUAN SÁT KẾT QUẢ (LIVEDATA)
                 authViewModel.login(email, pass).observe(LoginActivity.this, loginResult -> {
                     if (loginResult.isSuccess()) {
-                        // KIỂM TRA PHÂN QUYỀN TẠI ĐÂY
+                        SessionManager session = new SessionManager(this);
+                        session.saveSession(
+                                loginResult.getAccessToken(),
+                                loginResult.getUserId(),
+                                loginResult.getRole()
+                        );
                         String role = loginResult.getRole();
 
                         Log.d("ROLE", role);
 
                         if ("admin".equals(role)) {
-                            // NẾU LÀ ADMIN -> Mở màn hình AdminActivity (Trang duyệt nhạc)
                             Toast.makeText(this, "Xin chào Quản trị viên!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, AdminActivity.class));
 
                         } else {
-                            // NẾU LÀ USER / ARTIST -> Mở màn hình MainActivity (Trang nghe nhạc)
                             Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         }
 
-                        finish(); // Đóng màn hình đăng nhập
+                        finish();
                     } else {
                         // Báo lỗi
                         Toast.makeText(LoginActivity.this, loginResult.getErrorMessage(), Toast.LENGTH_LONG).show();

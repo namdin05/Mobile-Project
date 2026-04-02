@@ -78,7 +78,7 @@ public class AuthRepository {
                     String role = response.body().get(0).getRole();
 
                     // Trả kết quả cuối cùng về cho Activity
-                    result.setValue(new LoginResult(true, role));
+                    result.setValue(new LoginResult(true, role, token, userId));
                 } else {
                     // Ép hệ thống in ra chi tiết lỗi
                     int statusCode = response.code();
@@ -97,7 +97,7 @@ public class AuthRepository {
                         e.printStackTrace();
                     }
 
-                    result.setValue(new LoginResult(true, "user")); // Tạm thời vẫn cho vào app
+                    result.setValue(new LoginResult(true, "user", null, null)); // Tạm thời vẫn cho vào app
                 }
             }
 

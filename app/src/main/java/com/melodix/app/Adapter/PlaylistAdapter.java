@@ -9,7 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
+//import com.bumptech.glide.Glide;
 import com.melodix.app.Model.Playlist;
 import com.melodix.app.R;
 
@@ -47,16 +47,16 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
 
         holder.tvPlaylistName.setText(playlist.getName());
 
-        // Load ảnh bìa nếu có
-        if (playlist.getCoverUrl() != null && !playlist.getCoverUrl().isEmpty()) {
-            Glide.with(holder.itemView.getContext())
-                    .load(playlist.getCoverUrl())
-                    .placeholder(R.drawable.ic_music_placeholder)
-                    .into(holder.imgCover);
-        } else {
-            holder.imgCover.setImageResource(R.drawable.ic_music_placeholder);
-        }
-
+//        // Load ảnh bìa nếu có
+//        if (playlist.getCoverUrl() != null && !playlist.getCoverUrl().isEmpty()) {
+//            Glide.with(holder.itemView.getContext())
+//                    .load(playlist.getCoverUrl())
+//                    .placeholder(R.drawable.ic_music_placeholder)
+//                    .into(holder.imgCover);
+//        } else {
+//            holder.imgCover.setImageResource(R.drawable.ic_music_placeholder);
+//        }
+        holder.imgCover.setImageResource(R.drawable.ic_music_placeholder);
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onPlaylistClick(playlist);

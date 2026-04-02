@@ -11,6 +11,8 @@ import com.melodix.app.Model.PlaylistUpdateRequest;
 import com.melodix.app.Model.UpdateOrderRequest;
 import com.melodix.app.Service.PlaylistAPIService;
 import com.melodix.app.Service.RetrofitClient;
+import com.melodix.app.BuildConfig;
+import com.melodix.app.ViewModel.PlaylistViewModel;
 
 import java.util.List;
 
@@ -125,13 +127,33 @@ public class PlaylistRepository {
     /**
      * Cập nhật thứ tự bài hát (Drag & Drop)
      */
-    public void updateSongOrder(String playlistId, String songId, int newOrderIndex, Callback<Void> callback) {
+    /**
+     * Cập nhật thứ tự bài hát - Dùng cho Drag & Drop
+     * Phiên bản dễ gọi từ ViewModel
+     */
+    public void updateSongOrder(String playlistId, String songId, int newOrderIndex,
+                                PlaylistViewModel.OnOperationCompleteListener listener) {
+
         String playlistFilter = "eq." + playlistId;
         String songFilter = "eq." + songId;
 
         UpdateOrderRequest body = new UpdateOrderRequest(newOrderIndex);
 
         apiService.updateSongOrder(getApiKey(), getAuthToken(), playlistFilter, songFilter, body)
-                .enqueue(callback);
+                .enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                        if (response.isSuccessful()) {
+                            listener.onSuccess("Cập nhật thứ tự thành công");
+                        } else {
+                            listener.onError("Không thể cập nhật thứ tự");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        listener.onError("Lỗi kết nối khi cập nhật thứ tự");
+                    }
+                });
     }
 }
