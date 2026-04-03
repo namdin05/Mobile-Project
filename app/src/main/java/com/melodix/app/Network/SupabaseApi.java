@@ -11,8 +11,9 @@ import retrofit2.http.Query;
 
 public interface SupabaseApi {
 
-    // CHÚ Ý: Đã thêm encoded = true để Retrofit không tự ý làm hỏng câu lệnh FTS
-    @GET("song_details_view?select=*")
+    // 1. TÌM KIẾM
+    // CHÚ Ý: Đã thêm &status=eq.approved để chỉ tìm những bài hát đã được duyệt
+    @GET("song_details_view?select=*&status=eq.approved")
     Call<List<Song>> searchSongs(@Query(value = "fts", encoded = true) String ftsQuery);
 
     @GET("artist_search_view?select=*")
@@ -24,21 +25,24 @@ public interface SupabaseApi {
     @GET("playlists?select=*")
     Call<List<Playlist>> searchPlaylists(@Query(value = "fts", encoded = true) String ftsQuery);
 
+    // 2. CHI TIẾT ALBUM
     @GET("album_details_view?select=*")
     Call<List<Album>> getAlbumById(@Query("id") String idQuery);
 
-    @GET("song_details_view?select=*")
+    // CHÚ Ý: Chỉ lấy các bài hát đã duyệt trong Album
+    @GET("song_details_view?select=*&status=eq.approved")
     Call<List<Song>> getSongsByAlbumId(@Query("album_id") String albumIdQuery);
 
+
+    // 3. CHI TIẾT NGHỆ SĨ
     @GET("artist_search_view?select=*")
     Call<List<Artist>> getArtistByIdAPI(@Query("id") String idQuery);
 
-    // Lấy bài hát của Nghệ sĩ
-// Trỏ thẳng vào cái View mới tạo, mọi thứ khác giữ nguyên!
-    @GET("artist_songs_view?select=*")
+    // CHÚ Ý: Chỉ lấy bài hát đã duyệt của Nghệ sĩ
+    @GET("artist_songs_view?select=*&status=eq.approved")
     Call<List<Song>> getSongsByArtistId(@Query("artist_id") String artistIdQuery);
 
-    // Lấy Album của Nghệ sĩ
+    // Lấy Album của Nghệ sĩ (Album thì không có status nên để nguyên)
     @GET("album_details_view?select=*")
     Call<List<Album>> getAlbumsByArtistId(@Query("artist_id") String artistIdQuery);
 

@@ -14,6 +14,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.melodix.app.AdminActivity;
+import com.melodix.app.ArtistActivity;
 import com.melodix.app.BuildConfig;
 import com.melodix.app.MainActivity;
 import com.melodix.app.R;
@@ -52,19 +53,24 @@ public class LoginActivity extends AppCompatActivity {
                 btnLoginEmail.setEnabled(false); // khoa de ko bi spam, tao nhieu luong
                 // GỌI VIEW MODEL VÀ QUAN SÁT KẾT QUẢ (LIVEDATA)
                 authViewModel.login(email, pass, this).observe(LoginActivity.this, loginResult -> {
+                    // BÊN TRONG HÀM authViewModel.login(...).observe(...)
                     if (loginResult.isSuccess()) {
                         // KIỂM TRA PHÂN QUYỀN TẠI ĐÂY
                         String role = loginResult.getRole();
-
                         Log.d("ROLE", role);
 
                         if ("admin".equals(role)) {
-                            // NẾU LÀ ADMIN -> Mở màn hình AdminActivity (Trang duyệt nhạc)
+                            // 1. ADMIN -> Mở màn hình duyệt nhạc
                             Toast.makeText(this, "Xin chào Quản trị viên!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, AdminActivity.class));
 
+                        } else if ("artist".equals(role)) {
+                            // 2. ARTIST -> Mở không gian làm việc của Nghệ sĩ
+                            Toast.makeText(this, "Chào mừng Nghệ sĩ trở lại!", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(LoginActivity.this, ArtistActivity.class));
+
                         } else {
-                            // NẾU LÀ USER / ARTIST -> Mở màn hình MainActivity (Trang nghe nhạc)
+                            // 3. USER (Mặc định) -> Mở trang nghe nhạc bình thường
                             Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         }

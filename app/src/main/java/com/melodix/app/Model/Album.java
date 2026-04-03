@@ -14,14 +14,18 @@ public class Album implements Serializable {
     @SerializedName("artist_id")
     public String artistId;
 
+    // Supabase trả về cover_url -> nhét vào biến coverRes
     @SerializedName("cover_url")
     public String coverRes;
 
     @SerializedName("release_year")
     public int year;
 
-    // Giữ nguyên để không lỗi code cũ
+    // THÊM DÒNG NÀY VÀO ĐỂ LẤY ĐƯỢC TÊN CA SĨ
+    @SerializedName("artistName")
     public String artistName;
+
+    // Các biến dưới đây Database không trả về, cứ để kệ nó
     public String genre;
     public String description;
     public ArrayList<String> songIds = new ArrayList<>();

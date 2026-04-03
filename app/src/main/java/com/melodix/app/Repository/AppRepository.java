@@ -138,7 +138,10 @@ public class AppRepository {
     public ArrayList<Song> getAllApprovedSongs() {
         ArrayList<Song> list = new ArrayList<>();
         for (Song song : state.songs) {
-            if (song.approved) list.add(song);
+            // So sánh trạng thái bằng String theo logic database mới
+            if ("approved".equals(song.getStatus())) {
+                list.add(song);
+            }
         }
         return filterByOfflineMode(list);
     }

@@ -25,6 +25,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.chip.Chip;
 import com.melodix.app.Model.SearchResultItem;
@@ -135,6 +136,33 @@ public class SearchFragment extends Fragment {
                 runSearch();
                 return true;
             }
+            return false;
+        });
+
+        // ==========================================
+        // 4. HẠ BÀN PHÍM KHI TƯƠNG TÁC VỚI MÀN HÌNH
+        // ==========================================
+
+        // 4.1. Khi bắt đầu cuộn danh sách kết quả
+        rvResults.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    hideKeyboard();
+                }
+            }
+        });
+
+        // 4.2. Khi chạm vào vùng của danh sách kết quả (nhưng không trúng item nào)
+        rvResults.setOnTouchListener((v, event) -> {
+            hideKeyboard();
+            return false; // Giữ nguyên false để không chặn sự kiện click vào bài hát
+        });
+
+        // 4.3. Khi chạm vào các vùng trống khác trên toàn bộ màn hình Search
+        view.setOnTouchListener((v, event) -> {
+            hideKeyboard();
             return false;
         });
 
@@ -312,13 +340,13 @@ public class SearchFragment extends Fragment {
         }
     }
 
+    // Hàm hỗ trợ hạ bàn phím và bỏ con trỏ nhấp nháy ở ô Search
     private void hideKeyboard() {
-        if (etSearch != null) {
-            etSearch.clearFocus();
-        }
-        InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null && getView() != null) {
-            imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+        View view = requireActivity().getCurrentFocus();
+        if (view != null) {
+            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) requireActivity().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            view.clearFocus();
         }
     }
 }

@@ -28,12 +28,13 @@ public class Song implements Serializable {
     @SerializedName("stream_count")
     public int plays;
 
-    @SerializedName("is_published")
-    public boolean approved = true;
+    @SerializedName("status")
+    private String status;
 
-    // Các trường dưới đây không có trực tiếp trong bảng songs (do dùng DB quan hệ)
-    // Mình giữ nguyên để không làm lỗi app, nhưng dữ liệu trả về tạm thời sẽ là null/mặc định
+    // ĐÃ THÊM SERIALIZED NAME Ở ĐÂY ĐỂ NHẬN CHUỖI GỘP NHIỀU NGHỆ SĨ
+    @SerializedName("artistName")
     public String artistName;
+
     public String albumName;
     public String genre;
     public String description;
@@ -59,6 +60,9 @@ public class Song implements Serializable {
         this.likes = likes;
     }
 
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
     public String getTitle() {
         return title;
     }
@@ -66,6 +70,7 @@ public class Song implements Serializable {
     public String getCover_url() {
         return coverRes;
     }
+
     public String getArtistName(){
         return artistName;
     }
