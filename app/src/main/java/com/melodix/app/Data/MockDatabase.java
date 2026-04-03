@@ -54,17 +54,17 @@ public class MockDatabase {
         Song neonHorizons = song("song_neon_horizons", "Neon Horizons", alex, neonSkies,
                 "cover_neon_horizons", "audio_neon_horizons", "Synth-pop",
                 "Alex Rivers opens his album with cinematic momentum.");
-        neonHorizons.approved = true;
+        neonHorizons.status = "approved";
 
         Song starlightSerenade = song("song_starlight_serenade", "Starlight Serenade", luna, starlightDreams,
                 "cover_starlight_serenade", "audio_starlight_serenade", "Dream Pop",
                 "Luna floats over warm pads.");
-        starlightSerenade.approved = true;
+        starlightSerenade.status = "approved";
 
         Song electricPulse = song("song_electric_pulse", "Electric Pulse", alex, neonSkies,
                 "cover_electric_pulse", "audio_electric_pulse", "EDM",
                 "A brighter festival-ready cut.");
-        electricPulse.approved = true;
+        electricPulse.status = "approved";
 
         state.songs.addAll(Arrays.asList(neonHorizons, starlightSerenade, electricPulse));
 

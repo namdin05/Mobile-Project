@@ -138,7 +138,7 @@ public class AppRepository {
     public ArrayList<Song> getAllApprovedSongs() {
         ArrayList<Song> list = new ArrayList<>();
         for (Song song : state.songs) {
-            if (song.approved) list.add(song);
+            if (song.status == "approved") list.add(song);
         }
         return filterByOfflineMode(list);
     }

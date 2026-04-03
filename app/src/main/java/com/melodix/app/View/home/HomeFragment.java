@@ -24,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.melodix.app.Model.Banner;
 import com.melodix.app.Model.Genre;
@@ -90,6 +91,14 @@ public class HomeFragment extends Fragment {
             Glide.with(requireContext()).load(user.getAvatarUrl()).circleCrop().into(avatar);
             greeting.setText("Welcome back");
         }
+        // tim den bottomNavigationView cua MainActivity
+        BottomNavigationView bottomNavigationView = requireActivity().findViewById(R.id.bottom_nav);
+        avatar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bottomNavigationView.setSelectedItemId(R.id.nav_account); // R.id.nav_account chinh la tham so truyen vao onNavigationItemSelected(@NonNull MenuItem menuItem)
+            }
+        });
 
         // ==========================================
         // FETCH TRENDING SONGS
@@ -123,8 +132,14 @@ public class HomeFragment extends Fragment {
 
         btnViewAllGenres.setOnClickListener(v -> {
             requireActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.main_fragment_container, new AllGenresFragment())
-                    .addToBackStack(null)
+                    .setCustomAnimations(
+                            R.anim.slide_in_right,  // Màn AllGenres lướt vào
+                            0,                      // Màn Home đứng im
+                            0,                      // (Bấm Back) Màn Home đứng im
+                            R.anim.slide_out_right  // (Bấm Back) Màn AllGenres lướt ra
+                    ) // goi truoc add de k bi skip
+                    .add(R.id.main_fragment_container, new AllGenresFragment()) // nen xai add de home ko bi trang xoa
+                    .addToBackStack(null) // null thi chi quay ve 1 nac
                     .commit();
         });
 

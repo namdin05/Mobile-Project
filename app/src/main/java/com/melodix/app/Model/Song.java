@@ -2,6 +2,7 @@ package com.melodix.app.Model;
 
 import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
+import java.util.List;
 
 public class Song implements Serializable {
     @SerializedName("id")
@@ -10,8 +11,8 @@ public class Song implements Serializable {
     @SerializedName("title")
     public String title;
 
-    @SerializedName("artist_id")
-    public String artistId;
+    @SerializedName("song_artists")
+    public List<Artist> artists;
 
     @SerializedName("album_id")
     public String albumId;
@@ -28,12 +29,13 @@ public class Song implements Serializable {
     @SerializedName("stream_count")
     public int plays;
 
-    @SerializedName("is_published")
-    public boolean approved = true;
+    @SerializedName("status")
+    public String status;
 
     // Các trường dưới đây không có trực tiếp trong bảng songs (do dùng DB quan hệ)
     // Mình giữ nguyên để không làm lỗi app, nhưng dữ liệu trả về tạm thời sẽ là null/mặc định
     public String artistName;
+    public String artistId;
     public String albumName;
     public String genre;
     public String description;

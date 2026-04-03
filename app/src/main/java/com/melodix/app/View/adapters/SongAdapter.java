@@ -127,7 +127,10 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     }
 
     @Override
-    public int getItemCount() { return songs.size(); }
+    public int getItemCount() {
+        if(songs != null) return songs.size();
+         return 0;
+    }
 
     static class SongHolder extends RecyclerView.ViewHolder {
         ImageView cover; TextView title; TextView subtitle; TextView meta; ImageButton more;

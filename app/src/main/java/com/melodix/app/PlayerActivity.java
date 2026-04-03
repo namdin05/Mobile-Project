@@ -42,7 +42,9 @@ public class PlayerActivity extends AppCompatActivity {
     private boolean isUserSeeking = false;
     private int currentLyricIndex = -1;
 
+    // tao bo lap lich
     private final android.os.Handler progressHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    // gan Runnable vao 1 bien (type Runnable) de sau nay tieu huy duoc no
     private final Runnable progressRunnable = new Runnable() {
         @Override
         public void run() {
@@ -52,7 +54,7 @@ public class PlayerActivity extends AppCompatActivity {
                 boolean playing = AudioPlayerService.isPlaying();
                 updatePlaybackUi(position, duration, playing);
             }
-            progressHandler.postDelayed(this, 1000);
+            progressHandler.postDelayed(this, 100); // dong nay lap vo tan, k huy tao memory leak
         }
     };
 
