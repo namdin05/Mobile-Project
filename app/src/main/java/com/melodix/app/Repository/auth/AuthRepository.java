@@ -10,6 +10,7 @@ import com.melodix.app.Model.SignUpRequest;
 import com.melodix.app.Model.LoginResult;
 import com.melodix.app.Model.Profile;
 
+import com.melodix.app.Service.AdminAPIService;
 import com.melodix.app.Service.AuthAPIService;
 
 import retrofit2.Call;
@@ -19,21 +20,15 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import com.melodix.app.BuildConfig;
+import com.melodix.app.Service.RetrofitClient;
 
 import java.util.List;
 
 public class AuthRepository {
-    private static final String BASE_URL = BuildConfig.BASE_URL;
-    private static final String API_KEY = BuildConfig.API_KEY;
-
     private AuthAPIService apiService;
 
     public AuthRepository() {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        apiService = retrofit.create(AuthAPIService.class);
+        apiService = RetrofitClient.getClient().create(AuthAPIService.class);
     }
 
     // Trả về MutableLiveData để ViewModel quan sát
@@ -45,6 +40,7 @@ public class AuthRepository {
             @Override
             public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
+
                     // 1. Đăng nhập thành công, lấy Token và User ID
                     String token = response.body().getAccessToken();
                     String userId = response.body().getUser().getId();
@@ -116,7 +112,7 @@ public class AuthRepository {
         MutableLiveData<String> registerResult = new MutableLiveData<>();
         SignUpRequest request = new SignUpRequest(email, password, fullName);
 
-        apiService.signUpWithEmail(API_KEY, request).enqueue(new Callback<AuthResponse>() {
+        apiService.signUpWithEmail(BuildConfig.API_KEY, request).enqueue(new Callback<AuthResponse>() {
             @Override
             public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -135,5 +131,42 @@ public class AuthRepository {
         });
 
         return registerResult;
+    }
+
+    public MutableLiveData<LoginResult> handleSocialLogin(String accessToken) {
+        MutableLiveData<LoginResult> result = new MutableLiveData<>();
+        String apiKey = BuildConfig.API_KEY;
+        String authHeader = "Bearer " + accessToken;
+
+        // 1. Gọi API hỏi Supabase xem Access Token này là của UID nào
+        apiService.getUserInfo(apiKey, authHeader).enqueue(new Callback<okhttp3.ResponseBody>() {
+            @Override
+            public void onResponse(Call<okhttp3.ResponseBody> call, Response<okhttp3.ResponseBody> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        // 2. Bóc tách JSON để lấy chữ "id" (chính là UID)
+                        String jsonString = response.body().string();
+                        org.json.JSONObject jsonObject = new org.json.JSONObject(jsonString);
+                        String uid = jsonObject.getString("id");
+
+                        // 3. Quá đỉnh! Dùng lại chính hàm fetchUserRole của bạn để lấy Role và trả về LoginResult
+                        fetchUserRole(uid, accessToken, result);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        result.setValue(new LoginResult(false, "Lỗi phân tích dữ liệu User từ Supabase", true));
+                    }
+                } else {
+                    result.setValue(new LoginResult(false, "Token Mạng xã hội không hợp lệ hoặc hết hạn", true));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<okhttp3.ResponseBody> call, Throwable t) {
+                result.setValue(new LoginResult(false, "Lỗi kết nối mạng khi xác thực MXH", true));
+            }
+        });
+
+        return result;
     }
 }

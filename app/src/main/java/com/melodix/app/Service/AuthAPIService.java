@@ -5,6 +5,7 @@ import com.melodix.app.Model.Profile;
 import com.melodix.app.Model.SignInRequest;
 import com.melodix.app.Model.SignUpRequest;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.Header;
@@ -31,5 +32,11 @@ public interface AuthAPIService {
             @Header("apikey") String apiKey,
             @Header("Authorization") String token,
             @Query("id") String userIdFilter // Định dạng: eq.ID_CUA_USER
+    );
+
+    @GET("auth/v1/user")
+    Call<ResponseBody> getUserInfo(
+            @Header("apikey") String apiKey,
+            @Header("Authorization") String token
     );
 }

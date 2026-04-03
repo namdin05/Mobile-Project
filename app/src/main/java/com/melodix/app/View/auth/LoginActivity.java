@@ -34,21 +34,21 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // =========================================================
-        // THÊM MỚI 1: KIỂM TRA AUTO-LOGIN NGAY KHI VỪA MỞ APP
+        // KIỂM TRA AUTO-LOGIN NGAY KHI VỪA MỞ APP
         // =========================================================
         SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
         boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
 
         if (isLoggedIn) {
-            String savedRole = prefs.getString("USER_ROLE", "user"); // Mặc định là user nếu không tìm thấy
+            String savedRole = prefs.getString("USER_ROLE", "user");
 
             if ("admin".equals(savedRole)) {
                 startActivity(new Intent(LoginActivity.this, AdminActivity.class));
             } else {
                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
             }
-            finish(); // Đóng màn hình Login
-            return;   // Thoát khỏi onCreate để không load giao diện nữa
+            finish();
+            return;
         }
         // =========================================================
 
@@ -69,28 +69,20 @@ public class LoginActivity extends AppCompatActivity {
             String email = edtEmail.getText().toString().trim();
             String pass = edtPassword.getText().toString().trim();
 
-            Log.d("MELODIX_DEBUG", "Trạm 4 (AuthRepo) - Bóc tách thành công -> Role: ");
             if (!email.isEmpty() && !pass.isEmpty()) {
 
                 authViewModel.login(email, pass).observe(LoginActivity.this, loginResult -> {
 
-                    Log.d("MELODIX_DEBUG", "Trạm 2 (LoginActivity) - isSuccess: " + loginResult.isSuccess());
                     if (loginResult.isSuccess()) {
                         String role = loginResult.getRole();
                         Log.d("ROLE", role);
 
-                        Log.d("MELODIX_DEBUG", "Trạm 2 (LoginActivity) - Chuẩn bị lưu SharedPreferences với Role: " + role);
-
-                        // =========================================================
-                        // THÊM MỚI 2: LƯU TRẠNG THÁI KHI ĐĂNG NHẬP THÀNH CÔNG
-                        // =========================================================
+                        // LƯU TRẠNG THÁI KHI ĐĂNG NHẬP THÀNH CÔNG
                         SharedPreferences.Editor editor = getSharedPreferences("MelodixPrefs", MODE_PRIVATE).edit();
                         editor.putBoolean("IS_LOGGED_IN", true);
                         editor.putString("USER_ROLE", role);
                         editor.putString("USER_ID", loginResult.getUserId());
-
                         editor.apply();
-                        // =========================================================
 
                         if ("admin".equals(role)) {
                             Toast.makeText(this, "Xin chào Quản trị viên!", Toast.LENGTH_SHORT).show();
@@ -99,17 +91,13 @@ public class LoginActivity extends AppCompatActivity {
                             Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         }
-
                         finish();
                     } else {
-                        Log.e("MELODIX_DEBUG", "Trạm 2 (LoginActivity) - Thất bại do: " + loginResult.getErrorMessage());
                         Toast.makeText(LoginActivity.this, loginResult.getErrorMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
-            }
-
-            else {
-                Log.d("MELODIX_DEBUG", "Trạm 6 (AuthRepo) - Bóc tách thành công -> Role: ");
+            } else {
+                Toast.makeText(LoginActivity.this, "Vui lòng nhập Email và Mật khẩu", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -133,7 +121,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Uri uri = getIntent().getData();
-        if (uri != null && uri.getScheme().equals("melodix")) {
+        if (uri != null && uri.getScheme() != null && uri.getScheme().equals("melodix")) {
             String fragment = uri.getFragment();
             if (fragment != null && fragment.contains("access_token=")) {
                 String[] params = fragment.split("&");
@@ -142,23 +130,52 @@ public class LoginActivity extends AppCompatActivity {
                         String accessToken = param.split("=")[1];
                         Log.d("MELODIX_OAUTH", "Google/FB Token: " + accessToken);
 
-                        // =========================================================
-                        // THÊM MỚI 3: LƯU TRẠNG THÁI KHI LOGIN MXH THÀNH CÔNG
-                        // =========================================================
-                        SharedPreferences.Editor editor = getSharedPreferences("MelodixPrefs", MODE_PRIVATE).edit();
-                        editor.putBoolean("IS_LOGGED_IN", true);
-                        editor.putString("USER_ROLE", "user"); // Mặc định MXH là user thường
-                        // Nếu lấy được UID từ token, bạn cũng lưu vào "USER_ID" ở đây nhé
-                        editor.apply();
-                        // =========================================================
+                        // XÓA DATA INTENT ĐỂ KHÔNG BỊ CHẠY LẠI NHIỀU LẦN
+                        getIntent().setData(null);
 
-                        Toast.makeText(this, "Đăng nhập MXH thành công!", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                        finish();
+                        Toast.makeText(this, "Đang đồng bộ dữ liệu...", Toast.LENGTH_SHORT).show();
+
+                        // =========================================================
+                        // GỌI VIEW MODEL ĐỂ ĐỔI TOKEN LẤY UID VÀ ROLE
+                        // =========================================================
+                        authViewModel.handleSocialLoginToken(accessToken).observe(LoginActivity.this, loginResult -> {
+                            if (loginResult.isSuccess()) {
+                                String role = loginResult.getRole();
+                                String uid = loginResult.getUserId();
+
+                                // LƯU TRẠNG THÁI KHI LOGIN MXH THÀNH CÔNG
+                                SharedPreferences.Editor editor = getSharedPreferences("MelodixPrefs", MODE_PRIVATE).edit();
+                                editor.putBoolean("IS_LOGGED_IN", true);
+                                editor.putString("USER_ROLE", role);
+                                editor.putString("USER_ID", uid);
+                                editor.putString("AUTH_TOKEN", accessToken);
+                                editor.apply();
+
+                                if ("admin".equals(role)) {
+                                    Toast.makeText(this, "Xin chào Quản trị viên!", Toast.LENGTH_SHORT).show();
+                                    startActivity(new Intent(LoginActivity.this, AdminActivity.class));
+                                } else {
+                                    Toast.makeText(this, "Đăng nhập MXH thành công!", Toast.LENGTH_SHORT).show();
+                                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                }
+                                finish();
+                            } else {
+                                Toast.makeText(LoginActivity.this, loginResult.getErrorMessage(), Toast.LENGTH_LONG).show();
+                            }
+                        });
+
                         break;
                     }
                 }
             }
         }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        // Ghi đè cái Intent cũ bằng cái Intent mới (chứa link Supabase)
+        // Để lát nữa thằng onResume() nó gọi getIntent() sẽ lấy được đúng data!
+        setIntent(intent);
     }
 }

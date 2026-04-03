@@ -24,7 +24,8 @@ public class AuthViewModel extends ViewModel {
     }
 
     // Hàm này xử lý Token nhận được từ Google/Facebook
-    public void saveOAuthToken(String token) {
-        // TODO: Xử lý lưu token vào SharedPreferences
+    public LiveData<LoginResult> handleSocialLoginToken(String token) {
+        // Trả thẳng LiveData từ Repository lên cho Activity quan sát
+        return authRepository.handleSocialLogin(token);
     }
 }
