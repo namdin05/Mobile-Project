@@ -33,30 +33,36 @@ import retrofit2.Response;
 public class UploadSongActivity extends AppCompatActivity {
 
     private EditText edtSongTitle;
-    private Button btnPickCover, btnPickAudio, btnSubmitUpload;
-    // Nút mới để chọn ca sĩ hát chung
-    private Button btnAddCollab;
-    private TextView tvCoverStatus, tvAudioStatus;
+    private View btnPickCover, btnPickAudio; // Đổi sang View để ép kiểu được cả CardView
+    private Button btnSubmitUpload;
+    private View btnAddCollab; // Đổi sang View vì dùng ImageButton trong XML
+
+    // Thêm các biến quản lý UI Premium
+    private View layoutCoverPlaceholder;
+    private android.widget.ImageView imgCoverPreview;
+    private TextView tvAudioTitle;
+    private android.widget.ImageView imgAudioIcon;
+    private TextView tvAudioStatus;
 
     private Uri coverUri = null;
     private Uri audioUri = null;
 
     private ArtistAPIService apiService;
     private SessionManager sessionManager;
-    // Thêm các biến này lên đầu class, ngay dưới chỗ khai báo Button
     private com.google.android.material.chip.ChipGroup chipGroupCollab;
 
-    // DANH SÁCH CHỨA ID CÁC CA SĨ (Bao gồm chủ bài hát + Người hát chung)
     private List<String> selectedArtistIds = new ArrayList<>();
 
-    // 1. CÔNG CỤ CHỌN FILE TỪ ĐIỆN THOẠI
+    // 1. CÔNG CỤ CHỌN FILE TỪ ĐIỆN THOẠI (Cập nhật để đổi UI khi chọn xong)
     private final ActivityResultLauncher<String> pickCoverLauncher = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
             uri -> {
                 if (uri != null) {
                     coverUri = uri;
-                    tvCoverStatus.setText("Đã chọn ảnh thành công!");
-                    tvCoverStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+                    // Bật ảnh Preview và tắt cái placeholder (icon máy ảnh) đi
+                    imgCoverPreview.setVisibility(View.VISIBLE);
+                    imgCoverPreview.setImageURI(uri);
+                    layoutCoverPlaceholder.setVisibility(View.GONE);
                 }
             }
     );
@@ -66,8 +72,12 @@ public class UploadSongActivity extends AppCompatActivity {
             uri -> {
                 if (uri != null) {
                     audioUri = uri;
-                    tvAudioStatus.setText("Đã chọn file nhạc thành công!");
-                    tvAudioStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+                    // Đổi màu giao diện báo hiệu đã có file âm thanh
+                    tvAudioTitle.setText("Đã đính kèm âm thanh");
+                    tvAudioTitle.setTextColor(androidx.core.content.ContextCompat.getColor(this, android.R.color.white));
+                    tvAudioStatus.setText("Sẵn sàng để phát hành");
+                    tvAudioStatus.setTextColor(android.graphics.Color.parseColor("#1DB954"));
+                    imgAudioIcon.setColorFilter(android.graphics.Color.parseColor("#1DB954"));
                 }
             }
     );
@@ -81,38 +91,40 @@ public class UploadSongActivity extends AppCompatActivity {
         apiService = RetrofitClient.getClient().create(ArtistAPIService.class);
         sessionManager = SessionManager.getInstance(this);
 
-        // TỰ ĐỘNG THÊM ID CỦA NGƯỜI ĐĂNG TẢI VÀO DANH SÁCH ĐẦU TIÊN
+        View btnBack = findViewById(R.id.btn_back);
+        btnBack.setOnClickListener(v -> {
+            finish();
+        });
+
+
+
         String currentUserId = sessionManager.getCurrentUser().getId();
         if (currentUserId != null) {
             selectedArtistIds.add(currentUserId);
         }
 
+        // Ánh xạ ID chuẩn với bản XML mới
         edtSongTitle = findViewById(R.id.edt_song_title);
         btnPickCover = findViewById(R.id.btn_pick_cover);
         btnPickAudio = findViewById(R.id.btn_pick_audio);
         btnSubmitUpload = findViewById(R.id.btn_submit_upload);
-        tvCoverStatus = findViewById(R.id.tv_cover_status);
-        tvAudioStatus = findViewById(R.id.tv_audio_status);
-        tvAudioStatus = findViewById(R.id.tv_audio_status);
-        // (Bạn nhớ thêm 1 cái Button có id là btn_add_collab vào file XML nhé)
-         btnAddCollab = findViewById(R.id.btn_add_collab);
+        btnAddCollab = findViewById(R.id.btn_add_collab);
         chipGroupCollab = findViewById(R.id.chip_group_collab);
-        // Bắt sự kiện chọn file
-        btnPickCover.setOnClickListener(v -> pickCoverLauncher.launch("image/*"));
-        btnPickAudio.setOnClickListener(v -> pickAudioLauncher.launch("audio/mpeg"));
 
-        // Bắt sự kiện mở hộp thoại tìm kiếm ca sĩ hát chung
-        /*
-        btnAddCollab.setOnClickListener(v -> {
-            openCollabSearchDialog();
-        });
-        */
-        btnAddCollab.setOnClickListener(v -> {
-            openCollabSearchDialog();
-        });
-        // Bắt sự kiện Tải lên
+        // Ánh xạ các UI nâng cao
+        layoutCoverPlaceholder = findViewById(R.id.layout_cover_placeholder);
+        imgCoverPreview = findViewById(R.id.img_cover_preview);
+        tvAudioTitle = findViewById(R.id.tv_audio_title);
+        imgAudioIcon = findViewById(R.id.img_audio_icon);
+        tvAudioStatus = findViewById(R.id.tv_audio_status);
+
+        // Bắt sự kiện click
+        btnPickCover.setOnClickListener(v -> pickCoverLauncher.launch("image/*"));
+        btnPickAudio.setOnClickListener(v -> pickAudioLauncher.launch("audio/*")); // Hỗ trợ mp3, m4a, wav
+        btnAddCollab.setOnClickListener(v -> openCollabSearchDialog());
         btnSubmitUpload.setOnClickListener(v -> startUploadProcess());
     }
+
 
     // 2. HÀM XỬ LÝ LUỒNG UPLOAD 3 BƯỚC
     private void startUploadProcess() {
@@ -301,5 +313,24 @@ public class UploadSongActivity extends AppCompatActivity {
         } catch (Exception e) {
             return 0; // Nếu lỗi trả về 0
         }
+    }
+    // ==========================================
+    // CHIÊU CUỐI: HẠ BÀN PHÍM HOÀN HẢO MỌI VỊ TRÍ
+    // ==========================================
+    @Override
+    public boolean dispatchTouchEvent(android.view.MotionEvent ev) {
+        if (ev.getAction() == android.view.MotionEvent.ACTION_DOWN) {
+            View v = getCurrentFocus();
+            if (v instanceof EditText) {
+                android.graphics.Rect outRect = new android.graphics.Rect();
+                v.getGlobalVisibleRect(outRect);
+                if (!outRect.contains((int) ev.getRawX(), (int) ev.getRawY())) {
+                    v.clearFocus();
+                    android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+        }
+        return super.dispatchTouchEvent(ev);
     }
 }

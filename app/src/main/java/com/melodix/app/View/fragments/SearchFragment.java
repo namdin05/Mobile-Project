@@ -160,11 +160,7 @@ public class SearchFragment extends Fragment {
             return false; // Giữ nguyên false để không chặn sự kiện click vào bài hát
         });
 
-        // 4.3. Khi chạm vào các vùng trống khác trên toàn bộ màn hình Search
-        view.setOnTouchListener((v, event) -> {
-            hideKeyboard();
-            return false;
-        });
+        setupUI(view);
 
         return view;
     }
@@ -347,6 +343,28 @@ public class SearchFragment extends Fragment {
             android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) requireActivity().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             view.clearFocus();
+        }
+    }
+
+    // ==========================================
+    // BÍ THUẬT HẠ BÀN PHÍM HOÀN HẢO CHO FRAGMENT
+    // ==========================================
+    public void setupUI(View view) {
+        // Nếu cái view đang chạm vào KHÔNG PHẢI là ô gõ chữ (EditText)
+        if (!(view instanceof EditText)) {
+            view.setOnTouchListener((v, event) -> {
+                hideKeyboard();
+                return false;
+            });
+        }
+
+        // Nếu cái view này là một cái hộp chứa (ViewGroup) nhiều phần tử khác
+        // Dùng vòng lặp đệ quy để quét hết tất cả mọi ngóc ngách bên trong nó
+        if (view instanceof ViewGroup) {
+            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+                View innerView = ((ViewGroup) view).getChildAt(i);
+                setupUI(innerView);
+            }
         }
     }
 }
