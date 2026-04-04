@@ -41,7 +41,7 @@ public class GenreAdapter extends RecyclerView.Adapter<GenreAdapter.GenreHolder>
     public void onBindViewHolder(@NonNull GenreHolder holder, int position) {
         Genre genre = genres.get(position);
         Glide.with(context).load(genre.getCover_url()).into(holder.image);
-        Log.d("GEN_IMG", genre.getCover_url());
+        Log.d("GEN_IMG", genre.getCover_url() + "");
         holder.name.setText(genre.getName());
         holder.itemView.setOnClickListener(v -> {
             if(listener != null) listener.onGenreClick(genre);

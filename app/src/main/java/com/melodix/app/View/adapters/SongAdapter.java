@@ -14,6 +14,7 @@ import com.melodix.app.R;
 import com.melodix.app.Utils.TimeUtils;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     public interface OnSongActionListener {
@@ -22,16 +23,16 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     }
 
     private final Context context;
-    private final ArrayList<Song> songs;
+    private final List<Song> songs;
     private final OnSongActionListener listener;
 
-    public SongAdapter(Context context, ArrayList<Song> songs, OnSongActionListener listener) {
+    public SongAdapter(Context context, List<Song> songs, OnSongActionListener listener) {
         this.context = context;
         this.songs = songs;
         this.listener = listener;
     }
 
-    public ArrayList<Song> getSongs() { return songs; }
+    public List<Song> getSongs() { return songs; }
 
     public void swapItems(int from, int to) {
         if (from < 0 || to < 0 || from >= songs.size() || to >= songs.size()) return;
@@ -128,7 +129,10 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     }
 
     @Override
-    public int getItemCount() { return songs.size(); }
+    public int getItemCount() {
+        if(songs != null) return songs.size();
+         return 0;
+    }
 
     static class SongHolder extends RecyclerView.ViewHolder {
         ImageView cover; TextView title; TextView subtitle; TextView meta; ImageButton more;

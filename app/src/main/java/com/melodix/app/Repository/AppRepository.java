@@ -385,4 +385,111 @@ public class AppRepository {
             @Override public void onFailure(Call<List<Artist>> call, Throwable t) { callback.onError("Lỗi mạng"); }
         });
     }
+
+    // =========================================================================
+    // QUẢN LÝ HÀNG ĐỢI PHÁT NHẠC (QUEUE) - DÀNH CHO NHẠC TỪ SUPABASE
+    // =========================================================================
+    private ArrayList<Song> currentQueue = new ArrayList<>();
+    private int currentQueueIndex = -1;
+
+    public void setCurrentQueue(ArrayList<Song> queue, String startSongId) {
+        this.currentQueue = new ArrayList<>(queue != null ? queue : new ArrayList<>());
+        this.currentQueueIndex = 0;
+        // Tìm vị trí bài hát người dùng vừa bấm vào
+        for (int i = 0; i < currentQueue.size(); i++) {
+            if (currentQueue.get(i).id.equals(startSongId)) {
+                this.currentQueueIndex = i;
+                break;
+            }
+        }
+    }
+
+    public ArrayList<String> getCurrentQueueSongIds() {
+        ArrayList<String> ids = new ArrayList<>();
+        if (currentQueue != null) {
+            for (Song s : currentQueue) ids.add(s.id);
+        }
+        return ids;
+    }
+
+    public void setCurrentQueueIndex(int index) {
+        if (currentQueue != null && index >= 0 && index < currentQueue.size()) {
+            this.currentQueueIndex = index;
+        }
+    }
+
+    public Song getCurrentQueueSong() {
+        if (currentQueue != null && currentQueueIndex >= 0 && currentQueueIndex < currentQueue.size()) {
+            return currentQueue.get(currentQueueIndex);
+        }
+        return null;
+    }
+
+    public Song moveNextInQueue() {
+        if (currentQueue == null || currentQueue.isEmpty()) return null;
+        if (currentQueueIndex < currentQueue.size() - 1) {
+            currentQueueIndex++;
+            return currentQueue.get(currentQueueIndex);
+        }
+        return null; // Tạm thời dừng khi hết danh sách
+    }
+
+    public Song movePreviousInQueue() {
+        if (currentQueue == null || currentQueue.isEmpty()) return null;
+        if (currentQueueIndex > 0) {
+            currentQueueIndex--;
+            return currentQueue.get(currentQueueIndex);
+        }
+        return null;
+    }
+
+    // =========================================================================
+    // TÌM KIẾM BÀI HÁT TỪ QUEUE ĐỂ PHÁT
+    // =========================================================================
+    public Song getSongById(String id) {
+        if (id == null) return null;
+
+        // 1. Ưu tiên quét trong Hàng đợi hiện tại (Vì đây là nhạc load từ Supabase về)
+        if (currentQueue != null) {
+            for (Song song : currentQueue) {
+                if (song.id.equals(id)) return song;
+            }
+        }
+        // 2. Kế tiếp quét trong MockData phòng hờ
+        if (state != null && state.songs != null) {
+            for (Song song : state.songs) {
+                if (song.id.equals(id)) return song;
+            }
+        }
+        return null;
+    }
+    // =========================================================================
+    // CÁC HÀM XỬ LÝ LỊCH SỬ / DOWNLOAD / AI MÀ PLAYER ACTIVITY ĐANG GỌI
+    // =========================================================================
+    public boolean toggleDownloadSong(String songId) {
+        AppUser user = getCurrentUser();
+        if (user == null) return false;
+        boolean isDownloaded = user.downloadedSongIds.contains(songId);
+        if (isDownloaded) {
+            user.downloadedSongIds.remove(songId);
+        } else {
+            user.downloadedSongIds.add(songId);
+        }
+        save();
+        return !isDownloaded;
+    }
+
+    public java.io.File getPlayableFileIfDownloaded(String songId) {
+        // Tạm thời luôn trả về NULL để ép AppStream nhạc trực tiếp từ URL Supabase mạng!
+        return null;
+    }
+
+    public void recordPlay(String songId, int listenedSec) {
+        // Tương lai bạn sẽ gọi API Supabase lên bảng 'plays' và 'listen_history' ở đây.
+        // Tạm thời để trống, app vẫn phát nhạc bình thường.
+    }
+
+    public String getAiSummaryForSong(String songId) {
+        return "AI Summary đang phân tích hàng ngàn bình luận... Bài hát này hiện đang được stream trực tiếp từ hệ thống Supabase!";
+    }
 }

@@ -10,7 +10,7 @@ import retrofit2.http.Header;
 import retrofit2.http.Query;
 
 public interface SongAPIService {
-    @GET("rest/v1/songs?status=eq.approved&order=created_at.desc")
+    @GET("rest/v1/song_details_view?status=eq.approved&order=created_at.desc")
     Call<List<Song>> getNewReleaseSongs( // quy dinh sau khi thuc hien Call thi se tra ve Song
             @Header("apikey") String apiKey,
             @Query("limit") int limit

@@ -46,6 +46,7 @@ public class SongCardAdapter extends RecyclerView.Adapter<SongCardAdapter.SongHo
         holder.title.setText(song.getTitle());
         holder.badge.setVisibility(showRanking ? View.VISIBLE : View.GONE);
         holder.badge.setText(String.valueOf(position + 1));
+        holder.artist.setText(song.artistName);
         holder.itemView.setOnClickListener(v -> {
             if(listener != null) listener.onSongClick(song);
         });

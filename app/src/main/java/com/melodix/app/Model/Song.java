@@ -2,6 +2,7 @@ package com.melodix.app.Model;
 
 import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
+import java.util.List;
 
 public class Song implements Serializable {
     @SerializedName("id")
@@ -10,8 +11,8 @@ public class Song implements Serializable {
     @SerializedName("title")
     public String title;
 
-    @SerializedName("artist_id")
-    public String artistId;
+    @SerializedName("song_artists")
+    public List<Artist> artists;
 
     @SerializedName("album_id")
     public String albumId;
@@ -29,12 +30,12 @@ public class Song implements Serializable {
     public int plays;
 
     @SerializedName("status")
-    private String status;
+    public String status;
 
     // ĐÃ THÊM SERIALIZED NAME Ở ĐÂY ĐỂ NHẬN CHUỖI GỘP NHIỀU NGHỆ SĨ
     @SerializedName("artistName")
     public String artistName;
-
+    public String artistId;
     public String albumName;
     public String genre;
     public String description;
@@ -65,6 +66,14 @@ public class Song implements Serializable {
 
     public String getTitle() {
         return title;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getAudioRes() {
+        return audioRes;
     }
 
     public String getCover_url() {

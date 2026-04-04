@@ -77,4 +77,5 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("androidx.viewpager2:viewpager2:1.0.0-alpha01")
+    implementation("androidx.media:media:1.7.0")
 }

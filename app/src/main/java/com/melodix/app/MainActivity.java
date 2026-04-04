@@ -20,6 +20,7 @@ import com.google.android.material.navigation.NavigationBarView;
 import com.melodix.app.View.fragments.AccountFragment;
 import com.melodix.app.View.fragments.LibraryFragment;
 import com.melodix.app.View.fragments.SearchFragment;
+import com.melodix.app.View.home.AllGenresFragment;
 import com.melodix.app.View.home.HomeFragment;
 
 public class MainActivity extends AppCompatActivity {
