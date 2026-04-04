@@ -37,9 +37,6 @@ public class AuthRepository {
     private static final String API_KEY = BuildConfig.API_KEY;
 
     private AuthAPIService apiService;
-    private GenreAPIService genreAPIService;
-    private SongAPIService songAPIService;
-    private BannerAPIService bannerAPIService;
 
     public AuthRepository() {
         Retrofit retrofit = new Retrofit.Builder()
@@ -47,9 +44,6 @@ public class AuthRepository {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         apiService = retrofit.create(AuthAPIService.class);
-        genreAPIService = retrofit.create(GenreAPIService.class);
-        songAPIService = retrofit.create(SongAPIService.class);
-        bannerAPIService = retrofit.create(BannerAPIService.class);
     }
 
     // Trả về MutableLiveData để ViewModel quan sát
@@ -177,94 +171,5 @@ public class AuthRepository {
         });
 
         return registerResult;
-    }
-
-    public MutableLiveData<List<Genre>> fetchGenres(){ // su dung MutableLiveData vi chay ham bat dong bo
-        MutableLiveData<List<Genre>> genres = new MutableLiveData<>();
-
-        genreAPIService.getGenres(API_KEY).enqueue(new Callback<List<Genre>>() { // ham callback se chay khi server gui phan hoi
-            @Override
-            public void onResponse(Call<List<Genre>> call, Response<List<Genre>> response) {
-                if(response.isSuccessful() && response.body() != null){
-                    genres.setValue(response.body());
-                    Log.d("GENRES", "goi database thanh cong");
-                    Log.d("GENRES", new Gson().toJson(response.body()));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Genre>> call, Throwable t) {
-                Log.e("API ERROR", "Loi mang: " + t.getMessage());
-                genres.setValue(null);
-            }
-        });
-        return genres;
-    }
-
-    public MutableLiveData<List<Song>> fetchNewReleaseSongs(){
-        MutableLiveData<List<Song>> songs = new MutableLiveData<>();
-
-        songAPIService.getNewReleaseSongs(API_KEY, 5).enqueue(new Callback<List<Song>>() {
-            @Override
-            public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
-                if(response.isSuccessful() && response.body() != null){
-                    songs.setValue(response.body());
-                    Log.d("NEW_RELEASE_SONGS", new Gson().toJson(response.body()));
-                } else {
-                    songs.setValue(null);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Song>> call, Throwable t) {
-                Log.e("API ERROR", "Loi mang: " + t.getMessage());
-                songs.setValue(null);
-            }
-        });
-        return songs;
-    }
-
-    public MutableLiveData<List<Song>> fetchTrendingSongs(){
-        MutableLiveData<List<Song>> songs = new MutableLiveData<>();
-
-        songAPIService.getTrendingSongs(API_KEY, 5).enqueue(new Callback<List<Song>>() {
-            @Override
-            public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
-                if(response.isSuccessful() && response.body() != null){
-                    Log.d("TRENDING", new Gson().toJson(response.body()));
-                    songs.setValue(response.body());
-                } else {
-                    Log.d("TRENDING", "K co bai hat trend");
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Song>> call, Throwable t) {
-                Log.d("TRENDING", "fail");
-            }
-        });
-        return songs;
-    }
-
-    public MutableLiveData<List<Banner>> fetchBanners(){
-        MutableLiveData<List<Banner>> banners = new MutableLiveData<>();
-
-        bannerAPIService.getBanners(API_KEY).enqueue(new Callback<List<Banner>>() {
-            @Override
-            public void onResponse(Call<List<Banner>> call, Response<List<Banner>> response) {
-                if(response.isSuccessful() && response.body() != null){
-                    banners.setValue(response.body());
-                } else {
-                    banners.setValue(null);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Banner>> call, Throwable t) {
-                Log.e("GET_BANNER", t.getMessage());
-                banners.setValue(null);
-            }
-        });
-        return banners;
     }
 }

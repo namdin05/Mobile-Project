@@ -331,6 +331,7 @@ public class AudioPlayerService extends Service {
         }
     }
 
+    // huy phat nhac
     private void stopPlayback() {
         persistLastListen();
         releasePlayer();
@@ -350,6 +351,7 @@ public class AudioPlayerService extends Service {
         handler.postDelayed(sleepRunnable, minutes * 60L * 1000L);
     }
 
+    // luu lai luot nghe: dem so giay nghe bai hat nao, cong luot stream cho bai hat...
     private void persistLastListen() {
         if (mediaPlayer != null && currentSongId != null) {
             int listenedSec = mediaPlayer.getCurrentPosition() / 1000;
@@ -434,16 +436,17 @@ public class AudioPlayerService extends Service {
     }
 
     private void broadcastState() {
-        Intent stateIntent = new Intent(ACTION_STATE_CHANGED);
-        stateIntent.setPackage(getPackageName());
+        Intent stateIntent = new Intent(ACTION_STATE_CHANGED); // implicit intent, ai cung nhan duoc
+        stateIntent.setPackage(getPackageName()); // intent chi phat noi bo app
         stateIntent.putExtra(EXTRA_SONG_ID, currentSongId);
         stateIntent.putExtra("playing", isPlaying);
         stateIntent.putExtra("position", mediaPlayer != null ? mediaPlayer.getCurrentPosition() : 0);
         stateIntent.putExtra("duration", mediaPlayer != null ? mediaPlayer.getDuration() : 0);
         stateIntent.putExtra(EXTRA_SPEED, playbackSpeed);
-        sendBroadcast(stateIntent);
+        sendBroadcast(stateIntent); // gui
     }
 
+    // giai phong player
     private void releasePlayer() {
         if (mediaPlayer != null) {
             try { mediaPlayer.stop(); } catch (Exception ignored) {}

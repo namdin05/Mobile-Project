@@ -42,6 +42,7 @@ import com.melodix.app.View.adapters.SongAdapter;
 import com.melodix.app.ViewModel.HomeViewModel;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class HomeFragment extends Fragment {
     Profile user;
@@ -200,7 +201,7 @@ public class HomeFragment extends Fragment {
     private void handleMenuClick(Song song, String action){
         switch (action){
             case "play":
-                java.util.List<Song> singleList = new ArrayList<>();
+                List<Song> singleList = new ArrayList<>();
                 singleList.add(song);
 
                 // Sử dụng hàm vừa sửa ở trên (hoặc gọi trực tiếp PlaybackUtils)

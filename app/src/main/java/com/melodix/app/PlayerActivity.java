@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.bumptech.glide.Glide;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
@@ -210,10 +211,12 @@ public class PlayerActivity extends AppCompatActivity {
         if (currentSong == null) return;
         currentLyricIndex = -1;
 
-        ((ImageView) findViewById(R.id.img_cover)).setImageResource(ResourceUtils.anyDrawable(this, currentSong.coverRes));
+        ImageView cover = findViewById(R.id.img_cover);
         ((TextView) findViewById(R.id.tv_title)).setText(currentSong.title);
         ((TextView) findViewById(R.id.tv_subtitle)).setText(currentSong.artistName + " • " + currentSong.albumName);
         tvTotal.setText(TimeUtils.formatDuration(currentSong.durationSec));
+
+        Glide.with(this).load(currentSong.getCover_url()).into(cover);
 
 //        lyricAdapter = new LyricAdapter(currentSong.lyrics);
 //        androidx.recyclerview.widget.RecyclerView rvLyrics = findViewById(R.id.rv_lyrics);
