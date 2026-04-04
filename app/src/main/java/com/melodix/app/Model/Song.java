@@ -1,50 +1,82 @@
 package com.melodix.app.Model;
 
 import com.google.gson.annotations.SerializedName;
+import java.io.Serializable;
 import java.util.List;
 
-public class Song {
-    @SerializedName("id") private String id;
-    @SerializedName("title") private String title;
-    @SerializedName("audio_url") private String audioUrl;
-    @SerializedName("cover_url") private String coverUrl;
-    @SerializedName("profiles")
-    private List<ArtistProfile> artistProfiles;
+public class Song implements Serializable {
+    @SerializedName("id")
+    public String id;
+
+    @SerializedName("title")
+    public String title;
+
+    @SerializedName("song_artists")
+    public List<Artist> artists;
+
+    @SerializedName("album_id")
+    public String albumId;
+
+    @SerializedName("cover_url")
+    public String coverRes;
+
+    @SerializedName("audio_url")
+    public String audioRes;
+
+    @SerializedName("duration_seconds")
+    public int durationSec;
+
+    @SerializedName("stream_count")
+    public int plays;
+
     @SerializedName("status")
-    private String status;
+    public String status;
 
-    public String getId() { return id; }
-    public String getTitle() { return title; }
-    public String getAudioUrl() { return audioUrl; }
-    public String getCoverUrl() { return coverUrl; }
-    public String getStatus() { return status; }
+    // Các trường dưới đây không có trực tiếp trong bảng songs (do dùng DB quan hệ)
+    // Mình giữ nguyên để không làm lỗi app, nhưng dữ liệu trả về tạm thời sẽ là null/mặc định
+    public String artistName;
+    public String artistId;
+    public String albumName;
+    public String genre;
+    public String description;
+    public int likes;
 
-    public String getArtistName() {
-        if (artistProfiles != null && !artistProfiles.isEmpty()) {
-            StringBuilder names = new StringBuilder();
-            for (int i = 0; i < artistProfiles.size(); i++) {
-                names.append(artistProfiles.get(i).getDisplayName());
-                // Thêm dấu phẩy nếu chưa phải người cuối cùng
-                if (i < artistProfiles.size() - 1) {
-                    names.append(", ");
-                }
-            }
-            return names.toString();
-        }
-        return "Unknown Artist";
+    public Song() {}
+
+    public Song(String id, String title, String artistId, String artistName, String albumId,
+                String albumName, String coverRes, String audioRes, String genre,
+                String description, int durationSec, int plays, int likes) {
+        this.id = id;
+        this.title = title;
+        this.artistId = artistId;
+        this.artistName = artistName;
+        this.albumId = albumId;
+        this.albumName = albumName;
+        this.coverRes = coverRes;
+        this.audioRes = audioRes;
+        this.genre = genre;
+        this.description = description;
+        this.durationSec = durationSec;
+        this.plays = plays;
+        this.likes = likes;
     }
 
-    // Mock dữ liệu cho UI
-    public String getGenre() { return "Pop"; }
-    public String getPlayCount() { return "1.2K"; }
+    public String getTitle() {
+        return title;
+    }
 
-    // ==========================================
-    // CLASS CON ĐỂ HỨNG CỘT display_name TỪ PROFILES
-    // ==========================================
-    public static class ArtistProfile {
-        @SerializedName("display_name")
-        private String displayName;
+    public String getId() {
+        return id;
+    }
 
-        public String getDisplayName() { return displayName; }
+    public String getAudioRes() {
+        return audioRes;
+    }
+
+    public String getCover_url() {
+        return coverRes;
+    }
+    public String getArtistName(){
+        return artistName;
     }
 }

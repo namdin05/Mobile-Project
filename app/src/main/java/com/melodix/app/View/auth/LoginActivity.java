@@ -71,8 +71,10 @@ public class LoginActivity extends AppCompatActivity {
 
             if (!email.isEmpty() && !pass.isEmpty()) {
 
+               
+                btnLoginEmail.setEnabled(false); // khoa de ko bi spam, tao nhieu luong
+                // GỌI VIEW MODEL VÀ QUAN SÁT KẾT QUẢ (LIVEDATA)
                 authViewModel.login(email, pass).observe(LoginActivity.this, loginResult -> {
-
                     if (loginResult.isSuccess()) {
                         String role = loginResult.getRole();
                         Log.d("ROLE", role);
@@ -94,6 +96,7 @@ public class LoginActivity extends AppCompatActivity {
                         finish();
                     } else {
                         Toast.makeText(LoginActivity.this, loginResult.getErrorMessage(), Toast.LENGTH_LONG).show();
+                        btnLoginEmail.setEnabled(true);
                     }
                 });
             } else {
