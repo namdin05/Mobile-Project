@@ -4,21 +4,21 @@ import com.google.gson.annotations.SerializedName;
 
 public class Genre {
     @SerializedName("id")
-    private int id;
+    private String id;
+
     @SerializedName("name")
     private String name;
+
     @SerializedName("cover_url")
-    private String cover_url;
+    private String coverUrl;
 
-    public int getId() {
-        return id;
-    }
+    @SerializedName("is_visible")
+    private boolean isVisible;
 
-    public String getName() {
-        return name;
-    }
 
-    public String getCover_url() {
-        return cover_url;
-    }
+    public String getId() { return id; }
+    public String getName() { return name; }
+    public String getCoverUrl() { return coverUrl; }
+
+    public boolean isVisible() { return isVisible; }
 }

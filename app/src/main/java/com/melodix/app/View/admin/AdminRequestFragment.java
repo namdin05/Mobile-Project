@@ -1,7 +1,5 @@
 package com.melodix.app.View.admin;
 
-import android.media.AudioAttributes;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,7 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.card.MaterialCardView;
 import com.melodix.app.Adapter.SongRequestAdapter;
 import com.melodix.app.BuildConfig;
-import com.melodix.app.Model.SongRequest;
+import com.melodix.app.Model.Song;
 import com.melodix.app.Model.StatusUpdateRequest;
 import com.melodix.app.R;
 
@@ -31,7 +29,6 @@ import com.melodix.app.Service.AdminAPIService;
 import com.melodix.app.Service.RetrofitClient;
 //import com.melodix.app.Service.RetrofitClient;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +40,7 @@ public class AdminRequestFragment extends Fragment {
 
     private RecyclerView rvSongRequests;
     private SongRequestAdapter adapter;
-    private List<SongRequest> requestList;
+    private List<Song> requestList;
 
     // Các biến cho Trình phát nhạc
     private ExoPlayer exoPlayer;
@@ -74,24 +71,23 @@ public class AdminRequestFragment extends Fragment {
         setupExoPlayer();
 
         // 4. Khởi tạo Adapter và bắt sự kiện click
-        // 4. Khởi tạo Adapter và bắt sự kiện click
         adapter = new SongRequestAdapter(requestList, new SongRequestAdapter.OnItemActionListener() {
             @Override
-            public void onApproveClick(SongRequest request, int position) {
+            public void onApproveClick(Song request, int position) {
                 // Gọi API đổi thành 'approved'
                 updateStatusOnServer(request, "approved", position);
             }
 
             @Override
-            public void onRejectClick(SongRequest request, int position) {
+            public void onRejectClick(Song request, int position) {
                 // Gọi API đổi thành 'rejected'
                 updateStatusOnServer(request, "rejected", position);
             }
 
             @Override
-            public void onPlayClick(SongRequest request) {
+            public void onPlayClick(Song request) {
                 if (request.getAudioUrl() != null && !request.getAudioUrl().isEmpty()) {
-                    playAudio(request.getAudioUrl(), request.getSongTitle());
+                    playAudio(request.getAudioUrl(), request.getTitle());
                 } else {
                     Toast.makeText(getContext(), "Bài hát này không có link Audio!", Toast.LENGTH_SHORT).show();
                 }
@@ -107,22 +103,21 @@ public class AdminRequestFragment extends Fragment {
     // =========================================================================
     // HÀM GỬI LỆNH DUYỆT / TỪ CHỐI LÊN SUPABASE
     // =========================================================================
-    private void updateStatusOnServer(SongRequest request, String newStatus, int position) {
+    private void updateStatusOnServer(Song request, String newStatus, int position) {
         AdminAPIService apiService = RetrofitClient.getClient().create(AdminAPIService.class);
-        String apiKey = BuildConfig.API_KEY;
-        String token = "Bearer " + BuildConfig.API_KEY;
+        String token = "Bearer " + BuildConfig.SERVICE_KEY;
 
         StatusUpdateRequest body = new StatusUpdateRequest(newStatus);
         String idFilter = "eq." + request.getId();
 
-        apiService.updateRequestStatus(apiKey, token, idFilter, body).enqueue(new Callback<Void>() {
+        apiService.updateRequestStatus(BuildConfig.SERVICE_KEY, token, idFilter, body).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 // Supabase thường trả về mã 200 (OK) hoặc 204 (No Content) khi Update thành công
                 if (response.isSuccessful()) {
 
                     // Lấy Tên bài hát để hiện thông báo
-                    String songName = request.getSongTitle();
+                    String songName = request.getTitle();
                     String msg = newStatus.equals("approved") ? "Đã duyệt bài: " : "Đã từ chối bài: ";
 
                     // Hiện thông báo (Toast)
@@ -165,9 +160,9 @@ public class AdminRequestFragment extends Fragment {
         String token = "Bearer " + BuildConfig.API_KEY;
 
         // 3. Thực hiện cuộc gọi
-        apiService.getPendingRequests(apiKey, token).enqueue(new Callback<List<SongRequest>>() {
+        apiService.getPendingRequests(apiKey, token).enqueue(new Callback<List<Song>>() {
             @Override
-            public void onResponse(Call<List<SongRequest>> call, Response<List<SongRequest>> response) {
+            public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     requestList.clear();
                     requestList.addAll(response.body());
@@ -183,7 +178,7 @@ public class AdminRequestFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(Call<List<SongRequest>> call, Throwable t) {
+            public void onFailure(Call<List<Song>> call, Throwable t) {
                 Log.e("MELODIX_ADMIN", "Lỗi mạng: " + t.getMessage());
                 Toast.makeText(getContext(), "Lỗi kết nối mạng!", Toast.LENGTH_SHORT).show();
             }
