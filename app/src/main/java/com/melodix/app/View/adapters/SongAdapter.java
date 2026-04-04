@@ -55,7 +55,9 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
                 .into(holder.cover);
 
         holder.title.setText(song.title);
-
+        String displayArtist = (song.artistName != null && !song.artistName.trim().isEmpty() && !song.artistName.equalsIgnoreCase("null"))
+                ? song.artistName
+                : "Unknown Artist";
         // ==========================================
         // ĐOẠN CODE ĐÃ ĐƯỢC NÂNG CẤP ĐỂ XÓA SẠN "NULL"
         // ==========================================

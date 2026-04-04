@@ -15,6 +15,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.melodix.app.AdminActivity;
+import com.melodix.app.ArtistActivity;
 import com.melodix.app.BuildConfig;
 import com.melodix.app.MainActivity;
 import com.melodix.app.R;
@@ -87,9 +88,17 @@ public class LoginActivity extends AppCompatActivity {
                         editor.apply();
 
                         if ("admin".equals(role)) {
+                            // 1. ADMIN -> Mở màn hình duyệt nhạc
                             Toast.makeText(this, "Xin chào Quản trị viên!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, AdminActivity.class));
+
+                        } else if ("artist".equals(role)) {
+                            // 2. ARTIST -> Mở không gian làm việc của Nghệ sĩ
+                            Toast.makeText(this, "Chào mừng Nghệ sĩ trở lại!", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(LoginActivity.this, ArtistActivity.class));
+
                         } else {
+                            // 3. USER (Mặc định) -> Mở trang nghe nhạc bình thường
                             Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         }

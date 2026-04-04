@@ -25,6 +25,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.chip.Chip;
 import com.melodix.app.Model.SearchResultItem;
@@ -137,6 +138,29 @@ public class SearchFragment extends Fragment {
             }
             return false;
         });
+
+        // ==========================================
+        // 4. HẠ BÀN PHÍM KHI TƯƠNG TÁC VỚI MÀN HÌNH
+        // ==========================================
+
+        // 4.1. Khi bắt đầu cuộn danh sách kết quả
+        rvResults.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    hideKeyboard();
+                }
+            }
+        });
+
+        // 4.2. Khi chạm vào vùng của danh sách kết quả (nhưng không trúng item nào)
+        rvResults.setOnTouchListener((v, event) -> {
+            hideKeyboard();
+            return false; // Giữ nguyên false để không chặn sự kiện click vào bài hát
+        });
+
+        setupUI(view);
 
         return view;
     }
@@ -312,13 +336,35 @@ public class SearchFragment extends Fragment {
         }
     }
 
+    // Hàm hỗ trợ hạ bàn phím và bỏ con trỏ nhấp nháy ở ô Search
     private void hideKeyboard() {
-        if (etSearch != null) {
-            etSearch.clearFocus();
+        View view = requireActivity().getCurrentFocus();
+        if (view != null) {
+            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) requireActivity().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            view.clearFocus();
         }
-        InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null && getView() != null) {
-            imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+    }
+
+    // ==========================================
+    // BÍ THUẬT HẠ BÀN PHÍM HOÀN HẢO CHO FRAGMENT
+    // ==========================================
+    public void setupUI(View view) {
+        // Nếu cái view đang chạm vào KHÔNG PHẢI là ô gõ chữ (EditText)
+        if (!(view instanceof EditText)) {
+            view.setOnTouchListener((v, event) -> {
+                hideKeyboard();
+                return false;
+            });
+        }
+
+        // Nếu cái view này là một cái hộp chứa (ViewGroup) nhiều phần tử khác
+        // Dùng vòng lặp đệ quy để quét hết tất cả mọi ngóc ngách bên trong nó
+        if (view instanceof ViewGroup) {
+            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+                View innerView = ((ViewGroup) view).getChildAt(i);
+                setupUI(innerView);
+            }
         }
     }
 }
