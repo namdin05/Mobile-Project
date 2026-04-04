@@ -31,7 +31,7 @@ public class AdminSongAdapter extends RecyclerView.Adapter<AdminSongAdapter.View
         holder.tvSongTitle.setText(song.getTitle());
         holder.tvArtistName.setText(song.getArtistName());
         holder.tvGenreTag.setText(song.getGenre());
-        holder.tvPlayCount.setText("▶ " + song.getPlayCount());
+        holder.tvPlayCount.setText("▶ " + song.getPlays());
     }
 
     @Override

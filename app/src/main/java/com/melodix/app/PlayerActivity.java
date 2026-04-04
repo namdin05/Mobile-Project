@@ -63,7 +63,7 @@ public class PlayerActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String songId = intent.getStringExtra(AudioPlayerService.EXTRA_SONG_ID);
-            if (songId != null && (currentSong == null || !songId.equals(currentSong.id))) {
+            if (songId != null && (currentSong == null || !songId.equals(currentSong.getId()))) {
                 loadSong(songId);
             }
             updateLoopButton();
@@ -84,7 +84,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         String songId = getIntent().getStringExtra(EXTRA_SONG_ID);
         if (songId == null) songId = AudioPlayerService.getCurrentSongId();
-        if (songId == null && repository.getCurrentQueueSong() != null) songId = repository.getCurrentQueueSong().id;
+        if (songId == null && repository.getCurrentQueueSong() != null) songId = repository.getCurrentQueueSong().getId();
 
         if (songId == null) {
             finish();
@@ -104,7 +104,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
         findViewById(R.id.btn_share).setOnClickListener(v -> {
-            if (currentSong != null) ShareUtils.share(this, currentSong.title, getString(R.string.app_share_prefix) + "song/" + currentSong.id);
+            if (currentSong != null) ShareUtils.share(this, currentSong.getTitle(), getString(R.string.app_share_prefix) + "song/" + currentSong.getId());
         });
 //        findViewById(R.id.btn_comments).setOnClickListener(v -> {
 //            if (currentSong != null) {
@@ -120,7 +120,7 @@ public class PlayerActivity extends AppCompatActivity {
 //        findViewById(R.id.btn_timer).setOnClickListener(v -> AppUiUtils.showSleepTimerDialog(this));
         findViewById(R.id.btn_download).setOnClickListener(v -> {
             if (currentSong != null) {
-                boolean downloaded = repository.toggleDownloadSong(currentSong.id);
+                boolean downloaded = repository.toggleDownloadSong(currentSong.getId());
                 AppUiUtils.toast(this, downloaded ? "Downloaded for offline" : "Removed offline file");
             }
         });
@@ -133,7 +133,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         findViewById(R.id.btn_ai_summary).setOnClickListener(v -> {
             if (currentSong != null) {
-                ((TextView) findViewById(R.id.tv_ai_summary)).setText(repository.getAiSummaryForSong(currentSong.id));
+                ((TextView) findViewById(R.id.tv_ai_summary)).setText(repository.getAiSummaryForSong(currentSong.getId()));
             }
         });
 
@@ -212,11 +212,11 @@ public class PlayerActivity extends AppCompatActivity {
         currentLyricIndex = -1;
 
         ImageView cover = findViewById(R.id.img_cover);
-        ((TextView) findViewById(R.id.tv_title)).setText(currentSong.title);
-        ((TextView) findViewById(R.id.tv_subtitle)).setText(currentSong.artistName + " • " + currentSong.albumName);
-        tvTotal.setText(TimeUtils.formatDuration(currentSong.durationSec));
+        ((TextView) findViewById(R.id.tv_title)).setText(currentSong.getTitle());
+        ((TextView) findViewById(R.id.tv_subtitle)).setText(currentSong.getArtistName() + " • " + currentSong.getAlbumName());
+        tvTotal.setText(TimeUtils.formatDuration(currentSong.getDurationSeconds()));
 
-        Glide.with(this).load(currentSong.getCover_url()).into(cover);
+        Glide.with(this).load(currentSong.getCoverUrl()).into(cover);
 
 //        lyricAdapter = new LyricAdapter(currentSong.lyrics);
 //        androidx.recyclerview.widget.RecyclerView rvLyrics = findViewById(R.id.rv_lyrics);

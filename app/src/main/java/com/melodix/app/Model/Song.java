@@ -1,45 +1,40 @@
 package com.melodix.app.Model;
 
 import com.google.gson.annotations.SerializedName;
-import java.io.Serializable;
-import java.util.List;
 
-public class Song implements Serializable {
+public class Song {
     @SerializedName("id")
-    public String id;
+    private String id;
 
     @SerializedName("title")
-    public String title;
-
-    @SerializedName("song_artists")
-    public List<Artist> artists;
+    private String title;
 
     @SerializedName("album_id")
-    public String albumId;
+    private String album_id;
 
     @SerializedName("cover_url")
-    public String coverRes;
+    private String cover_url;
 
     @SerializedName("audio_url")
-    public String audioRes;
+    private String audio_url;
 
     @SerializedName("duration_seconds")
-    public int durationSec;
+    private int duration_seconds;
 
     @SerializedName("stream_count")
-    public int plays;
+    private int plays;
 
     @SerializedName("status")
-    public String status;
+    private String status;
 
     // ĐÃ THÊM SERIALIZED NAME Ở ĐÂY ĐỂ NHẬN CHUỖI GỘP NHIỀU NGHỆ SĨ
     @SerializedName("artistName")
-    public String artistName;
-    public String artistId;
-    public String albumName;
-    public String genre;
-    public String description;
-    public int likes;
+    private String artistName;
+    private String artistId;
+    private String albumName;
+    private String genre;
+    private String description;
+    private int likes;
 
     public Song() {}
 
@@ -50,19 +45,19 @@ public class Song implements Serializable {
         this.title = title;
         this.artistId = artistId;
         this.artistName = artistName;
-        this.albumId = albumId;
+        this.album_id = albumId;
         this.albumName = albumName;
-        this.coverRes = coverRes;
-        this.audioRes = audioRes;
+        this.cover_url = coverRes;
+        this.audio_url = audioRes;
         this.genre = genre;
         this.description = description;
-        this.durationSec = durationSec;
+        this.duration_seconds = durationSec;
         this.plays = plays;
         this.likes = likes;
     }
 
     public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+
 
     public String getTitle() {
         return title;
@@ -72,15 +67,34 @@ public class Song implements Serializable {
         return id;
     }
 
-    public String getAudioRes() {
-        return audioRes;
+    public String getAudioUrl() {
+        return audio_url;
     }
 
-    public String getCover_url() {
-        return coverRes;
+    public String getCoverUrl() {
+        return cover_url;
     }
 
-    public String getArtistName(){
+    public String getArtistName() {
         return artistName;
     }
+
+    public String getAlbumName() {
+        return albumName;
+    }
+
+    public int getDurationSeconds() {
+        return duration_seconds;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public int getPlays() {
+        return plays;
+    }
+
+
+    public void setStatus(String status) { this.status = status; }
 }

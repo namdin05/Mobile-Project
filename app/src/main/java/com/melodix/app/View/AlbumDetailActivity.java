@@ -54,7 +54,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
             @Override
             public void onSongClick(Song song, int position) {
                 // Nhóm 6 sẽ viết logic MediaPlayer ở đây sau nhé
-                Toast.makeText(AlbumDetailActivity.this, "Đang phát: " + song.title, Toast.LENGTH_SHORT).show();
+                Toast.makeText(AlbumDetailActivity.this, "Đang phát: " + song.getTitle(), Toast.LENGTH_SHORT).show();
             }
 
             @Override

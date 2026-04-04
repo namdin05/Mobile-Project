@@ -42,11 +42,11 @@ public class SongCardAdapter extends RecyclerView.Adapter<SongCardAdapter.SongHo
     @Override
     public void onBindViewHolder(@NonNull SongCardAdapter.SongHolder holder, int position) {
         Song song = songs.get(position);
-        Glide.with(context).load(song.getCover_url()).into(holder.image);
+        Glide.with(context).load(song.getCoverUrl()).into(holder.image);
         holder.title.setText(song.getTitle());
         holder.badge.setVisibility(showRanking ? View.VISIBLE : View.GONE);
         holder.badge.setText(String.valueOf(position + 1));
-        holder.artist.setText(song.artistName);
+        holder.artist.setText(song.getArtistName());
         holder.itemView.setOnClickListener(v -> {
             if(listener != null) listener.onSongClick(song);
         });
