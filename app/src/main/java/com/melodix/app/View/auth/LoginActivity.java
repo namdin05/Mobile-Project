@@ -75,7 +75,7 @@ public class LoginActivity extends AppCompatActivity {
                
                 btnLoginEmail.setEnabled(false); // khoa de ko bi spam, tao nhieu luong
                 // GỌI VIEW MODEL VÀ QUAN SÁT KẾT QUẢ (LIVEDATA)
-                authViewModel.login(email, pass).observe(LoginActivity.this, loginResult -> {
+                authViewModel.login(email, pass, this).observe(LoginActivity.this, loginResult -> {
                     if (loginResult.isSuccess()) {
                         String role = loginResult.getRole();
                         Log.d("ROLE", role);

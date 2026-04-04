@@ -1,5 +1,7 @@
 package com.melodix.app.Repository.auth;
 
+import static com.melodix.app.BuildConfig.API_KEY;
+
 import android.content.Context;
 import android.util.Log;
 
@@ -44,7 +46,7 @@ public class AuthRepository {
         MutableLiveData<LoginResult> result = new MutableLiveData<>();
         SignInRequest request = new SignInRequest(email, password);
 
-        apiService.signInWithEmail(BuildConfig.API_KEY, request).enqueue(new Callback<AuthResponse>() {
+        apiService.signInWithEmail(API_KEY, request).enqueue(new Callback<AuthResponse>() {
             @Override
             public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -80,7 +82,7 @@ public class AuthRepository {
 
         Log.d("MELODIX_DEBUG", "Trạm 2");
 
-        apiService.getProfile(BuildConfig.API_KEY, authHeader, idFilter).enqueue(new Callback<List<Profile>>() {
+        apiService.getProfile(API_KEY, authHeader, idFilter).enqueue(new Callback<List<Profile>>() {
             @Override
             public void onResponse(Call<List<Profile>> call, Response<List<Profile>> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
@@ -150,7 +152,7 @@ public class AuthRepository {
         MutableLiveData<String> registerResult = new MutableLiveData<>();
         SignUpRequest request = new SignUpRequest(email, password, fullName);
 
-        apiService.signUpWithEmail(BuildConfig.API_KEY, request).enqueue(new Callback<AuthResponse>() {
+        apiService.signUpWithEmail(API_KEY, request).enqueue(new Callback<AuthResponse>() {
             @Override
             public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -173,7 +175,7 @@ public class AuthRepository {
 
     public MutableLiveData<LoginResult> handleSocialLogin(String accessToken) {
         MutableLiveData<LoginResult> result = new MutableLiveData<>();
-        String apiKey = BuildConfig.API_KEY;
+        String apiKey = API_KEY;
         String authHeader = "Bearer " + accessToken;
 
         // 1. Gọi API hỏi Supabase xem Access Token này là của UID nào

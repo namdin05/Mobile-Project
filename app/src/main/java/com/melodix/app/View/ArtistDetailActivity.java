@@ -192,9 +192,9 @@ public class ArtistDetailActivity extends AppCompatActivity {
     // HÀM XỬ LÝ PHÁT NHẠC (Y hệt HomeFragment)
     // ==========================================
     private void playSongAndSetQueue(Song selectedSong, java.util.List<Song> currentList) {
-        AppRepository.getInstance(this).setCurrentQueue(new ArrayList<>(currentList), selectedSong.id);
+        AppRepository.getInstance(this).setCurrentQueue(new ArrayList<>(currentList), selectedSong.getId());
         Intent intent = new Intent(this, PlayerActivity.class);
-        intent.putExtra(PlayerActivity.EXTRA_SONG_ID, selectedSong.id);
+        intent.putExtra(PlayerActivity.EXTRA_SONG_ID, selectedSong.getId());
         intent.putExtra("start_playback", true);
         startActivity(intent);
     }
@@ -210,19 +210,19 @@ public class ArtistDetailActivity extends AppCompatActivity {
                 playSongAndSetQueue(song, singleList);
                 break;
             case "like":
-                Toast.makeText(this,"Đã thích " + song.title, LENGTH_SHORT).show();
+                Toast.makeText(this,"Đã thích " + song.getTitle(), LENGTH_SHORT).show();
                 break;
             case "playlist":
-                Toast.makeText(this,"Thêm " + song.title + " vào Playlist", LENGTH_SHORT).show();
+                Toast.makeText(this,"Thêm " + song.getTitle() + " vào Playlist", LENGTH_SHORT).show();
                 break;
             case "comment":
-                Toast.makeText(this,"Bình luận về " + song.title, LENGTH_SHORT).show();
+                Toast.makeText(this,"Bình luận về " + song.getTitle(), LENGTH_SHORT).show();
                 break;
             case "share":
-                Toast.makeText(this,"Chia sẻ " + song.title, LENGTH_SHORT).show();
+                Toast.makeText(this,"Chia sẻ " + song.getTitle(), LENGTH_SHORT).show();
                 break;
             case "download":
-                Toast.makeText(this,"Tải xuống " + song.title, LENGTH_SHORT).show();
+                Toast.makeText(this,"Tải xuống " + song.getTitle(), LENGTH_SHORT).show();
                 break;
         }
     }

@@ -151,7 +151,7 @@ public class AppRepository {
         if (user == null || !user.offlineMode) return source;
         ArrayList<Song> filtered = new ArrayList<>();
         for (Song song : source) {
-            if (user.downloadedSongIds.contains(song.id)) {
+            if (user.downloadedSongIds.contains(song.getId())) {
                 filtered.add(song);
             }
         }
@@ -245,7 +245,7 @@ public class AppRepository {
             supabaseApi.searchSongs(ftsQuery).enqueue(new Callback<List<Song>>() {
                 @Override public void onResponse(Call<List<Song>> call, retrofit2.Response<List<Song>> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        for (Song song : response.body()) syncResults.add(new SearchResultItem(Constants.FILTER_SONG, song.id, song.title, "Bài hát", song.coverRes));
+                        for (Song song : response.body()) syncResults.add(new SearchResultItem(Constants.FILTER_SONG, song.getId(), song.getTitle(), "Bài hát", song.getCoverUrl()));
                     }
                     checkCompletion.run();
                 }
@@ -397,7 +397,7 @@ public class AppRepository {
         this.currentQueueIndex = 0;
         // Tìm vị trí bài hát người dùng vừa bấm vào
         for (int i = 0; i < currentQueue.size(); i++) {
-            if (currentQueue.get(i).id.equals(startSongId)) {
+            if (currentQueue.get(i).getId().equals(startSongId)) {
                 this.currentQueueIndex = i;
                 break;
             }
@@ -407,7 +407,7 @@ public class AppRepository {
     public ArrayList<String> getCurrentQueueSongIds() {
         ArrayList<String> ids = new ArrayList<>();
         if (currentQueue != null) {
-            for (Song s : currentQueue) ids.add(s.id);
+            for (Song s : currentQueue) ids.add(s.getId());
         }
         return ids;
     }
@@ -452,13 +452,13 @@ public class AppRepository {
         // 1. Ưu tiên quét trong Hàng đợi hiện tại (Vì đây là nhạc load từ Supabase về)
         if (currentQueue != null) {
             for (Song song : currentQueue) {
-                if (song.id.equals(id)) return song;
+                if (song.getId().equals(id)) return song;
             }
         }
         // 2. Kế tiếp quét trong MockData phòng hờ
         if (state != null && state.songs != null) {
             for (Song song : state.songs) {
-                if (song.id.equals(id)) return song;
+                if (song.getId().equals(id)) return song;
             }
         }
         return null;

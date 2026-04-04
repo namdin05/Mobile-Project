@@ -161,7 +161,7 @@ public class HomeFragment extends Fragment {
     // ==========================================
     private void playSongAndSetQueue(Song selectedSong, java.util.List<Song> currentList) {
         // Gọi thẳng PlaybackUtils, nó sẽ tự lo việc lưu Queue vào PlaybackRepository và mở PlayerActivity
-        PlaybackUtils.playSong(requireContext(), (ArrayList<Song>) currentList, selectedSong.id);
+        PlaybackUtils.playSong(requireContext(), (ArrayList<Song>) currentList, selectedSong.getId());
     }
 
     private void autoSlide(){
@@ -208,19 +208,19 @@ public class HomeFragment extends Fragment {
                 playSongAndSetQueue(song, singleList);
                 break;
             case "like":
-                Toast.makeText(requireContext(),"LIKE " + song.title, LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),"LIKE " + song.getTitle(), LENGTH_SHORT).show();
                 break;
             case "playlist":
-                Toast.makeText(requireContext(),"Thêm " + song.title + " vào PLAYLIST", LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),"Thêm " + song.getTitle() + " vào PLAYLIST", LENGTH_SHORT).show();
                 break;
             case "comment":
-                Toast.makeText(requireContext(),"COMMENT " + song.title, LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),"COMMENT " + song.getTitle(), LENGTH_SHORT).show();
                 break;
             case "share":
-                Toast.makeText(requireContext(),"SHARE " + song.title, LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),"SHARE " + song.getTitle(), LENGTH_SHORT).show();
                 break;
             case "download":
-                Toast.makeText(requireContext(),"DOWNLOAD " + song.title, LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),"DOWNLOAD " + song.getTitle(), LENGTH_SHORT).show();
                 break;
         }
     }

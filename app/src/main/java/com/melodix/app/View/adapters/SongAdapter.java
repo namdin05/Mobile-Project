@@ -51,24 +51,24 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         Song song = songs.get(position);
 
         com.bumptech.glide.Glide.with(context)
-                .load(song.coverRes)
+                .load(song.getCoverUrl())
                 .into(holder.cover);
 
-        holder.title.setText(song.title);
-        String displayArtist = (song.artistName != null && !song.artistName.trim().isEmpty() && !song.artistName.equalsIgnoreCase("null"))
-                ? song.artistName
+        holder.title.setText(song.getTitle());
+        String displayArtist = (song.getArtistName() != null && !song.getArtistName().trim().isEmpty() && !song.getArtistName().equalsIgnoreCase("null"))
+                ? song.getArtistName()
                 : "Unknown Artist";
         // ==========================================
         // ĐOẠN CODE ĐÃ ĐƯỢC NÂNG CẤP ĐỂ XÓA SẠN "NULL"
         // ==========================================
-        if (song.genre != null && !song.genre.trim().isEmpty() && !song.genre.equalsIgnoreCase("null")) {
-            holder.subtitle.setText(song.artistName + " • " + song.genre);
+        if (song.getGenre() != null && !song.getGenre().trim().isEmpty() && !song.getGenre().equalsIgnoreCase("null")) {
+            holder.subtitle.setText(song.getArtistName() + " • " + song.getGenre());
         } else {
-            holder.subtitle.setText(song.artistName); // Nếu không có thể loại, chỉ hiện tên nghệ sĩ
+            holder.subtitle.setText(song.getArtistName()); // Nếu không có thể loại, chỉ hiện tên nghệ sĩ
         }
         // ==========================================
 
-        holder.meta.setText(TimeUtils.formatDuration(song.durationSec));
+        holder.meta.setText(TimeUtils.formatDuration(song.getDurationSeconds()));
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onSongClick(song, position);

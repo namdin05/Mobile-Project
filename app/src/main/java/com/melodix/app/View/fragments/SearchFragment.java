@@ -308,7 +308,7 @@ public class SearchFragment extends Fragment {
 
         if (allSongs != null) {
             for (Song song : allSongs) {
-                defaults.add(new SearchResultItem(Constants.FILTER_SONG, song.id, song.title, song.artistName + " • " + song.genre, song.coverRes));
+                defaults.add(new SearchResultItem(Constants.FILTER_SONG, song.getId(), song.getTitle(), song.getArtistName() + " • " + song.getGenre(), song.getCoverUrl()));
             }
         }
         resultAdapter.update(defaults);

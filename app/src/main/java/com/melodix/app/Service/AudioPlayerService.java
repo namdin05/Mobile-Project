@@ -219,8 +219,8 @@ public class AudioPlayerService extends Service {
                     .build());
 
             // Truyền link URL từ API vào (ở đây bạn dùng thuộc tính audioRes để chứa URL)
-            Log.d("TEST_MUSIC", "Đang tải link: " + song.audioRes);
-            mediaPlayer.setDataSource(song.audioRes);
+            Log.d("TEST_MUSIC", "Đang tải link: " + song.getAudioUrl());
+            mediaPlayer.setDataSource(song.getAudioUrl());
 
             mediaPlayer.setOnErrorListener((mp, what, extra) -> {
                 Log.e("TEST_MUSIC", "Lỗi phát nhạc! Mã lỗi: " + what + " - " + extra);
@@ -280,7 +280,7 @@ public class AudioPlayerService extends Service {
     private void togglePlayPause() {
         if (mediaPlayer == null) {
             Song current = repository.getCurrentQueueSong();
-            if (current != null) playSong(current.id);
+            if (current != null) playSong(current.getId());
             return;
         }
         if (mediaPlayer.isPlaying()) {
@@ -300,18 +300,18 @@ public class AudioPlayerService extends Service {
 
     private void playNext() {
         Song next = playbackRepo.moveNext();
-        if (next == null || next.id.equals(currentSongId)) {
+        if (next == null || next.getId().equals(currentSongId)) {
             stopPlayback();
             stopForeground(true);
         } else {
-            playSong(next.id);
+            playSong(next.getId());
         }
     }
 
     private void playPrevious() {
         Song previous = playbackRepo.movePrevious();
         if (previous != null) {
-            playSong(previous.id);
+            playSong(previous.getId());
         }
     }
 
@@ -372,13 +372,13 @@ public class AudioPlayerService extends Service {
         long position = mediaPlayer != null ? mediaPlayer.getCurrentPosition() : 0;
 
         Intent openIntent = new Intent(this, PlayerActivity.class);
-        openIntent.putExtra(PlayerActivity.EXTRA_SONG_ID, currentSong.id);
+        openIntent.putExtra(PlayerActivity.EXTRA_SONG_ID, currentSong.getId());
         PendingIntent contentIntent = PendingIntent.getActivity(this, 11, openIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         // 1. Lấy ảnh Cover
         Bitmap coverBitmap = null;
-        int coverResId = ResourceUtils.anyDrawable(this, currentSong.coverRes);
+        int coverResId = ResourceUtils.anyDrawable(this, currentSong.getCoverUrl());
         if (coverResId != 0) {
             coverBitmap = BitmapFactory.decodeResource(getResources(), coverResId);
         }
@@ -396,8 +396,8 @@ public class AudioPlayerService extends Service {
 
         // 3. Bơm thông tin bài hát và THỜI LƯỢNG (DURATION)
         android.support.v4.media.MediaMetadataCompat.Builder metadataBuilder = new android.support.v4.media.MediaMetadataCompat.Builder()
-                .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE, currentSong.title)
-                .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST, currentSong.artistName)
+                .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE, currentSong.getTitle())
+                .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST, currentSong.getArtistName())
                 .putLong(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION, duration); // Thêm tổng thời gian để vẽ thanh progress
 
         if (coverBitmap != null) {
@@ -408,8 +408,8 @@ public class AudioPlayerService extends Service {
         // 4. Tạo Notification
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.app_logo)
-                .setContentTitle(currentSong.title)
-                .setContentText(currentSong.artistName)
+                .setContentTitle(currentSong.getTitle())
+                .setContentText(currentSong.getArtistName())
                 .setContentIntent(contentIntent)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOnlyAlertOnce(true)
