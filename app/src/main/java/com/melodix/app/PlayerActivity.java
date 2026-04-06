@@ -26,6 +26,7 @@ import com.melodix.app.Utils.ResourceUtils;
 import com.melodix.app.Utils.ShareUtils;
 import com.melodix.app.Utils.ThemeUtils;
 import com.melodix.app.Utils.TimeUtils;
+import com.melodix.app.View.music.CommentsBottomSheet;
 //import com.melodix.app.View.adapters.LyricAdapter;
 
 import java.util.ArrayList;
@@ -106,13 +107,14 @@ public class PlayerActivity extends AppCompatActivity {
         findViewById(R.id.btn_share).setOnClickListener(v -> {
             if (currentSong != null) ShareUtils.share(this, currentSong.getTitle(), getString(R.string.app_share_prefix) + "song/" + currentSong.getId());
         });
-//        findViewById(R.id.btn_comments).setOnClickListener(v -> {
-//            if (currentSong != null) {
-//                Intent intent = new Intent(this, CommentsActivity.class);
-//                intent.putExtra(CommentsActivity.EXTRA_SONG_ID, currentSong.id);
-//                startActivity(intent);
-//            }
-//        });
+
+        // COMMENT BUTTON
+        findViewById(R.id.btn_comments).setOnClickListener(v -> {
+            if (currentSong != null) {
+                CommentsBottomSheet bottomSheet = CommentsBottomSheet.newInstance(currentSong.getId());
+                bottomSheet.show(getSupportFragmentManager(), "CommentsBottomSheet");
+            }
+        });
 
 //        findViewById(R.id.btn_lyrics).setOnClickListener(v -> openFullLyrics());
 
