@@ -49,6 +49,12 @@ public class PlayerActivity extends AppCompatActivity {
     private final Runnable progressRunnable = new Runnable() {
         @Override
         public void run() {
+            // 1. NHIỆM VỤ MỚI: Tự động soi xem ID bài hát dưới Service có khác với ID trên màn hình không
+            String activeSongId = AudioPlayerService.getCurrentSongId();
+            if (activeSongId != null && (currentSong == null || !activeSongId.equals(currentSong.getId()))) {
+                // Nếu thấy khác -> Bắt buộc tải lại ảnh và tên bài mới ngay lập tức!
+                loadSong(activeSongId);
+            }
             if (currentSong != null && !isUserSeeking) {
                 int position = AudioPlayerService.getCurrentPosition();
                 int duration = AudioPlayerService.getDuration();
