@@ -13,6 +13,7 @@ import com.melodix.app.Model.Artist;
 import com.melodix.app.Model.Playlist;
 import com.melodix.app.Model.SearchResultItem;
 import com.melodix.app.Model.Song;
+import com.melodix.app.Service.RetrofitClient;
 import com.melodix.app.Utils.Constants;
 import com.melodix.app.Utils.SessionManager;
 
@@ -21,8 +22,12 @@ import java.util.Locale;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import com.melodix.app.Network.SupabaseClient;
-import com.melodix.app.Network.SupabaseApi;
+
+// Import 3 file Service mới tách
+import com.melodix.app.Service.AlbumAPIService;
+import com.melodix.app.Service.ArtistAPIService;
+import com.melodix.app.Service.SearchAPIService;
+
 import java.util.List;
 
 import java.util.Collections;
@@ -37,7 +42,11 @@ public class AppRepository {
     private final Gson gson;
     private final SessionManager sessionManager;
     private MockDatabase.DataState state;
-    private final SupabaseApi supabaseApi;
+
+    // Đã thay SupabaseApi bằng 3 Service mới
+    private final SearchAPIService searchApiService;
+    private final AlbumAPIService albumApiService;
+    private final ArtistAPIService artistApiService;
 
     // Giữ lại bộ đếm thời gian để chống giật lag khi gõ phím
     private long lastSearchTime = 0;
@@ -48,7 +57,11 @@ public class AppRepository {
         this.gson = new GsonBuilder().create();
         this.sessionManager = new SessionManager(appContext);
         load();
-        this.supabaseApi = SupabaseClient.getClient().create(SupabaseApi.class);
+
+        // Vẫn giữ nguyên SupabaseClient như bạn yêu cầu, chỉ đổi Class truyền vào
+        this.searchApiService = RetrofitClient.getSupabaseClient().create(SearchAPIService.class);
+        this.albumApiService = RetrofitClient.getSupabaseClient().create(AlbumAPIService.class);
+        this.artistApiService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
     }
 
     public static synchronized AppRepository getInstance(Context context) {
@@ -74,7 +87,7 @@ public class AppRepository {
     }
 
     public void getAlbumById(String id, AlbumCallback callback) {
-        supabaseApi.getAlbumById("eq." + id).enqueue(new Callback<List<Album>>() {
+        albumApiService.getAlbumById("eq." + id).enqueue(new Callback<List<Album>>() {
             @Override
             public void onResponse(Call<List<Album>> call, retrofit2.Response<List<Album>> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
@@ -103,7 +116,7 @@ public class AppRepository {
     }
 
     public void getSongsByAlbum(String albumId, SongListCallback callback) {
-        supabaseApi.getSongsByAlbumId("eq." + albumId).enqueue(new Callback<List<Song>>() {
+        albumApiService.getSongsByAlbumId("eq." + albumId).enqueue(new Callback<List<Song>>() {
             @Override
             public void onResponse(Call<List<Song>> call, retrofit2.Response<List<Song>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -195,7 +208,6 @@ public class AppRepository {
         }
 
         // Đánh dấu thời gian bắt đầu gọi mạng để chống lag
-        // Đánh dấu thời gian bắt đầu gọi mạng để chống lag
         final long currentRequestTime = System.currentTimeMillis();
         lastSearchTime = currentRequestTime;
 
@@ -242,7 +254,7 @@ public class AppRepository {
         };
 
         if (searchSongs) {
-            supabaseApi.searchSongs(ftsQuery).enqueue(new Callback<List<Song>>() {
+            searchApiService.searchSongs(ftsQuery).enqueue(new Callback<List<Song>>() {
                 @Override public void onResponse(Call<List<Song>> call, retrofit2.Response<List<Song>> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         for (Song song : response.body()) syncResults.add(new SearchResultItem(Constants.FILTER_SONG, song.getId(), song.getTitle(), "Bài hát", song.getCoverUrl()));
@@ -254,7 +266,7 @@ public class AppRepository {
         }
 
         if (searchArtists) {
-            supabaseApi.searchArtists(ftsQuery).enqueue(new Callback<List<Artist>>() {
+            searchApiService.searchArtists(ftsQuery).enqueue(new Callback<List<Artist>>() {
                 @Override public void onResponse(Call<List<Artist>> call, retrofit2.Response<List<Artist>> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         for (Artist artist : response.body()) syncResults.add(new SearchResultItem(Constants.FILTER_ARTIST, artist.id, artist.name, "Nghệ sĩ", artist.avatarRes));
@@ -266,7 +278,7 @@ public class AppRepository {
         }
 
         if (searchAlbums) {
-            supabaseApi.searchAlbums(ftsQuery).enqueue(new Callback<List<Album>>() {
+            searchApiService.searchAlbums(ftsQuery).enqueue(new Callback<List<Album>>() {
                 @Override public void onResponse(Call<List<Album>> call, retrofit2.Response<List<Album>> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         for (Album album : response.body()) syncResults.add(new SearchResultItem(Constants.FILTER_ALBUM, album.id, album.title, "Album", album.coverRes));
@@ -278,7 +290,7 @@ public class AppRepository {
         }
 
         if (searchPlaylists) {
-            supabaseApi.searchPlaylists(ftsQuery).enqueue(new Callback<List<Playlist>>() {
+            searchApiService.searchPlaylists(ftsQuery).enqueue(new Callback<List<Playlist>>() {
                 @Override public void onResponse(Call<List<Playlist>> call, retrofit2.Response<List<Playlist>> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         for (Playlist playlist : response.body()) syncResults.add(new SearchResultItem(Constants.FILTER_PLAYLIST, playlist.id, playlist.name, "Playlist", playlist.coverRes));
@@ -295,7 +307,7 @@ public class AppRepository {
     }
 
     public void getArtistByIdAsync(String id, ArtistCallback callback) {
-        supabaseApi.getArtistByIdAPI("eq." + id).enqueue(new Callback<List<Artist>>() {
+        artistApiService.getArtistByIdAPI("eq." + id).enqueue(new Callback<List<Artist>>() {
             @Override
             public void onResponse(Call<List<Artist>> call, Response<List<Artist>> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
@@ -355,7 +367,7 @@ public class AppRepository {
 
     // 1. Lấy Bài hát
     public void getSongsByArtist(String artistId, SongListCallback callback) {
-        supabaseApi.getSongsByArtistId("eq." + artistId).enqueue(new Callback<List<Song>>() {
+        artistApiService.getSongsByArtistId("eq." + artistId).enqueue(new Callback<List<Song>>() {
             @Override public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
                 if (response.isSuccessful() && response.body() != null) callback.onSuccess(new ArrayList<>(response.body()));
                 else callback.onError("Lỗi tải bài hát (Code: " + response.code() + ")");
@@ -366,7 +378,7 @@ public class AppRepository {
 
     // 2. Lấy Album
     public void getAlbumsByArtist(String artistId, AlbumListCallback callback) {
-        supabaseApi.getAlbumsByArtistId("eq." + artistId).enqueue(new Callback<List<Album>>() {
+        artistApiService.getAlbumsByArtistId("eq." + artistId).enqueue(new Callback<List<Album>>() {
             @Override public void onResponse(Call<List<Album>> call, Response<List<Album>> response) {
                 if (response.isSuccessful() && response.body() != null) callback.onSuccess(new ArrayList<>(response.body()));
                 else callback.onError("Lỗi tải Album");
@@ -377,7 +389,7 @@ public class AppRepository {
 
     // 3. Lấy Nghệ sĩ liên quan (Dùng toán tử "neq." = Not Equal)
     public void getRelatedArtists(String currentArtistId, ArtistListCallback callback) {
-        supabaseApi.getRelatedArtists("neq." + currentArtistId, 5).enqueue(new Callback<List<Artist>>() {
+        artistApiService.getRelatedArtists("neq." + currentArtistId, 5).enqueue(new Callback<List<Artist>>() {
             @Override public void onResponse(Call<List<Artist>> call, Response<List<Artist>> response) {
                 if (response.isSuccessful() && response.body() != null) callback.onSuccess(new ArrayList<>(response.body()));
                 else callback.onError("Lỗi tải Nghệ sĩ liên quan");

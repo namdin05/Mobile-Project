@@ -1,12 +1,16 @@
 package com.melodix.app.View.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -15,6 +19,8 @@ import com.melodix.app.Model.AppUser;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Utils.ResourceUtils;
+import com.melodix.app.View.artist.ManageSongActivity;
+import com.melodix.app.View.artist.UploadSongActivity;
 
 public class AccountFragment extends Fragment {
     private AppRepository repository;
@@ -22,6 +28,11 @@ public class AccountFragment extends Fragment {
     private TextView name;
     private TextView headline;
     private Switch dark;
+
+    // FIX LỖI CRASH Ở ĐÂY: Đổi từ MaterialCardView thành LinearLayout (hoặc View)
+    private LinearLayout cardArtistCenter;
+
+    private LinearLayout btnArtistUpload, btnArtistAlbums, btnArtistStats;
 
     @Nullable
     @Override
@@ -35,9 +46,14 @@ public class AccountFragment extends Fragment {
         headline = view.findViewById(R.id.tv_headline);
         dark = view.findViewById(R.id.switch_dark_mode);
 
+        // Ánh xạ Artist Center
+        cardArtistCenter = view.findViewById(R.id.card_artist_center);
+        btnArtistUpload = view.findViewById(R.id.btn_artist_upload);
+        btnArtistAlbums = view.findViewById(R.id.btn_artist_albums);
+        btnArtistStats = view.findViewById(R.id.btn_artist_stats);
+
         dark.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (buttonView.isPressed()) {
-                // Tạm thời chỉ đổi UI hiển thị, không lưu vào Repo để tránh lỗi
                 if (isChecked) {
                     androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES);
                 } else {
@@ -46,20 +62,54 @@ public class AccountFragment extends Fragment {
             }
         });
 
+        // Bắt sự kiện click cho các nút của Artist
+        btnArtistUpload.setOnClickListener(v -> {
+            startActivity(new Intent(getContext(), ManageSongActivity.class));        });
+
+        btnArtistAlbums.setOnClickListener(v -> {
+            // Mở trang Tạo Album
+            startActivity(new Intent(requireContext(), com.melodix.app.View.artist.CreateAlbumActivity.class));
+        });
+
+        btnArtistStats.setOnClickListener(v -> {
+            Toast.makeText(requireContext(), "Tính năng thống kê đang được phát triển!", Toast.LENGTH_SHORT).show();
+            // startActivity(new Intent(requireContext(), ArtistStatsActivity.class));
+        });
+
+
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (repository != null) {
-            AppUser user = repository.getCurrentUser();
-            if (user != null) {
-                avatar.setImageResource(ResourceUtils.anyDrawable(requireContext(), user.avatarRes));
-                name.setText(user.displayName);
-                headline.setText(user.headline);
-                dark.setChecked(user.darkMode);
+
+        // 1. LẤY USER THẬT TỪ SESSION MANAGER (Không dùng AppRepository MockData nữa)
+        com.melodix.app.Model.Profile realUser = com.melodix.app.Model.SessionManager.getInstance(requireContext()).getCurrentUser();
+
+        if (realUser != null) {
+            // 2. Cập nhật Tên
+            name.setText(realUser.getDisplayName());
+            headline.setText("Thành viên Melodix"); // Bảng Profile thật không có headline, mình gán chữ mặc định
+
+            // 3. Load Avatar thật bằng Glide
+            if (realUser.getAvatarUrl() != null && !realUser.getAvatarUrl().isEmpty()) {
+                com.bumptech.glide.Glide.with(requireContext())
+                        .load(realUser.getAvatarUrl())
+                        .circleCrop()
+                        .into(avatar);
+            }
+
+            // 4. KIỂM TRA ROLE VÀ HIỂN THỊ ARTIST CENTER
+            String role = realUser.getRole();
+            android.util.Log.d("ACCOUNT_ROLE", "Role hiện tại là: " + role); // In ra Logcat để kiểm tra
+
+            if ("artist".equalsIgnoreCase(role)) {
+                cardArtistCenter.setVisibility(View.VISIBLE);
+            } else {
+                cardArtistCenter.setVisibility(View.GONE);
             }
         }
     }
+
 }
