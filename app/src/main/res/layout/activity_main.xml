@@ -14,7 +14,9 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
-    <include layout="@layout/layout_mini_player" />
+    <include
+        android:id="@+id/mini_player_root"
+        layout="@layout/layout_mini_player" />
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
