@@ -35,12 +35,13 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tv_subtitle"
+            android:id="@+id/tv_song_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Playlist • 12 songs"
+            android:text="0 bài hát"
             android:textColor="@color/mdx_text_secondary"
-            android:textSize="15sp" />
+            android:textSize="15sp"
+            android:layout_marginTop="2dp" />
     </LinearLayout>
 
     <ImageButton

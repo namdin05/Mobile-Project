@@ -19,6 +19,7 @@ public class Playlist implements Serializable {
 
     // Giữ nguyên để không lỗi code cũ
     public boolean pinned;
+    public int songCount = 0;
     public ArrayList<String> songIds = new ArrayList<>();
 
     public Playlist() {}
