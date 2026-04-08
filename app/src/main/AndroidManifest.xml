@@ -60,12 +60,16 @@
         <activity android:name=".View.ArtistAlbumsActivity" android:exported="false" />
         <activity android:name=".View.auth.RegisterActivity" />
         <activity android:name=".ArtistActivity" />
-        <activity android:name=".View.artist.UploadSongActivity" /> vào AndroidManifest.xml
+        <activity android:name=".View.artist.UploadSongActivity" />
 
         <activity android:name=".AdminActivity" />"
 
         <activity android:name=".View.profile.AdminProfileActivity"
                   android:exported="false"/>
+        <activity
+            android:name=".View.PlaylistDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
     </application>
 
 </manifest>
