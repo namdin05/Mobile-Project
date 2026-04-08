@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
@@ -82,10 +83,28 @@ public class PlayerActivity extends AppCompatActivity {
         tvTotal = findViewById(R.id.tv_total);
         btnPlayPause = findViewById(R.id.btn_play_pause);
 
-        String songId = getIntent().getStringExtra(EXTRA_SONG_ID);
-        if (songId == null) songId = AudioPlayerService.getCurrentSongId();
-        if (songId == null && repository.getCurrentQueueSong() != null) songId = repository.getCurrentQueueSong().getId();
+        // Khởi tạo songId mặc định
+        String songId = null;
 
+        // 1. KIỂM TRA DEEP LINK TỪ BÊN NGOÀI (ZALO, MESSENGER...) TRUYỀN VÀO
+        android.net.Uri data = getIntent().getData();
+        if (data != null && "melodix".equals(data.getScheme())) {
+            // Lấy ID bài hát từ đuôi link
+            songId = data.getLastPathSegment();
+        }
+
+        // 2. NẾU KHÔNG CÓ DEEP LINK THÌ LẤY TỪ APP NHƯ BÌNH THƯỜNG
+        if (songId == null) {
+            songId = getIntent().getStringExtra(EXTRA_SONG_ID);
+        }
+        if (songId == null) {
+            songId = AudioPlayerService.getCurrentSongId();
+        }
+        if (songId == null && repository.getCurrentQueueSong() != null) {
+            songId = repository.getCurrentQueueSong().getId();
+        }
+
+        // Nếu vẫn không có ID thì đành thoát màn hình
         if (songId == null) {
             finish();
             return;
@@ -103,9 +122,8 @@ public class PlayerActivity extends AppCompatActivity {
         loadSong(songId);
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
-        findViewById(R.id.btn_share).setOnClickListener(v -> {
-            if (currentSong != null) ShareUtils.share(this, currentSong.getTitle(), getString(R.string.app_share_prefix) + "song/" + currentSong.getId());
-        });
+        // Gọi hàm chia sẻ xịn xò mới
+        findViewById(R.id.btn_share).setOnClickListener(v -> shareSongToFriends(currentSong));
 //        findViewById(R.id.btn_comments).setOnClickListener(v -> {
 //            if (currentSong != null) {
 //                Intent intent = new Intent(this, CommentsActivity.class);
@@ -279,5 +297,21 @@ public class PlayerActivity extends AppCompatActivity {
         super.onPause();
         try { unregisterReceiver(stateReceiver); } catch (Exception ignored) {}
         progressHandler.removeCallbacks(progressRunnable);
+    }
+    // =========================================================
+    // TÍNH NĂNG CHIA SẺ BÀI HÁT CHO NGƯỜI NGHE
+    // =========================================================
+    private void shareSongToFriends(Song song) {
+        if (song == null) return;
+        android.content.Intent shareIntent = new android.content.Intent(android.content.Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+
+        // Gửi link dạng custom scheme
+        String shareMessage = "🎵 Mình đang nghe bài '" + song.getTitle() + "' cực cuốn!\n"
+                + "👉 Bấm vào đây để nghe cùng trên Melodix: \n"
+                + "https://giabaocode.github.io/melodix-redirect/?id=" + song.getId();
+
+        shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareMessage);
+        startActivity(android.content.Intent.createChooser(shareIntent, "Chia sẻ qua..."));
     }
 }
