@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
 import com.melodix.app.Utils.TimeUtils;
+import com.melodix.app.View.dialogs.PlaylistSelectionDialog;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -100,9 +101,13 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             bottomSheet.dismiss();
         });
 
+//        bottomSheetView.findViewById(R.id.menu_add_playlist).setOnClickListener(v -> {
+//            if (listener != null) listener.onMenuClick(song, position, "playlist");
+//            bottomSheet.dismiss();
+//        });
         bottomSheetView.findViewById(R.id.menu_add_playlist).setOnClickListener(v -> {
-            if (listener != null) listener.onMenuClick(song, position, "playlist");
             bottomSheet.dismiss();
+            showPlaylistSelectionDialog(song);
         });
 
         bottomSheetView.findViewById(R.id.menu_comments).setOnClickListener(v -> {
@@ -120,12 +125,31 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             bottomSheet.dismiss();
         });
 
-        bottomSheetView.findViewById(R.id.menu_remove_playlist).setOnClickListener(v -> {
-            if (listener != null) listener.onMenuClick(song, position, "remove");
-            bottomSheet.dismiss();
-        });
+//        bottomSheetView.findViewById(R.id.menu_remove_playlist).setOnClickListener(v -> {
+//            if (listener != null) listener.onMenuClick(song, position, "remove");
+//            bottomSheet.dismiss();
+//        });
+        TextView menuRemove = bottomSheetView.findViewById(R.id.menu_remove_playlist);
+        if (listener != null) {
+            menuRemove.setOnClickListener(v -> {
+                if (listener != null) listener.onMenuClick(song, position, "remove");
+                bottomSheet.dismiss();
+            });
+        } else {
+            menuRemove.setVisibility(View.GONE);
+        }
+
 
         bottomSheet.show();
+    }
+
+    private void showPlaylistSelectionDialog(Song song) {
+        if (context instanceof androidx.fragment.app.FragmentActivity) {
+            PlaylistSelectionDialog dialog = PlaylistSelectionDialog.newInstance(song.getId());            dialog.setOnPlaylistActionListener(() -> {
+                // Có thể refresh UI nếu cần
+            });
+            dialog.show(((androidx.fragment.app.FragmentActivity) context).getSupportFragmentManager(), "playlist_selection");
+        }
     }
 
     @Override

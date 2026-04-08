@@ -1,15 +1,18 @@
 package com.melodix.app.View;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
 import com.melodix.app.Model.Playlist;
 import com.melodix.app.Model.PlaylistSong;
@@ -18,8 +21,12 @@ import com.melodix.app.R;
 import com.melodix.app.Repository.PlaylistRepository;
 import com.melodix.app.View.adapters.PlaylistSongAdapter;
 import com.melodix.app.Utils.PlaybackUtils;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import okhttp3.ResponseBody;                    // ← Import đúng
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -70,11 +77,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
         songAdapter = new PlaylistSongAdapter(this, playlistSongList,
                 new PlaylistSongAdapter.OnSongActionListener() {
-//                    @Override
-//                    public void onSongRemove(PlaylistSong playlistSong) {
-//                        removeSongFromPlaylist(playlistSong);
-//                    }
-
                     @Override
                     public void onSongClick(PlaylistSong playlistSong) {
                         playSongFromPlaylist(playlistSong);
@@ -107,11 +109,11 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<Playlist>> call, Throwable t) {
-                android.util.Log.e("PLAYLIST_ERROR", "Lỗi: " + t.getMessage());
+                Log.e("PLAYLIST_ERROR", "Lỗi: " + t.getMessage());
             }
         });
 
-        // Tải danh sách bài hát
+        // Tải danh sách bài hát + sắp xếp theo order_index
         playlistRepository.getPlaylistSongs(playlistId, new Callback<List<PlaylistSong>>() {
             @Override
             public void onResponse(Call<List<PlaylistSong>> call, Response<List<PlaylistSong>> response) {
@@ -119,12 +121,13 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                     playlistSongList.clear();
                     songListForPlayback.clear();
 
-                    for (PlaylistSong ps : response.body()) {
-                        if (ps != null && ps.song != null) {
-                            // Debug: In ra artistname từ view
-                            android.util.Log.d("PLAYLIST_DEBUG", "Song: " + ps.song.getTitle() +
-                                    " | Artist from view: " + ps.artistname);
+                    List<PlaylistSong> loaded = response.body();
 
+                    // Sắp xếp theo order_index để giữ thứ tự đã lưu
+                    Collections.sort(loaded, (a, b) -> Integer.compare(a.orderIndex, b.orderIndex));
+
+                    for (PlaylistSong ps : loaded) {
+                        if (ps != null && ps.song != null) {
                             playlistSongList.add(ps);
                             songListForPlayback.add(ps.song);
                         }
@@ -169,42 +172,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                 playlistSong.song.getId());
     }
 
-    private void removeSongFromPlaylist(PlaylistSong playlistSong) {
-        playlistRepository.removeSongFromPlaylist(playlistId, playlistSong.song.getId(),
-                new Callback<okhttp3.ResponseBody>() {
-                    @Override
-                    public void onResponse(Call<okhttp3.ResponseBody> call,
-                                           Response<okhttp3.ResponseBody> response) {
-                        if (response.isSuccessful()) {
-                            int position = playlistSongList.indexOf(playlistSong);
-                            if (position != -1) {
-                                playlistSongList.remove(position);
-                                songListForPlayback.remove(playlistSong.song);
-                                runOnUiThread(() -> {
-                                    songAdapter.notifyItemRemoved(position);
-                                    tvMeta.setText(playlistSongList.size() + " bài hát");
-                                });
-                            }
-                            Toast.makeText(PlaylistDetailActivity.this,
-                                    "Đã xóa bài hát", Toast.LENGTH_SHORT).show();
-                        } else {
-                            runOnUiThread(() ->
-                                    Toast.makeText(PlaylistDetailActivity.this,
-                                            "Xóa thất bại", Toast.LENGTH_SHORT).show()
-                            );
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<okhttp3.ResponseBody> call, Throwable t) {
-                        runOnUiThread(() ->
-                                Toast.makeText(PlaylistDetailActivity.this,
-                                        "Lỗi: " + t.getMessage(), Toast.LENGTH_SHORT).show()
-                        );
-                    }
-                });
-    }
-
+    // ==================== DRAG & DROP ====================
     private void setupDragAndDrop() {
         ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(
                 ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
@@ -213,31 +181,75 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             public boolean onMove(@NonNull RecyclerView recyclerView,
                                   @NonNull RecyclerView.ViewHolder viewHolder,
                                   @NonNull RecyclerView.ViewHolder target) {
-                int from = viewHolder.getAdapterPosition();
-                int to = target.getAdapterPosition();
 
-                if (from < 0 || to < 0 || from >= playlistSongList.size() ||
-                        to >= playlistSongList.size()) {
+                int fromPos = viewHolder.getAdapterPosition();
+                int toPos = target.getAdapterPosition();
+
+                if (fromPos < 0 || toPos < 0 ||
+                        fromPos >= playlistSongList.size() || toPos >= playlistSongList.size()) {
                     return false;
                 }
 
-                // Cập nhật UI
-                PlaylistSong moved = playlistSongList.remove(from);
-                playlistSongList.add(to, moved);
+                // Hoán đổi vị trí
+                PlaylistSong moved = playlistSongList.remove(fromPos);
+                playlistSongList.add(toPos, moved);
 
-                Song movedSong = songListForPlayback.remove(from);
-                songListForPlayback.add(to, movedSong);
+                Song movedPlayback = songListForPlayback.remove(fromPos);
+                songListForPlayback.add(toPos, movedPlayback);
 
-                songAdapter.notifyItemMoved(from, to);
+                songAdapter.notifyItemMoved(fromPos, toPos);
                 return true;
             }
 
             @Override
+            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                super.clearView(recyclerView, viewHolder);
+                // Khi thả tay → lưu thứ tự mới
+                saveNewOrderToDatabase();
+            }
+
+            @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                // Không sử dụng
+                // Không dùng
             }
         };
 
         new ItemTouchHelper(callback).attachToRecyclerView(rvSongs);
+    }
+
+    /**
+     * Lưu thứ tự mới vào database
+     */
+    private void saveNewOrderToDatabase() {
+        if (playlistSongList == null || playlistSongList.isEmpty()) return;
+
+        Log.d("DRAG_DROP", "Đang lưu thứ tự mới cho " + playlistSongList.size() + " bài hát");
+
+        for (int i = 0; i < playlistSongList.size(); i++) {
+            PlaylistSong ps = playlistSongList.get(i);
+            if (ps == null || ps.song == null || ps.song.getId() == null) continue;
+
+            final int newOrder = i;
+
+            playlistRepository.updatePlaylistSongOrder(
+                    playlistId,
+                    ps.song.getId(),
+                    newOrder,
+                    new Callback<ResponseBody>() {
+                        @Override
+                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                            if (response.isSuccessful()) {
+                                Log.d("DRAG_DROP", "Cập nhật order_index thành công tại vị trí " + newOrder);
+                            } else {
+                                Log.e("DRAG_DROP", "Cập nhật order thất bại: " + response.code());
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<ResponseBody> call, Throwable t) {
+                            Log.e("DRAG_DROP", "Lỗi mạng khi cập nhật order: " + t.getMessage());
+                        }
+                    });
+        }
     }
 }

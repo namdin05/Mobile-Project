@@ -176,6 +176,19 @@ public class PlaylistRepository {
                 });
     }
 
+    public void updatePlaylistSongOrder(String playlistId, String songId, int newOrderIndex, Callback<ResponseBody> callback) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("order_index", newOrderIndex);
+
+        apiService.updatePlaylistSongOrder(
+                apiKey,
+                token,
+                "eq." + playlistId,
+                "eq." + songId,
+                data
+        ).enqueue(callback);
+    }
+
     public void updatePlaylistOrder(String playlistId, List<Song> songs, Callback<ResponseBody> callback) {
         if (songs == null || songs.isEmpty()) {
             if (callback != null) callback.onResponse(null, null);

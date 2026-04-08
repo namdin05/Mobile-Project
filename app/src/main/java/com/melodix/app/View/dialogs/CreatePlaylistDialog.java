@@ -101,7 +101,10 @@ public class CreatePlaylistDialog {
     public void setSelectedCoverUri(Uri uri) {
         this.selectedCoverUri = uri;
         if (imgPreview != null && uri != null) {
-            Glide.with(context).load(uri).into(imgPreview);
+            Glide.with(context)
+                    .load(uri)
+                    .placeholder(R.drawable.ic_music_placeholder)
+                    .into(imgPreview);
         }
     }
 
