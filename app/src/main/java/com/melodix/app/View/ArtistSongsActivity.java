@@ -69,8 +69,6 @@ public class ArtistSongsActivity extends AppCompatActivity {
         android.content.Intent shareIntent = new android.content.Intent(android.content.Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
 
-        // Sử dụng web cầu nối GitHub của bạn
-        // NHỚ THAY giabaocode BẰNG TÊN GITHUB THẬT CỦA BẠN NHÉ!
         String shareMessage = "🎵 Mình đang nghe bài '" + song.getTitle() + "' cực cuốn!\n"
                 + "👉 Bấm vào đây để nghe cùng trên Melodix: \n"
                 + "https://giabaocode.github.io/melodix-redirect/?id=" + song.getId();
