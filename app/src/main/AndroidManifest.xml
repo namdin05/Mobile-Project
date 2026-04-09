@@ -54,6 +54,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".LyricsActivity"
+            android:exported="false" />
+
         <activity android:name=".View.AlbumDetailActivity" android:exported="false" />
         <activity android:name=".View.ArtistDetailActivity" android:exported="false" />
         <activity android:name=".View.ArtistSongsActivity" android:exported="false" />

@@ -13,19 +13,23 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.melodix.app.Model.LyricLine;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Repository.PlaybackRepository;
 import com.melodix.app.Service.AudioPlayerService;
 import com.melodix.app.Utils.AppUiUtils;
+import com.melodix.app.Utils.LyricUtils;
 import com.melodix.app.Utils.PlaybackUtils;
 import com.melodix.app.Utils.ResourceUtils;
 import com.melodix.app.Utils.ShareUtils;
 import com.melodix.app.Utils.ThemeUtils;
 import com.melodix.app.Utils.TimeUtils;
+import com.melodix.app.View.adapters.LyricAdapter;
 //import com.melodix.app.View.adapters.LyricAdapter;
 
 import java.util.ArrayList;
@@ -35,7 +39,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     private AppRepository repository;
     private Song currentSong;
-//    private LyricAdapter lyricAdapter;
+    private LyricAdapter lyricAdapter;
     private SeekBar seekBar;
     private TextView tvElapsed;
     private TextView tvTotal;
@@ -182,9 +186,9 @@ public class PlayerActivity extends AppCompatActivity {
         rvLyrics.setLayoutManager(layoutManager);
 
         View overlay = findViewById(R.id.view_lyrics_click_overlay);
-//        if (overlay != null) {
-//            overlay.setOnClickListener(v -> openFullLyrics());
-//        }
+        if (overlay != null) {
+            overlay.setOnClickListener(v -> openFullLyrics());
+        }
         // ------------------------------------------
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -204,13 +208,13 @@ public class PlayerActivity extends AppCompatActivity {
         });
     }
 
-//    private void openFullLyrics() {
-//        if (currentSong != null) {
-//            Intent intent = new Intent(this, LyricsActivity.class);
-//            intent.putExtra(EXTRA_SONG_ID, currentSong.id);
-//            startActivity(intent);
-//        }
-//    }
+    private void openFullLyrics() {
+        if (currentSong != null) {
+            Intent intent = new Intent(this, LyricsActivity.class);
+            intent.putExtra(EXTRA_SONG_ID, currentSong.getId());
+            startActivity(intent);
+        }
+    }
 
     private void loadSong(String songId) {
         currentSong = PlaybackRepository.getInstance().getCurrentSong();
@@ -224,9 +228,31 @@ public class PlayerActivity extends AppCompatActivity {
 
         Glide.with(this).load(currentSong.getCoverUrl()).into(cover);
 
-//        lyricAdapter = new LyricAdapter(currentSong.lyrics);
-//        androidx.recyclerview.widget.RecyclerView rvLyrics = findViewById(R.id.rv_lyrics);
-//        rvLyrics.setAdapter(lyricAdapter);
+        // 1. CHUẨN BỊ GIAO DIỆN LỜI BÀI HÁT
+        RecyclerView rvLyrics = findViewById(R.id.rv_lyrics);
+
+        // Hiện thông báo đang tải (Tùy chọn)
+        ((TextView) findViewById(R.id.tv_ai_summary)).setText("Đang tải lời bài hát...");
+
+        // 2. GỌI HÀM TẢI FILE LRC TỪ MẠNG
+        LyricUtils.downloadAndParseLrc(currentSong.getLyricsUrl(), new LyricUtils.LyricCallback() {
+            @Override
+            public void onLyricsLoaded(ArrayList<LyricLine> lyrics) {
+                // Khi tải xong, lưu vào bài hát hiện tại (để cache lại nếu muốn)
+                // và nạp vào Adapter
+                currentSong.getLyrics().clear();
+                currentSong.getLyrics().addAll(lyrics);
+
+                if (lyrics.isEmpty()) {
+                    ((TextView) findViewById(R.id.tv_ai_summary)).setText("Bài hát này chưa có lời.");
+                    rvLyrics.setAdapter(new LyricAdapter(new ArrayList<>())); // Set list trống
+                } else {
+                    ((TextView) findViewById(R.id.tv_ai_summary)).setText("Tap the button above to generate AI summary...");
+                    lyricAdapter = new LyricAdapter(lyrics);
+                    rvLyrics.setAdapter(lyricAdapter);
+                }
+            }
+        });
         ((TextView) findViewById(R.id.tv_ai_summary)).setText("Tap the button above to generate AI summary from listeners' comments.");
     }
 
@@ -242,21 +268,21 @@ public class PlayerActivity extends AppCompatActivity {
         }
         btnPlayPause.setImageResource(playing ? R.drawable.ic_pause : R.drawable.ic_play);
 
-//        if (currentSong != null && lyricAdapter != null) {
-//            int index = 0;
-//            for (int i = 0; i < currentSong.lyrics.size(); i++) {
-//                if (position >= currentSong.lyrics.get(i).timeMs) index = i;
-//            }
-//            if (index != currentLyricIndex) {
-//                currentLyricIndex = index;
-//                lyricAdapter.setHighlightIndex(index);
-//
-//                androidx.recyclerview.widget.RecyclerView rvLyrics = findViewById(R.id.rv_lyrics);
-//                if (rvLyrics.getScrollState() == androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE) {
-//                    rvLyrics.smoothScrollToPosition(index);
-//                }
-//            }
-//        }
+        if (currentSong != null && lyricAdapter != null) {
+            int index = 0;
+            for (int i = 0; i < currentSong.getLyrics().size(); i++) {
+                if (position >= currentSong.getLyrics().get(i).timeMs) index = i;
+            }
+            if (index != currentLyricIndex) {
+                currentLyricIndex = index;
+                lyricAdapter.setHighlightIndex(index);
+
+                RecyclerView rvLyrics = findViewById(R.id.rv_lyrics);
+                if (rvLyrics.getScrollState() == RecyclerView.SCROLL_STATE_IDLE) {
+                    rvLyrics.smoothScrollToPosition(index);
+                }
+            }
+        }
     }
 
     private void updateLoopButton() {

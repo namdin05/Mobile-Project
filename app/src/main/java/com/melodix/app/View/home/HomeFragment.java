@@ -50,18 +50,20 @@ public class HomeFragment extends Fragment {
     private android.os.Handler sliderHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable sliderRunnable;
 
+    // logic
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // khai bao ViewModel
         HomeViewModel viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
-
+        // danh sach bai hat moi nhat
         RecyclerView rvNewRelease = view.findViewById(R.id.rv_new_releases);
+        // danh sach bai hat thinh hanh
         RecyclerView rvTrending = view.findViewById(R.id.rv_trending);
 
-         // ==========================================
-        // FETCH NEW RELEASE
-        // ==========================================
+        // goi API lay danh sach bai hat moi nhat
         viewModel.getNewReleases().observe(getViewLifecycleOwner(), songs -> {
+            // goi song apdapter
             SongAdapter songAdapter = new SongAdapter(requireContext(), songs, new SongAdapter.OnSongActionListener() {
                 @Override
                 public void onSongClick(Song song, int position) {
@@ -73,20 +75,23 @@ public class HomeFragment extends Fragment {
                 }
             });
             Log.d("NEW_RELEASE_SONG", new Gson().toJson(songs));
+            // dinh nghia layout
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false);
             rvNewRelease.setLayoutManager(linearLayoutManager);
             rvNewRelease.setAdapter(songAdapter);
         });
 
-        // fetch current user
+        //  lay nguoi dung hien tai
         user = SessionManager.getInstance(requireContext()).getCurrentUser();
         if(user != null)  Log.d("get_session_user", user.getDisplayName()+" hello");
         else Log.d("get_session_user", "chua load xong user");
 
+        // khai bao account section
         ImageView avatar = view.findViewById(R.id.img_avatar);
         TextView greeting = view.findViewById(R.id.tv_greeting);
         TextView subGreeting = view.findViewById(R.id.tv_subgreeting);
         TextView btnViewAllGenres = view.findViewById(R.id.tv_view_all_genres);
+        // ========
 
         if (user != null) {
             Glide.with(requireContext()).load(user.getAvatarUrl()).circleCrop().into(avatar);
@@ -101,10 +106,9 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // ==========================================
-        // FETCH TRENDING SONGS
-        // ==========================================
+        // goi API lay danh sach bai hat trending
         viewModel.getTrendingSongs().observe(getViewLifecycleOwner(), songs->{
+            // goi song card adapter
             SongCardAdapter songCardAdapter = new SongCardAdapter(requireContext(), songs, true, new SongCardAdapter.OnSongClickListener() {
                 @Override
                 public void onSongClick(Song song) {
@@ -112,25 +116,29 @@ public class HomeFragment extends Fragment {
                 }
             });
             Log.d("TRENDINGS", new Gson().toJson(songs));
+            // set layout
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
             rvTrending.setLayoutManager(linearLayoutManager);
             rvTrending.setAdapter(songCardAdapter);
         });
 
-        // fetch genres
+        // lay danh sach the loai
         RecyclerView rvGenres = view.findViewById(R.id.rv_genres);
         viewModel.getGenres().observe(getViewLifecycleOwner(), genres -> {
+            // set adpater
             GenreAdapter genreAdapter = new GenreAdapter(requireContext(), genres, new GenreAdapter.OnGenreClickListener() {
                 @Override
                 public void onGenreClick(Genre genre) {
                     Toast.makeText(requireContext(), genre.getName(), LENGTH_LONG).show();
                 }
             });
+            // set layout
             GridLayoutManager gridLayoutManager = new GridLayoutManager(requireContext(), 1, GridLayoutManager.HORIZONTAL, false);
             rvGenres.setLayoutManager(gridLayoutManager);
             rvGenres.setAdapter(genreAdapter);
         });
 
+        // xu li logic view all genres
         btnViewAllGenres.setOnClickListener(v -> {
             requireActivity().getSupportFragmentManager().beginTransaction()
                     .setCustomAnimations(
@@ -144,8 +152,12 @@ public class HomeFragment extends Fragment {
                     .commit();
         });
 
+        // khai bao banner
         bannerPager = view.findViewById(R.id.banner_pager);
+
+        // goi API lay danh sach banners
         viewModel.getBanners().observe(getViewLifecycleOwner(), banners -> {
+            // set adapter
             bannerPager.setAdapter(new BannerAdapter(requireContext(), banners, new BannerAdapter.OnBannerClickListener() {
                 @Override
                 public void onBannerClick(Banner item) {
@@ -156,14 +168,11 @@ public class HomeFragment extends Fragment {
         });
     }
 
-    // ==========================================
-    // HÀM XỬ LÝ PHÁT NHẠC (CUSTOM)
-    // ==========================================
-    private void playSongAndSetQueue(Song selectedSong, java.util.List<Song> currentList) {
-        // Gọi thẳng PlaybackUtils, nó sẽ tự lo việc lưu Queue vào PlaybackRepository và mở PlayerActivity
+    private void playSongAndSetQueue(Song selectedSong, List<Song> currentList) {
         PlaybackUtils.playSong(requireContext(), (ArrayList<Song>) currentList, selectedSong.getId());
     }
 
+    // ham chay banners
     private void autoSlide(){
         sliderRunnable = () -> {
             if (bannerPager.getAdapter() != null) {
@@ -178,6 +187,7 @@ public class HomeFragment extends Fragment {
         sliderHandler.postDelayed(sliderRunnable, 3000);
     }
 
+    // ham dung chay banners
     private void stopAutoSlide(){
         if(sliderRunnable != null){
             sliderHandler.removeCallbacks(sliderRunnable);
@@ -185,6 +195,7 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    // onCreateView chi de bom giao dien
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState){
@@ -194,17 +205,15 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroyView(){
         super.onDestroyView();
-        stopAutoSlide();
+        stopAutoSlide(); // dung auto slide tranh memory leak
     }
 
-    // Cập nhật lại hàm này: nhận thêm đối tượng Song để biết bài nào được bấm Menu
+    // ham xu ly menu cua song adapter
     private void handleMenuClick(Song song, String action){
         switch (action){
             case "play":
                 List<Song> singleList = new ArrayList<>();
                 singleList.add(song);
-
-                // Sử dụng hàm vừa sửa ở trên (hoặc gọi trực tiếp PlaybackUtils)
                 playSongAndSetQueue(song, singleList);
                 break;
             case "like":

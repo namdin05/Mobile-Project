@@ -1,6 +1,15 @@
 package com.melodix.app.Model;
 
+import android.content.Context;
+
 import com.google.gson.annotations.SerializedName;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Song {
     @SerializedName("id")
@@ -17,6 +26,9 @@ public class Song {
 
     @SerializedName("audio_url")
     private String audio_url;
+
+    @SerializedName("lyrics_lrc_url")
+    private String lyrics_url;
 
     @SerializedName("duration_seconds")
     private int duration_seconds;
@@ -35,6 +47,9 @@ public class Song {
     private String genre;
     private String description;
     private int likes;
+
+    private ArrayList<LyricLine> lyrics = new ArrayList<>();
+
 
     public Song() {}
 
@@ -97,4 +112,45 @@ public class Song {
 
 
     public void setStatus(String status) { this.status = status; }
+
+    public void parseLrcFile(Context context, int lrcResId) {
+        ArrayList<LyricLine> lyricsList = new ArrayList<>();
+        try {
+            InputStream is = context.getResources().openRawResource(lrcResId);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+            String line;
+
+            // Mẫu tìm kiếm chuẩn của file .lrc: [mm:ss.xx] Lời bài hát
+            Pattern pattern = Pattern.compile("\\[(\\d{2}):(\\d{2})\\.(\\d{2,3})\\](.*)");
+
+            while ((line = reader.readLine()) != null) {
+                Matcher matcher = pattern.matcher(line);
+                if (matcher.find()) {
+                    int min = Integer.parseInt(matcher.group(1));
+                    int sec = Integer.parseInt(matcher.group(2));
+                    int millis = Integer.parseInt(matcher.group(3));
+
+                    // Chuẩn hóa mili-giây (nếu file lrc chỉ ghi 2 số thì nhân 10)
+                    if (matcher.group(3).length() == 2) millis *= 10;
+
+                    int totalTimeMs = (min * 60 * 1000) + (sec * 1000) + millis;
+                    String text = matcher.group(4).trim();
+
+                    lyricsList.add(new LyricLine(totalTimeMs, text));
+                }
+            }
+            reader.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        this.lyrics = lyricsList;
+    }
+
+    public ArrayList<LyricLine> getLyrics() {
+        return lyrics;
+    }
+
+    public String getLyricsUrl() {
+        return lyrics_url;
+    }
 }
