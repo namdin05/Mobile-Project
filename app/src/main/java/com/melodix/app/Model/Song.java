@@ -42,11 +42,15 @@ public class Song {
     // ĐÃ THÊM SERIALIZED NAME Ở ĐÂY ĐỂ NHẬN CHUỖI GỘP NHIỀU NGHỆ SĨ
     @SerializedName("artistName")
     private String artistName;
+
+    // THÊM SERIALIZED NAME ĐỂ NHẬN SỐ LƯỢT THÍCH TỪ SUPABASE
+    @SerializedName("like_count")
+    private int likes;
+
     private String artistId;
     private String albumName;
     private String genre;
     private String description;
-    private int likes;
 
     private ArrayList<LyricLine> lyrics = new ArrayList<>();
 
@@ -72,7 +76,6 @@ public class Song {
     }
 
     public String getStatus() { return status; }
-
 
     public String getTitle() {
         return title;
@@ -110,6 +113,10 @@ public class Song {
         return plays;
     }
 
+    // THÊM HÀM GET LIKES ĐỂ BÊN ACTIVITY CÓ THỂ LỌC DỮ LIỆU
+    public int getLikes() {
+        return likes;
+    }
 
     public void setStatus(String status) { this.status = status; }
 

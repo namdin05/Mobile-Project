@@ -21,6 +21,11 @@
             android:name=".MainActivity"
             android:exported="false"
             tools:ignore="AppLinkUrlError">
+        </activity>
+
+        <activity
+            android:name=".PlayerActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -28,8 +33,6 @@
                 <data android:scheme="melodix" android:host="song" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".PlayerActivity" />
         <service
             android:name=".Service.AudioPlayerService"
             android:exported="false"
@@ -64,12 +67,17 @@
         <activity android:name=".View.ArtistAlbumsActivity" android:exported="false" />
         <activity android:name=".View.auth.RegisterActivity" />
         <activity android:name=".ArtistActivity" />
-        <activity android:name=".View.artist.UploadSongActivity" /> vào AndroidManifest.xml
+        <activity android:name=".View.artist.UploadSongActivity" />
 
         <activity android:name=".AdminActivity" />"
 
         <activity android:name=".View.profile.AdminProfileActivity"
                   android:exported="false"/>
+        <activity android:name=".View.artist.CreateAlbumActivity" />
+        <activity android:name=".View.artist.ManageSongActivity" />
+        <activity android:name=".View.artist.ArtistAnalyticsActivity" />
+
+
     </application>
 
 </manifest>

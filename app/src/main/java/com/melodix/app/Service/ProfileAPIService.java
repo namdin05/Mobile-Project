@@ -16,7 +16,7 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 
-public interface ProfileAPIService  {
+public interface    ProfileAPIService  {
 
     // Lấy thông tin của 1 user cụ thể dựa vào ID
     @GET("rest/v1/profiles?select=display_name,avatar_url")

@@ -16,6 +16,8 @@ import com.melodix.app.Model.Album;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
+import com.melodix.app.Utils.PlaybackUtils;
+import com.melodix.app.Utils.ShareUtils;
 import com.melodix.app.View.adapters.SongAdapter;
 
 import java.util.ArrayList;
@@ -54,12 +56,33 @@ public class AlbumDetailActivity extends AppCompatActivity {
             @Override
             public void onSongClick(Song song, int position) {
                 // Nhóm 6 sẽ viết logic MediaPlayer ở đây sau nhé
-                Toast.makeText(AlbumDetailActivity.this, "Đang phát: " + song.getTitle(), Toast.LENGTH_SHORT).show();
-            }
+                PlaybackUtils.playSong(AlbumDetailActivity.this, new ArrayList<>(trackAdapter.getSongs()), song.getId());            }
 
             @Override
             public void onMenuClick(Song song, int position, String actionId) {
-                Toast.makeText(AlbumDetailActivity.this, "Hành động: " + actionId, Toast.LENGTH_SHORT).show();
+                // Xử lý sự kiện Menu 3 chấm
+                switch (actionId) {
+                    case "share":
+                        // GỌI HÀM SHARE THẦN THÁNH Ở ĐÂY!
+                        // Dùng AlbumDetailActivity.this vì ta đang đứng trong một Anonymous Class (lớp ẩn danh)
+                        ShareUtils.shareSongToFriends(AlbumDetailActivity.this, song);
+                        break;
+
+                    case "play":
+                        // Xử lý nút play trong menu
+                        java.util.ArrayList<Song> singleList = new java.util.ArrayList<>();
+                        singleList.add(song);
+                        PlaybackUtils.playSong(AlbumDetailActivity.this, singleList, song.getId());
+                        break;
+
+                    case "like":
+                        Toast.makeText(AlbumDetailActivity.this, "Đã thích " + song.getTitle(), Toast.LENGTH_SHORT).show();
+                        break;
+
+                    default:
+                        Toast.makeText(AlbumDetailActivity.this, "Đang phát triển: " + actionId, Toast.LENGTH_SHORT).show();
+                        break;
+                }
             }
         });
         rvTracks.setAdapter(trackAdapter);
@@ -121,6 +144,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
                 Toast.makeText(AlbumDetailActivity.this, "Album không tồn tại hoặc lỗi mạng", Toast.LENGTH_SHORT).show();
                 finish();
             }
+
         });
     }
 }

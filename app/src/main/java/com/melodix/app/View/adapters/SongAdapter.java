@@ -23,6 +23,13 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     }
 
     private final Context context;
+
+    private boolean isAnalyticsMode = false; // Mặc định là TẮT
+
+    // Thêm hàm này để BẬT công tắc từ bên ngoài vào
+    public void setAnalyticsMode(boolean isAnalyticsMode) {
+        this.isAnalyticsMode = isAnalyticsMode;
+    }
     private final List<Song> songs;
     private final OnSongActionListener listener;
 
@@ -75,6 +82,19 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         });
 
         holder.more.setOnClickListener(v -> showMenu(v, song, position));
+
+        if (isAnalyticsMode) {
+            // NẾU BẬT CÔNG TẮC: Hiển thị 🎧 Lượt nghe và ❤️ Lượt thích
+            java.text.NumberFormat format = java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN"));
+            String stats = "🎧 " + format.format(song.getPlays()) + "   •   ❤️ " + format.format(song.getLikes());
+
+            holder.subtitle.setText(stats); // (Nhớ đổi tvArtistName thành tên biến TextView của bạn nếu khác nhé)
+            holder.subtitle.setTextColor(android.graphics.Color.parseColor("#1DB954")); // Đổi màu xanh lá cho nổi bật số liệu
+        } else {
+            // NẾU TẮT CÔNG TẮC: Trả về hiển thị tên nghệ sĩ như bình thường
+            holder.subtitle.setText(song.getArtistName());
+            holder.subtitle.setTextColor(android.graphics.Color.parseColor("#AAAAAA")); // Trả về màu xám mặc định
+        }
     }
 
     private void showMenu(View anchor, Song song, int position) {
