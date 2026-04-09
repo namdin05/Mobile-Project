@@ -50,7 +50,10 @@ public class AppRepository {
 
     // Giữ lại bộ đếm thời gian để chống giật lag khi gõ phím
     private long lastSearchTime = 0;
-
+    public interface SingleSongCallback {
+        void onSuccess(Song song);
+        void onError(String message);
+    }
     private AppRepository(Context context) {
         this.appContext = context.getApplicationContext();
         this.prefs = appContext.getSharedPreferences(Constants.PREFS_DATA, Context.MODE_PRIVATE);
@@ -474,6 +477,30 @@ public class AppRepository {
             }
         }
         return null;
+    }
+
+    // =========================================================================
+    // HÀM GỌI API LẤY 1 BÀI HÁT TỪ SUPABASE (DÀNH CHO DEEP LINK)
+    // =========================================================================
+    public void getSongByIdAsync(String songId, SingleSongCallback callback) {
+        // GIẢ SỬ BẠN SỬ DỤNG searchApiService ĐỂ GỌI API (Hoặc một SongAPIService nếu bạn có)
+        // Lưu ý: Cần đảm bảo trong interface Service của bạn có hàm getSongById("eq." + songId)
+        searchApiService.getSongById("eq." + songId).enqueue(new Callback<List<Song>>() {
+            @Override
+            public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    // Lấy thành công, trả về bài hát đầu tiên tìm được
+                    callback.onSuccess(response.body().get(0));
+                } else {
+                    callback.onError("Không tìm thấy bài hát trên hệ thống!");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Song>> call, Throwable t) {
+                callback.onError("Lỗi mạng: " + t.getMessage());
+            }
+        });
     }
     // =========================================================================
     // CÁC HÀM XỬ LÝ LỊCH SỬ / DOWNLOAD / AI MÀ PLAYER ACTIVITY ĐANG GỌI

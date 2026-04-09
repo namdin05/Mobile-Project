@@ -13,6 +13,10 @@ public interface SearchAPIService {
     @GET("song_details_view?select=*&status=eq.approved")
     Call<List<Song>> searchSongs(@Query(value = "fts", encoded = true) String ftsQuery);
 
+    // THÊM DÒNG NÀY VÀO ĐÂY LÀ XONG
+    @GET("song_details_view?select=*")
+    Call<List<Song>> getSongById(@Query("id") String id);
+
     @GET("artist_search_view?select=*")
     Call<List<Artist>> searchArtists(@Query(value = "fts", encoded = true) String ftsQuery);
 

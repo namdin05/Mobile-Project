@@ -20,6 +20,7 @@ import com.melodix.app.Model.Song;
 import com.melodix.app.PlayerActivity;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
+import com.melodix.app.Utils.ShareUtils;
 import com.melodix.app.View.adapters.SongAdapter;
 import com.melodix.app.View.adapters.AlbumAdapter;
 import com.melodix.app.View.adapters.ArtistAdapter;
@@ -219,11 +220,12 @@ public class ArtistDetailActivity extends AppCompatActivity {
                 Toast.makeText(this,"Bình luận về " + song.getTitle(), LENGTH_SHORT).show();
                 break;
             case "share":
-                Toast.makeText(this,"Chia sẻ " + song.getTitle(), LENGTH_SHORT).show();
+                ShareUtils.shareSongToFriends(this, song);
                 break;
             case "download":
                 Toast.makeText(this,"Tải xuống " + song.getTitle(), LENGTH_SHORT).show();
                 break;
         }
     }
+
 }

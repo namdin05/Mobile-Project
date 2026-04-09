@@ -35,6 +35,7 @@ import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.PlayerActivity;
 import com.melodix.app.Utils.PlaybackUtils;
+import com.melodix.app.Utils.ShareUtils;
 import com.melodix.app.View.adapters.BannerAdapter;
 import com.melodix.app.View.adapters.GenreAdapter;
 import com.melodix.app.View.adapters.SongCardAdapter;
@@ -217,7 +218,7 @@ public class HomeFragment extends Fragment {
                 Toast.makeText(requireContext(),"COMMENT " + song.getTitle(), LENGTH_SHORT).show();
                 break;
             case "share":
-                Toast.makeText(requireContext(),"SHARE " + song.getTitle(), LENGTH_SHORT).show();
+                ShareUtils.shareSongToFriends(requireContext(), song);
                 break;
             case "download":
                 Toast.makeText(requireContext(),"DOWNLOAD " + song.getTitle(), LENGTH_SHORT).show();

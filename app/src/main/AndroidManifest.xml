@@ -21,6 +21,11 @@
             android:name=".MainActivity"
             android:exported="false"
             tools:ignore="AppLinkUrlError">
+        </activity>
+
+        <activity
+            android:name=".PlayerActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -28,8 +33,6 @@
                 <data android:scheme="melodix" android:host="song" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".PlayerActivity" />
         <service
             android:name=".Service.AudioPlayerService"
             android:exported="false"
