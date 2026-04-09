@@ -125,7 +125,7 @@ public class PlayerActivity extends AppCompatActivity {
     // =========================================================
     private void setupUIEvents() {
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
-        findViewById(R.id.btn_share).setOnClickListener(v -> shareSongToFriends(currentSong));
+        findViewById(R.id.btn_share).setOnClickListener(v -> ShareUtils.shareSongToFriends(this, currentSong));
 //        findViewById(R.id.btn_comments).setOnClickListener(v -> {
 //            if (currentSong != null) {
 //                Intent intent = new Intent(this, CommentsActivity.class);
@@ -300,19 +300,7 @@ public class PlayerActivity extends AppCompatActivity {
     // =========================================================
     // TÍNH NĂNG CHIA SẺ BÀI HÁT CHO NGƯỜI NGHE
     // =========================================================
-    private void shareSongToFriends(Song song) {
-        if (song == null) return;
-        android.content.Intent shareIntent = new android.content.Intent(android.content.Intent.ACTION_SEND);
-        shareIntent.setType("text/plain");
 
-        // Gửi link dạng custom scheme
-        String shareMessage = "🎵 Mình đang nghe bài '" + song.getTitle() + "' cực cuốn!\n"
-                + "👉 Bấm vào đây để nghe cùng trên Melodix: \n"
-                + "https://giabaocode.github.io/melodix-redirect/?id=" + song.getId();
-
-        shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareMessage);
-        startActivity(android.content.Intent.createChooser(shareIntent, "Chia sẻ qua..."));
-    }
 
     // =========================================================
     // LẤY DỮ LIỆU TỪ DATABASE KHI VÀO TỪ LINK CHIA SẺ

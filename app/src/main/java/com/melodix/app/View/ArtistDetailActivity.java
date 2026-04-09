@@ -20,6 +20,7 @@ import com.melodix.app.Model.Song;
 import com.melodix.app.PlayerActivity;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
+import com.melodix.app.Utils.ShareUtils;
 import com.melodix.app.View.adapters.SongAdapter;
 import com.melodix.app.View.adapters.AlbumAdapter;
 import com.melodix.app.View.adapters.ArtistAdapter;
@@ -219,25 +220,12 @@ public class ArtistDetailActivity extends AppCompatActivity {
                 Toast.makeText(this,"Bình luận về " + song.getTitle(), LENGTH_SHORT).show();
                 break;
             case "share":
-                shareSongToFriends(song);
+                ShareUtils.shareSongToFriends(this, song);
                 break;
             case "download":
                 Toast.makeText(this,"Tải xuống " + song.getTitle(), LENGTH_SHORT).show();
                 break;
         }
-    }
-    private void shareSongToFriends(Song song) {
-        if (song == null) return;
-        android.content.Intent shareIntent = new android.content.Intent(android.content.Intent.ACTION_SEND);
-        shareIntent.setType("text/plain");
-
-
-        String shareMessage = "🎵 Mình đang nghe bài '" + song.getTitle() + "' cực cuốn!\n"
-                + "👉 Bấm vào đây để nghe cùng trên Melodix: \n"
-                + "https://giabaocode.github.io/melodix-redirect/?id=" + song.getId();
-
-        shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareMessage);
-        startActivity(android.content.Intent.createChooser(shareIntent, "Chia sẻ bài hát qua..."));
     }
 
 }

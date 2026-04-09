@@ -1,5 +1,7 @@
 package com.melodix.app.View;
 
+import static androidx.core.content.ContentProviderCompat.requireContext;
+
 import android.os.Bundle;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -8,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
+import com.melodix.app.Utils.ShareUtils;
 import com.melodix.app.View.adapters.SongAdapter;
 import java.util.ArrayList;
 
@@ -41,7 +44,7 @@ public class ArtistSongsActivity extends AppCompatActivity {
             public void onMenuClick(Song song, int position, String actionId) {
                 // Đón lõng tín hiệu "share" từ SongAdapter
                 if ("share".equalsIgnoreCase(actionId)) {
-                    shareSongToFriends(song);
+                    ShareUtils.shareSongToFriends(ArtistSongsActivity.this, song);
                 }
                 else if ("play".equalsIgnoreCase(actionId)) {
                     Toast.makeText(ArtistSongsActivity.this, "Phát bài: " + song.getTitle(), Toast.LENGTH_SHORT).show();
@@ -64,16 +67,5 @@ public class ArtistSongsActivity extends AppCompatActivity {
     // =========================================================
     // TÍNH NĂNG CHIA SẺ TỪ DANH SÁCH BÀI HÁT
     // =========================================================
-    private void shareSongToFriends(Song song) {
-        if (song == null) return;
-        android.content.Intent shareIntent = new android.content.Intent(android.content.Intent.ACTION_SEND);
-        shareIntent.setType("text/plain");
 
-        String shareMessage = "🎵 Mình đang nghe bài '" + song.getTitle() + "' cực cuốn!\n"
-                + "👉 Bấm vào đây để nghe cùng trên Melodix: \n"
-                + "https://giabaocode.github.io/melodix-redirect/?id=" + song.getId();
-
-        shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareMessage);
-        startActivity(android.content.Intent.createChooser(shareIntent, "Chia sẻ bài hát qua..."));
-    }
 }

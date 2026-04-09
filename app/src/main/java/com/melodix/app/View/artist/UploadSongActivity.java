@@ -97,7 +97,7 @@ public class UploadSongActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_song);
 
-        apiService = RetrofitClient.getClient().create(ArtistAPIService.class);
+        apiService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
         sessionManager = SessionManager.getInstance(this);
 
         View btnBack = findViewById(R.id.btn_back);
@@ -417,7 +417,7 @@ public class UploadSongActivity extends AppCompatActivity {
         title.setPadding(60, 20, 60, 30);
         container.addView(title);
 
-        ArtistAPIService supabaseApi = RetrofitClient.getClient().create(ArtistAPIService.class);
+        ArtistAPIService supabaseApi = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
         supabaseApi.getAlbumsByArtistId("eq." + sessionManager.getCurrentUser().getId()).enqueue(new Callback<java.util.List<com.melodix.app.Model.Album>>() {
             @Override
             public void onResponse(Call<java.util.List<com.melodix.app.Model.Album>> call, Response<java.util.List<com.melodix.app.Model.Album>> response) {
@@ -500,7 +500,6 @@ public class UploadSongActivity extends AppCompatActivity {
         });
         dialog.show();
     }
-
     private void openCollabSearchDialog() {
         com.google.android.material.bottomsheet.BottomSheetDialog dialog =
                 new com.google.android.material.bottomsheet.BottomSheetDialog(this, R.style.BottomSheetTheme);
@@ -514,34 +513,83 @@ public class UploadSongActivity extends AppCompatActivity {
         bgShape.setCornerRadii(new float[]{60, 60, 60, 60, 0, 0, 0, 0});
         container.setBackground(bgShape);
 
+        // 1. THANH TÌM KIẾM BO GÓC MỀM MẠI
         EditText edtSearch = new EditText(this);
         edtSearch.setHint("🔍 Nhập tên nghệ sĩ...");
         edtSearch.setTextColor(android.graphics.Color.BLACK);
-        edtSearch.setHintTextColor(android.graphics.Color.GRAY);
+        edtSearch.setHintTextColor(android.graphics.Color.parseColor("#8E8E93")); // Màu xám chuẩn iOS
         edtSearch.setPadding(50, 40, 50, 40);
         edtSearch.setSingleLine(true);
         edtSearch.setTextSize(16);
+        // Tắt gạch chân mặc định xấu xí của EditText
+        edtSearch.setBackgroundResource(android.R.color.transparent);
 
+        // Bọc EditText trong 1 cái khung xám nhạt cho ra dáng thanh Search
+        android.widget.LinearLayout searchContainer = new android.widget.LinearLayout(this);
         android.graphics.drawable.GradientDrawable searchBg = new android.graphics.drawable.GradientDrawable();
         searchBg.setColor(android.graphics.Color.parseColor("#F2F2F7"));
-        searchBg.setCornerRadius(40);
-        edtSearch.setBackground(searchBg);
+        searchBg.setCornerRadius(30); // Bo góc mềm hơn
+        searchContainer.setBackground(searchBg);
 
-        android.widget.LinearLayout.LayoutParams edtParams = new android.widget.LinearLayout.LayoutParams(
+        android.widget.LinearLayout.LayoutParams searchParams = new android.widget.LinearLayout.LayoutParams(
                 android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
                 android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
-        edtParams.setMargins(60, 20, 60, 40);
-        edtSearch.setLayoutParams(edtParams);
-        container.addView(edtSearch);
+        searchParams.setMargins(60, 20, 60, 40);
+        searchContainer.setLayoutParams(searchParams);
+        searchContainer.addView(edtSearch, new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT));
+        container.addView(searchContainer);
 
+        // 2. KHU VỰC HIỂN THỊ KẾT QUẢ (Hoặc Loading / Empty)
+        android.widget.FrameLayout resultFrame = new android.widget.FrameLayout(this);
+        android.widget.LinearLayout.LayoutParams frameParams = new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
+        frameParams.setMargins(0, 0, 0, 40); // Cách lề dưới một chút cho khỏi sát mép màn hình
+        resultFrame.setLayoutParams(frameParams);
+
+        // --- Danh sách kết quả ---
         android.widget.LinearLayout resultContainer = new android.widget.LinearLayout(this);
         resultContainer.setOrientation(android.widget.LinearLayout.VERTICAL);
-        container.addView(resultContainer);
+        resultFrame.addView(resultContainer);
+
+        // --- Vòng xoay Loading ---
+        android.widget.ProgressBar progressBar = new android.widget.ProgressBar(this);
+        android.widget.FrameLayout.LayoutParams progressParams = new android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                android.view.Gravity.CENTER);
+        progressParams.topMargin = 50;
+        progressBar.setLayoutParams(progressParams);
+        progressBar.setVisibility(View.GONE); // Mặc định ẩn
+        resultFrame.addView(progressBar);
+
+        // --- Text thông báo Không tìm thấy ---
+        TextView tvEmpty = new TextView(this);
+        tvEmpty.setText("Dữ liệu trống rỗng 🍃\nHãy thử tìm tên nghệ sĩ khác xem sao.");
+        tvEmpty.setGravity(android.view.Gravity.CENTER);
+        tvEmpty.setTextColor(android.graphics.Color.parseColor("#8E8E93"));
+        tvEmpty.setTextSize(14);
+        android.widget.FrameLayout.LayoutParams emptyParams = new android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                android.view.Gravity.CENTER);
+        emptyParams.topMargin = 100;
+        tvEmpty.setLayoutParams(emptyParams);
+        tvEmpty.setVisibility(View.GONE); // Mặc định ẩn
+        resultFrame.addView(tvEmpty);
+
+        container.addView(resultFrame);
 
         dialog.setContentView(container);
         ((View) container.getParent()).setBackgroundColor(android.graphics.Color.TRANSPARENT);
 
-        SearchAPIService searchAPI = RetrofitClient.getClient().create(SearchAPIService.class);
+        SearchAPIService searchAPI = RetrofitClient.getSupabaseClient().create(SearchAPIService.class);
+
+        // 3. KỸ THUẬT DEBOUNCE (CHỐNG SPAM API)
+        android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        final Runnable[] searchRunnable = {null};
 
         edtSearch.addTextChangedListener(new android.text.TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -550,29 +598,61 @@ public class UploadSongActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(android.text.Editable s) {
                 String query = s.toString().trim();
+
+                // Hủy lệnh gọi API cũ nếu người dùng vẫn đang tiếp tục gõ
+                if (searchRunnable[0] != null) {
+                    searchHandler.removeCallbacks(searchRunnable[0]);
+                }
+
                 if (query.isEmpty()) {
                     resultContainer.removeAllViews();
+                    progressBar.setVisibility(View.GONE);
+                    tvEmpty.setVisibility(View.GONE);
                     return;
                 }
 
-                String formattedQuery = query.replaceAll("\\s+", " & ") + ":*";
-                String ftsQuery = "fts(simple)." + android.net.Uri.encode(formattedQuery);
+                // Hiển thị vòng xoay loading, dọn sạch kết quả cũ
+                resultContainer.removeAllViews();
+                tvEmpty.setVisibility(View.GONE);
+                progressBar.setVisibility(View.VISIBLE);
 
-                searchAPI.searchArtists(ftsQuery).enqueue(new Callback<java.util.List<com.melodix.app.Model.Artist>>() {
-                    @Override
-                    public void onResponse(Call<java.util.List<com.melodix.app.Model.Artist>> call, Response<java.util.List<com.melodix.app.Model.Artist>> response) {
-                        resultContainer.removeAllViews();
-                        if (response.isSuccessful() && response.body() != null) {
-                            for (com.melodix.app.Model.Artist artist : response.body()) {
-                                resultContainer.addView(createPremiumArtistDialogItem(artist.avatarRes, artist.name, v -> {
-                                    addArtistChip(artist.id, artist.name);
-                                    dialog.dismiss();
-                                }));
+                // Lên lịch gọi API sau khi người dùng ngừng gõ 500ms
+                searchRunnable[0] = () -> {
+                    String formattedQuery = query.replaceAll("\\s+", " & ") + ":*";
+                    String ftsQuery = "fts(simple)." + android.net.Uri.encode(formattedQuery);
+
+                    searchAPI.searchArtists(ftsQuery).enqueue(new Callback<java.util.List<com.melodix.app.Model.Artist>>() {
+                        @Override
+                        public void onResponse(Call<java.util.List<com.melodix.app.Model.Artist>> call, Response<java.util.List<com.melodix.app.Model.Artist>> response) {
+                            progressBar.setVisibility(View.GONE); // Tắt loading
+
+                            if (response.isSuccessful() && response.body() != null) {
+                                if (response.body().isEmpty()) {
+                                    // Bật Empty State nếu không có ai
+                                    tvEmpty.setVisibility(View.VISIBLE);
+                                } else {
+                                    // Hiển thị kết quả
+                                    for (com.melodix.app.Model.Artist artist : response.body()) {
+                                        resultContainer.addView(createPremiumArtistDialogItem(artist.avatarRes, artist.name, v -> {
+                                            addArtistChip(artist.id, artist.name);
+                                            dialog.dismiss();
+                                        }));
+                                    }
+                                }
+                            } else {
+                                tvEmpty.setText("Có lỗi xảy ra khi tìm kiếm 😢");
+                                tvEmpty.setVisibility(View.VISIBLE);
                             }
                         }
-                    }
-                    @Override public void onFailure(Call<java.util.List<com.melodix.app.Model.Artist>> call, Throwable t) {}
-                });
+                        @Override public void onFailure(Call<java.util.List<com.melodix.app.Model.Artist>> call, Throwable t) {
+                            progressBar.setVisibility(View.GONE);
+                            tvEmpty.setText("Lỗi kết nối mạng 📶");
+                            tvEmpty.setVisibility(View.VISIBLE);
+                        }
+                    });
+                };
+                // Kích hoạt thời gian chờ 500 milliseconds (Nửa giây)
+                searchHandler.postDelayed(searchRunnable[0], 500);
             }
         });
         dialog.show();
@@ -588,6 +668,8 @@ public class UploadSongActivity extends AppCompatActivity {
             behavior.setSkipCollapsed(true);
         }
     }
+
+
     private void addGenreChip(int genreId, String genreName) {
         com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(this);
         chip.setText(genreName);
