@@ -71,6 +71,8 @@
                   android:exported="false"/>
         <activity android:name=".View.artist.CreateAlbumActivity" />
         <activity android:name=".View.artist.ManageSongActivity" />
+        <activity android:name=".View.artist.ArtistAnalyticsActivity" />
+
 
     </application>
 

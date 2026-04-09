@@ -24,8 +24,11 @@ public class ManageSongAdapter extends RecyclerView.Adapter<ManageSongAdapter.So
     private final List<Song> songList;
     public interface OnSongOptionClickListener{
         void onOptionClick(Song song);
+        void onSongClick(Song song);
     }
     private final OnSongOptionClickListener optionClickListener;
+
+
     public ManageSongAdapter(Context context, List<Song> songList, OnSongOptionClickListener listener) {
         this.context = context;
         this.songList = songList;
@@ -83,6 +86,11 @@ public class ManageSongAdapter extends RecyclerView.Adapter<ManageSongAdapter.So
         holder.btnOptions.setOnClickListener(v -> {
             if (optionClickListener != null) {
                 optionClickListener.onOptionClick(song);
+            }
+        });
+        holder.itemView.setOnClickListener(v -> {
+            if(optionClickListener != null){
+                optionClickListener.onSongClick(song);
             }
         });
     }

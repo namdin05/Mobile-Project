@@ -10,6 +10,7 @@ import com.melodix.app.Data.MockDatabase;
 import com.melodix.app.Model.Album;
 import com.melodix.app.Model.AppUser;
 import com.melodix.app.Model.Artist;
+import com.melodix.app.Model.ArtistStats;
 import com.melodix.app.Model.Playlist;
 import com.melodix.app.Model.SearchResultItem;
 import com.melodix.app.Model.Song;
@@ -332,6 +333,38 @@ public class AppRepository {
     public interface AlbumCallback {
         void onSuccess(Album album);
         void onError(String message);
+    }
+
+    // 1. Khai báo Interface để chờ kết quả
+    public interface ArtistStatsCallback {
+        void onSuccess(ArtistStats stats);
+        void onError(String message);
+    }
+
+    // 2. Hàm gọi API
+    public void getArtistStats(String artistId, ArtistStatsCallback callback) {
+        artistApiService.getArtistStats("eq." + artistId).enqueue(new Callback<List<ArtistStats>>() {
+            @Override
+            public void onResponse(Call<List<ArtistStats>> call, Response<List<ArtistStats>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    // Thành công: Trả về kết quả đầu tiên
+                    callback.onSuccess(response.body().get(0));
+                } else {
+                    // An toàn chống Crash: Nếu nghệ sĩ chưa có bài hát nào, trả về toàn số 0
+                    ArtistStats emptyStats = new ArtistStats();
+                    emptyStats.artistId = artistId;
+                    emptyStats.totalSongs = 0;
+                    emptyStats.totalStreams = 0;
+                    emptyStats.totalLikes = 0;
+                    callback.onSuccess(emptyStats);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<ArtistStats>> call, Throwable t) {
+                callback.onError("Lỗi mạng khi tải thống kê: " + t.getMessage());
+            }
+        });
     }
     private boolean contains(String value, String q) {
         return value != null && value.toLowerCase(Locale.ROOT).contains(q);
