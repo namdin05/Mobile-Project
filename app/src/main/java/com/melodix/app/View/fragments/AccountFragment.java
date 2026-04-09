@@ -72,8 +72,20 @@ public class AccountFragment extends Fragment {
         });
 
         btnArtistStats.setOnClickListener(v -> {
-            Toast.makeText(requireContext(), "Tính năng thống kê đang được phát triển!", Toast.LENGTH_SHORT).show();
-            // startActivity(new Intent(requireContext(), ArtistStatsActivity.class));
+            // Lấy user hiện tại từ Session
+            com.melodix.app.Model.Profile realUser = com.melodix.app.Model.SessionManager.getInstance(requireContext()).getCurrentUser();
+
+            if (realUser != null && realUser.getId() != null) {
+                // Mở màn hình Thống kê và truyền ID vào
+                Intent intent = new Intent(requireContext(), com.melodix.app.View.artist.ArtistAnalyticsActivity.class);
+
+                // ĐÃ FIX: Sửa Arti thành ArtistAnalyticsActivity
+                intent.putExtra(com.melodix.app.View.artist.ArtistAnalyticsActivity.EXTRA_ARTIST_ID, realUser.getId());
+
+                startActivity(intent);
+            } else {
+                Toast.makeText(requireContext(), "Lỗi: Không tìm thấy dữ liệu Nghệ sĩ", Toast.LENGTH_SHORT).show();
+            }
         });
 
 
