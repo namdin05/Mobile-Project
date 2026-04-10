@@ -6,6 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -24,6 +26,7 @@ import com.melodix.app.View.dialogs.CreatePlaylistDialog;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.util.Log;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import retrofit2.Call;
@@ -31,7 +34,15 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class LibraryFragment extends Fragment {
+    public interface OnPlaylistCreatedListener {
+        void onPlaylistCreated();
+    }
 
+    private OnPlaylistCreatedListener playlistCreatedListener;
+
+    public void setOnPlaylistCreatedListener(OnPlaylistCreatedListener listener) {
+        this.playlistCreatedListener = listener;
+    }
     private RecyclerView rvPlaylists;
     private PlaylistAdapter playlistAdapter;
     private List<Playlist> playlistList = new ArrayList<>();
@@ -76,17 +87,30 @@ public class LibraryFragment extends Fragment {
         return view;
     }
 
+
     private void showCreatePlaylistDialog() {
         currentDialog = new CreatePlaylistDialog(requireContext(), playlist -> {
+            // Thêm ngay vào danh sách và thông báo adapter
             playlistList.add(0, playlist);
             playlistAdapter.notifyItemInserted(0);
             rvPlaylists.scrollToPosition(0);
+
+            // Reload từ server sau 1 giây để đồng bộ
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                loadUserPlaylists();
+            }, 1000);
+
+            if (playlistCreatedListener != null) {
+                playlistCreatedListener.onPlaylistCreated();
+            }
         }, imagePickerLauncher);
 
         currentDialog.show();
     }
 
-    private void loadUserPlaylists() {
+
+
+    public void loadUserPlaylists() {
         String userId = getCurrentUserId();
         if (userId == null) {
             Toast.makeText(requireContext(), "Vui lòng đăng nhập lại", Toast.LENGTH_SHORT).show();
@@ -100,7 +124,15 @@ public class LibraryFragment extends Fragment {
                     playlistList.clear();
                     playlistList.addAll(response.body());
 
-                    // Sau khi load playlist, gọi load songCount cho từng playlist
+                    // Sắp xếp playlist mới nhất lên đầu (dùng ID vì ID mới thường lớn hơn)
+                    playlistList.sort((p1, p2) -> p2.id.compareTo(p1.id));
+
+                    Log.d("LIBRARY_DEBUG", "Đã load " + playlistList.size() + " playlist từ server");
+
+                    // Cập nhật adapter NGAY LẬP TỨC
+                    playlistAdapter.notifyDataSetChanged();
+
+                    // Sau đó mới load số lượng bài hát
                     loadSongCountsForPlaylists();
                 } else {
                     Toast.makeText(requireContext(), "Không tải được playlist", Toast.LENGTH_SHORT).show();

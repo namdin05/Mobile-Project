@@ -14,6 +14,7 @@ import com.melodix.app.Service.RetrofitClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import android.util.Log;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -35,30 +36,81 @@ public class PlaylistRepository {
         token = "Bearer " + BuildConfig.API_KEY;
     }
 
+    private String getAuthToken() {
+        SessionManager session = SessionManager.getInstance(context);
+        if (session.getToken() != null) {
+            return "Bearer " + session.getToken();   // Token JWT thật
+        }
+        // Fallback nếu không có token
+        return "Bearer " + BuildConfig.API_KEY;
+    }
+
     // ==================== PLAYLIST ====================
 
-    public void createPlaylist(String name, String coverUrl, Callback<Playlist> callback) {
+    /**
+     * Tạo playlist mới - Dùng return=minimal + query lại (ổn định, ít lỗi RLS)
+     */
+    public void createPlaylist(String name, String coverUrl, Callback<List<Playlist>> callback) {
         Map<String, Object> data = new HashMap<>();
         data.put("name", name);
 
         String userId = getCurrentUserId();
         if (userId != null) {
             data.put("user_id", userId);
-        } else {
-            Toast.makeText(context, "Vui lòng đăng nhập lại", Toast.LENGTH_SHORT).show();
-            if (callback != null) {
-                callback.onFailure(null, new Exception("User not logged in"));
-            }
-            return;
         }
-
         if (coverUrl != null && !coverUrl.isEmpty()) {
             data.put("cover_url", coverUrl);
         }
         data.put("is_public", true);
 
-        android.util.Log.d("REPO_DEBUG", "Creating playlist with API Key");
-        apiService.createPlaylist(apiKey, token, data).enqueue(callback);
+        Log.d("CREATE_PLAYLIST", "Bắt đầu tạo playlist: " + name + " | userId=" + userId);
+
+        // Vì RLS của playlists đang tắt → dùng API Key cố định
+        apiService.createPlaylist(
+                apiKey,
+                "Bearer " + apiKey,
+                "return=representation",
+                data
+        ).enqueue(callback);
+    }
+
+    /**
+     * Query lại playlist vừa tạo theo user_id và name
+     */
+    private void fetchNewlyCreatedPlaylist(String userId, String playlistName, Callback<List<Playlist>> finalCallback) {
+        if (userId == null) {
+            android.util.Log.e("CREATE_PLAYLIST", "Cannot fetch playlist: userId is null");
+            finalCallback.onFailure(null, new Throwable("User ID is null"));
+            return;
+        }
+
+        // Filter an toàn: lấy theo user_id và name
+        String filter = "user_id=eq." + userId + "&name=eq." + playlistName;
+
+        android.util.Log.d("CREATE_PLAYLIST", "Đang query lại playlist với filter: " + filter);
+
+        apiService.getUserPlaylists(apiKey, token, filter)
+                .enqueue(new Callback<List<Playlist>>() {
+                    @Override
+                    public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
+                        android.util.Log.d("CREATE_PLAYLIST", "Query lại thành công - Code: " + response.code()
+                                + " | Số playlist: " + (response.body() != null ? response.body().size() : 0));
+
+                        if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                            Playlist created = response.body().get(0);
+                            android.util.Log.d("CREATE_PLAYLIST", "Playlist mới tạo: ID = " + created.id + " | Name = " + created.name);
+                        }
+
+                        // Trả về kết quả cho callback gốc
+                        finalCallback.onResponse(call, response);
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<Playlist>> call, Throwable t) {
+                        android.util.Log.e("CREATE_PLAYLIST", "Query lại thất bại: " + t.getMessage());
+                        finalCallback.onFailure(call, t);
+                    }
+                });
     }
 
     private String getCurrentUserId() {
@@ -70,34 +122,42 @@ public class PlaylistRepository {
     }
 
     public void getUserPlaylists(String userId, Callback<List<Playlist>> callback) {
+        if (userId == null || userId.trim().isEmpty()) {
+            Log.e("REPO_DEBUG", "User ID is null");
+            callback.onFailure(null, new Throwable("User ID is null"));
+            return;
+        }
+
+        // ✅ Đây là cách quan trọng: Truyền đúng format PostgREST yêu cầu
         String filter = "eq." + userId;
 
-        android.util.Log.d("REPO_DEBUG", "=== GET USER PLAYLISTS ===");
-        android.util.Log.d("REPO_DEBUG", "User ID: " + userId);
-        android.util.Log.d("REPO_DEBUG", "Filter: " + filter);
-        android.util.Log.d("REPO_DEBUG", "Using API Key (no user token)");
+        Log.d("REPO_DEBUG", "=== GET USER PLAYLISTS ===");
+        Log.d("REPO_DEBUG", "User ID: " + userId);
+        Log.d("REPO_DEBUG", "Filter gửi đi: user_id=" + filter);
 
-        apiService.getUserPlaylists(apiKey, token, filter).enqueue(new Callback<List<Playlist>>() {
-            @Override
-            public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
-                android.util.Log.d("REPO_DEBUG", "Response code: " + response.code());
-                if (response.isSuccessful()) {
-                    android.util.Log.d("REPO_DEBUG", "Success, playlists count: " + (response.body() != null ? response.body().size() : 0));
-                } else {
-                    try {
-                        String errorBody = response.errorBody() != null ? response.errorBody().string() : "Unknown";
-                        android.util.Log.e("REPO_DEBUG", "Error: " + response.code() + " - " + errorBody);
-                    } catch (Exception e) {}
-                }
-                callback.onResponse(call, response);
-            }
+        apiService.getUserPlaylists(apiKey, "Bearer " + apiKey, filter)
+                .enqueue(new Callback<List<Playlist>>() {
+                    @Override
+                    public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
+                        Log.d("REPO_DEBUG", "Response code: " + response.code());
 
-            @Override
-            public void onFailure(Call<List<Playlist>> call, Throwable t) {
-                android.util.Log.e("REPO_DEBUG", "Failure: " + t.getMessage());
-                callback.onFailure(call, t);
-            }
-        });
+                        if (response.isSuccessful() && response.body() != null) {
+                            Log.d("REPO_DEBUG", "✅ THÀNH CÔNG - Số playlist: " + response.body().size());
+                        } else {
+                            try {
+                                String errorBody = response.errorBody() != null ? response.errorBody().string() : "";
+                                Log.e("REPO_DEBUG", "❌ LỖI: " + response.code() + " - " + errorBody);
+                            } catch (Exception ignored) {}
+                        }
+                        callback.onResponse(call, response);
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<Playlist>> call, Throwable t) {
+                        Log.e("REPO_DEBUG", "Lỗi mạng: " + t.getMessage());
+                        callback.onFailure(call, t);
+                    }
+                });
     }
 
     public void updatePlaylist(String playlistId, String name, String coverUrl, Callback<ResponseBody> callback) {

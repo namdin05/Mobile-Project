@@ -1,7 +1,6 @@
 package com.melodix.app.Service;
 
 import com.melodix.app.Model.Playlist;
-import com.melodix.app.Model.Song;
 import com.melodix.app.Model.PlaylistSong;
 
 import java.util.List;
@@ -20,9 +19,10 @@ import retrofit2.http.Query;
 public interface PlaylistAPIService {
 
     @POST("rest/v1/playlists")
-    Call<Playlist> createPlaylist(
+    Call<List<Playlist>> createPlaylist(
             @Header("apikey") String apiKey,
             @Header("Authorization") String token,
+            @Header("Prefer") String prefer,
             @Body Map<String, Object> data
     );
 
@@ -30,7 +30,7 @@ public interface PlaylistAPIService {
     Call<List<Playlist>> getUserPlaylists(
             @Header("apikey") String apiKey,
             @Header("Authorization") String token,
-            @Query("user_id") String userIdFilter
+            @Query("user_id") String userIdFilter   // giữ nguyên
     );
 
     @PATCH("rest/v1/playlists")
@@ -64,7 +64,6 @@ public interface PlaylistAPIService {
             @Query("song_id") String songFilter
     );
 
-    // Cập nhật thứ tự bài hát trong playlist (dùng cho Drag & Drop)
     @PATCH("rest/v1/playlist_songs")
     Call<ResponseBody> updatePlaylistSongOrder(
             @Header("apikey") String apiKey,
@@ -85,7 +84,7 @@ public interface PlaylistAPIService {
     Call<List<Playlist>> getPlaylistById(
             @Header("apikey") String apiKey,
             @Header("Authorization") String token,
-            @Query("id") String idFilter   // eq.xxxx
+            @Query("id") String idFilter
     );
 
     @GET("rest/v1/playlist_song_details?select=*,songs(*)")
@@ -94,7 +93,4 @@ public interface PlaylistAPIService {
             @Header("Authorization") String token,
             @Query("playlist_id") String playlistFilter
     );
-
-
-
 }

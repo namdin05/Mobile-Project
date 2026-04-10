@@ -4,10 +4,12 @@ import android.app.Dialog;
 import android.content.Context;
 import android.net.Uri;
 import android.view.View;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
+import java.util.List;
 
 import androidx.activity.result.ActivityResultLauncher;
 
@@ -185,27 +187,41 @@ public class CreatePlaylistDialog {
     private void createPlaylistOnServer(String name, String coverUrl) {
         PlaylistRepository repo = new PlaylistRepository(context);
 
-        repo.createPlaylist(name, coverUrl, new Callback<Playlist>() {
+        repo.createPlaylist(name, coverUrl, new Callback<List<Playlist>>() {
             @Override
-            public void onResponse(Call<Playlist> call, Response<Playlist> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    if (listener != null) listener.onPlaylistCreated(response.body());
+            public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
+                Log.d("CREATE_PLAYLIST", "Response code: " + response.code());
+
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    Playlist created = response.body().get(0);   // Lấy phần tử đầu tiên trong array
+
+                    Log.d("CREATE_PLAYLIST", "Tạo thành công - ID: " + created.id);
+
+                    if (listener != null) {
+                        listener.onPlaylistCreated(created);
+                    }
+
                     dismissDialog();
                     Toast.makeText(context, "Tạo playlist thành công!", Toast.LENGTH_SHORT).show();
-                } else {
+                }
+                else {
+                    String errorMsg = "Unknown error";
                     try {
-                        String errorBody = response.errorBody() != null ? response.errorBody().string() : "Unknown";
-                        android.util.Log.e("PLAYLIST_CREATE", "Tạo playlist thất bại: " + response.code() + " - " + errorBody);
-                    } catch (Exception e) {}
+                        if (response.errorBody() != null) {
+                            errorMsg = response.errorBody().string();
+                        }
+                    } catch (Exception ignored) {}
+
+                    Log.e("CREATE_PLAYLIST", "Thất bại - Code: " + response.code() + " - " + errorMsg);
                     Toast.makeText(context, "Tạo playlist thất bại", Toast.LENGTH_SHORT).show();
                     resetButton();
                 }
             }
 
             @Override
-            public void onFailure(Call<Playlist> call, Throwable t) {
-                android.util.Log.e("PLAYLIST_CREATE", "Lỗi mạng: " + t.getMessage());
-                Toast.makeText(context, "Lỗi mạng", Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<List<Playlist>> call, Throwable t) {
+                Log.e("CREATE_PLAYLIST", "onFailure: " + t.getMessage(), t);
+                Toast.makeText(context, "Lỗi mạng: " + t.getMessage(), Toast.LENGTH_LONG).show();
                 resetButton();
             }
         });
