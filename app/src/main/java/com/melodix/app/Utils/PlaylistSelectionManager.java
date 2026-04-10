@@ -37,12 +37,13 @@ public class PlaylistSelectionManager {
 
     public void loadUserPlaylistsWithSongStatus(String userId, String songId,
                                                 OnPlaylistsLoadedListener listener) {
+
         playlistRepository.getUserPlaylists(userId, new Callback<List<Playlist>>() {
             @Override
             public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Playlist> playlists = response.body();
-                    checkSongInPlaylists(playlists, songId, listener);
+                    loadSongCountsForPlaylists(playlists, songId, listener);
                 } else {
                     listener.onError("Không thể tải danh sách playlist");
                 }
@@ -53,6 +54,56 @@ public class PlaylistSelectionManager {
                 listener.onError("Lỗi mạng: " + t.getMessage());
             }
         });
+    }
+
+    // Hàm mới: Load songCount cho tất cả playlist + kiểm tra bài hát có trong playlist không
+    private void loadSongCountsForPlaylists(List<Playlist> playlists, String songId,
+                                            OnPlaylistsLoadedListener listener) {
+
+        playlistIdsContainSong.clear();
+
+        if (playlists.isEmpty()) {
+            listener.onPlaylistsLoaded(playlists, playlistIdsContainSong);
+            return;
+        }
+
+        final int[] pending = {playlists.size()};
+
+        for (Playlist playlist : playlists) {
+            playlistRepository.getPlaylistSongs(playlist.id, new Callback<List<PlaylistSong>>() {
+                @Override
+                public void onResponse(Call<List<PlaylistSong>> call, Response<List<PlaylistSong>> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        playlist.songCount = response.body().size();
+
+                        // Kiểm tra bài hát hiện tại có trong playlist không
+                        for (PlaylistSong ps : response.body()) {
+                            if (ps.song != null && ps.song.getId().equals(songId)) {
+                                playlistIdsContainSong.add(playlist.id);
+                                break;
+                            }
+                        }
+                    } else {
+                        playlist.songCount = 0;
+                    }
+
+                    pending[0]--;
+                    if (pending[0] == 0) {
+                        // Tất cả đã xong → gọi listener
+                        listener.onPlaylistsLoaded(playlists, playlistIdsContainSong);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<PlaylistSong>> call, Throwable t) {
+                    playlist.songCount = 0;
+                    pending[0]--;
+                    if (pending[0] == 0) {
+                        listener.onPlaylistsLoaded(playlists, playlistIdsContainSong);
+                    }
+                }
+            });
+        }
     }
 
     private void checkSongInPlaylists(List<Playlist> playlists, String songId,

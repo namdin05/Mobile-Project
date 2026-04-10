@@ -47,19 +47,35 @@ public class PlaylistSelectAdapter extends RecyclerView.Adapter<PlaylistSelectAd
 
         boolean isSelected = selectedPlaylistIds != null && selectedPlaylistIds.contains(playlist.id);
 
-        holder.tvName.setText(playlist.name);
-        holder.tvSongCount.setText(playlist.songCount + " bài hát");
+        // Tên playlist
+        holder.tvName.setText(playlist.name != null ? playlist.name : "Không có tên");
+
+        // Số bài hát - Sửa lỗi hiển thị 0 bài hát
+        String songCountText;
+        if (playlist.songCount == 0) {
+            songCountText = "0 bài hát";
+        } else if (playlist.songCount == 1) {
+            songCountText = "1 bài hát";
+        } else {
+            songCountText = playlist.songCount + " bài hát";
+        }
+        holder.tvSongCount.setText(songCountText);
+
+        // CheckBox trạng thái
         holder.checkSelected.setChecked(isSelected);
 
+        // Load ảnh bìa
         if (playlist.coverRes != null && !playlist.coverRes.isEmpty()) {
             Glide.with(context)
                     .load(playlist.coverRes)
                     .placeholder(R.drawable.ic_music_placeholder)
+                    .error(R.drawable.ic_music_placeholder)
                     .into(holder.imgCover);
         } else {
             holder.imgCover.setImageResource(R.drawable.ic_music_placeholder);
         }
 
+        // Click vào item để chọn/bỏ chọn
         holder.itemView.setOnClickListener(v -> {
             boolean newState = !holder.checkSelected.isChecked();
             holder.checkSelected.setChecked(newState);

@@ -23,7 +23,8 @@ import com.melodix.app.R;
 import com.melodix.app.Utils.PlaylistSelectionManager;
 import com.melodix.app.View.adapters.PlaylistSelectAdapter;
 import com.melodix.app.View.dialogs.CreatePlaylistDialog;
-
+import androidx.fragment.app.Fragment;
+import com.melodix.app.View.fragments.LibraryFragment;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -205,15 +206,37 @@ public class PlaylistSelectionDialog extends BottomSheetDialogFragment {
         CreatePlaylistDialog createDialog = new CreatePlaylistDialog(
                 requireContext(),
                 newPlaylist -> {
-                    loadPlaylists();
-                    if (actionListener != null) actionListener.onPlaylistUpdated();
+                    Toast.makeText(requireContext(), "Đã tạo playlist: " + newPlaylist.name, Toast.LENGTH_SHORT).show();
 
+                    // Load lại danh sách playlist trong dialog này
+                    loadPlaylists();
+
+                    // ==================== REFRESH LIBRARY FRAGMENT ====================
+                    if (getActivity() != null) {
+                        // Tìm LibraryFragment trong MainActivity
+                        Fragment currentFragment = getActivity().getSupportFragmentManager()
+                                .findFragmentById(R.id.main_fragment_container);
+
+                        if (currentFragment instanceof LibraryFragment) {
+                            ((LibraryFragment) currentFragment).loadUserPlaylists();
+                        }
+                    }
+                    // ============================================================
+
+                    if (actionListener != null) {
+                        actionListener.onPlaylistUpdated();
+                    }
+
+                    // Đóng dialog sau một lúc
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        if (isAdded() && isVisible()) dismiss();
+                        if (isAdded() && isVisible()) {
+                            dismiss();
+                        }
                     }, 800);
                 },
                 imagePickerLauncher
         );
+
         currentCreateDialog = createDialog;
         createDialog.show();
 
