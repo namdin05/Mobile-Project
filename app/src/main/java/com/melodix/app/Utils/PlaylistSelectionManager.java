@@ -56,7 +56,7 @@ public class PlaylistSelectionManager {
         });
     }
 
-    // Hàm mới: Load songCount cho tất cả playlist + kiểm tra bài hát có trong playlist không
+    // Load songCount cho tất cả playlist + kiểm tra bài hát có trong playlist không
     private void loadSongCountsForPlaylists(List<Playlist> playlists, String songId,
                                             OnPlaylistsLoadedListener listener) {
 
@@ -89,7 +89,6 @@ public class PlaylistSelectionManager {
 
                     pending[0]--;
                     if (pending[0] == 0) {
-                        // Tất cả đã xong → gọi listener
                         listener.onPlaylistsLoaded(playlists, playlistIdsContainSong);
                     }
                 }

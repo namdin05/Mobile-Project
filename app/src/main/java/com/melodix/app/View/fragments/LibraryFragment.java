@@ -68,7 +68,6 @@ public class LibraryFragment extends Fragment {
         playlistAdapter = new PlaylistAdapter(requireContext(), playlistList, this::onPlaylistClick);
         rvPlaylists.setAdapter(playlistAdapter);
 
-        // Khởi tạo launcher chọn ảnh
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
@@ -77,7 +76,6 @@ public class LibraryFragment extends Fragment {
                     }
                 });
 
-        // Nút tạo playlist
         if (btnCreatePlaylist != null) {
             btnCreatePlaylist.setOnClickListener(v -> showCreatePlaylistDialog());
         }
@@ -146,9 +144,7 @@ public class LibraryFragment extends Fragment {
         });
     }
 
-    /**
-     * Load số lượng bài hát cho từng playlist để hiển thị trên card
-     */
+    //Load số lượng bài hát cho từng playlist để hiển thị trên card
     private void loadSongCountsForPlaylists() {
         if (playlistList.isEmpty()) return;
 

@@ -14,7 +14,7 @@ import com.bumptech.glide.Glide;
 import com.melodix.app.Model.PlaylistSong;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
-import com.melodix.app.Utils.TimeUtils;   // ← Import này để format thời lượng
+import com.melodix.app.Utils.TimeUtils;
 
 import java.util.List;
 
@@ -58,7 +58,7 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
         holder.tvTitle.setText(title);
         holder.tvSubtitle.setText(artist);
 
-        // Hiển thị thời lượng bài hát (KHÔNG phải songCount của playlist)
+        // Hiển thị thời lượng bài hát
         if (song.getDurationSeconds() > 0) {
             holder.tvMeta.setText(TimeUtils.formatDuration(song.getDurationSeconds()));
         } else {
@@ -103,7 +103,7 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
             imgCover = itemView.findViewById(R.id.img_cover);
             tvTitle = itemView.findViewById(R.id.tv_title);
             tvSubtitle = itemView.findViewById(R.id.tv_subtitle);
-            tvMeta = itemView.findViewById(R.id.tv_meta);           // ← Dùng tv_meta thay vì tv_song_count
+            tvMeta = itemView.findViewById(R.id.tv_meta);
             btnMore = itemView.findViewById(R.id.btn_more);
         }
     }

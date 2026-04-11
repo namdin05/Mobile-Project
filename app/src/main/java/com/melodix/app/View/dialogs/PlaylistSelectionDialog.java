@@ -211,9 +211,7 @@ public class PlaylistSelectionDialog extends BottomSheetDialogFragment {
                     // Load lại danh sách playlist trong dialog này
                     loadPlaylists();
 
-                    // ==================== REFRESH LIBRARY FRAGMENT ====================
                     if (getActivity() != null) {
-                        // Tìm LibraryFragment trong MainActivity
                         Fragment currentFragment = getActivity().getSupportFragmentManager()
                                 .findFragmentById(R.id.main_fragment_container);
 
@@ -221,13 +219,11 @@ public class PlaylistSelectionDialog extends BottomSheetDialogFragment {
                             ((LibraryFragment) currentFragment).loadUserPlaylists();
                         }
                     }
-                    // ============================================================
 
                     if (actionListener != null) {
                         actionListener.onPlaylistUpdated();
                     }
 
-                    // Đóng dialog sau một lúc
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
                         if (isAdded() && isVisible()) {
                             dismiss();

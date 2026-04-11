@@ -30,7 +30,7 @@ public interface PlaylistAPIService {
     Call<List<Playlist>> getUserPlaylists(
             @Header("apikey") String apiKey,
             @Header("Authorization") String token,
-            @Query("user_id") String userIdFilter   // giữ nguyên
+            @Query("user_id") String userIdFilter
     );
 
     @PATCH("rest/v1/playlists")

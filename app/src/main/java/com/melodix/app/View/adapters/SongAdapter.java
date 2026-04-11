@@ -59,15 +59,12 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         String displayArtist = (song.getArtistName() != null && !song.getArtistName().trim().isEmpty() && !song.getArtistName().equalsIgnoreCase("null"))
                 ? song.getArtistName()
                 : "Unknown Artist";
-        // ==========================================
-        // ĐOẠN CODE ĐÃ ĐƯỢC NÂNG CẤP ĐỂ XÓA SẠN "NULL"
-        // ==========================================
+
         if (song.getGenre() != null && !song.getGenre().trim().isEmpty() && !song.getGenre().equalsIgnoreCase("null")) {
             holder.subtitle.setText(song.getArtistName() + " • " + song.getGenre());
         } else {
             holder.subtitle.setText(song.getArtistName()); // Nếu không có thể loại, chỉ hiện tên nghệ sĩ
         }
-        // ==========================================
 
         holder.meta.setText(TimeUtils.formatDuration(song.getDurationSeconds()));
 
@@ -101,10 +98,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             bottomSheet.dismiss();
         });
 
-//        bottomSheetView.findViewById(R.id.menu_add_playlist).setOnClickListener(v -> {
-//            if (listener != null) listener.onMenuClick(song, position, "playlist");
-//            bottomSheet.dismiss();
-//        });
         bottomSheetView.findViewById(R.id.menu_add_playlist).setOnClickListener(v -> {
             bottomSheet.dismiss();
             showPlaylistSelectionDialog(song);
@@ -125,10 +118,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             bottomSheet.dismiss();
         });
 
-//        bottomSheetView.findViewById(R.id.menu_remove_playlist).setOnClickListener(v -> {
-//            if (listener != null) listener.onMenuClick(song, position, "remove");
-//            bottomSheet.dismiss();
-//        });
         TextView menuRemove = bottomSheetView.findViewById(R.id.menu_remove_playlist);
         if (listener != null) {
             menuRemove.setOnClickListener(v -> {
@@ -145,8 +134,8 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
 
     private void showPlaylistSelectionDialog(Song song) {
         if (context instanceof androidx.fragment.app.FragmentActivity) {
-            PlaylistSelectionDialog dialog = PlaylistSelectionDialog.newInstance(song.getId());            dialog.setOnPlaylistActionListener(() -> {
-                // Có thể refresh UI nếu cần
+            PlaylistSelectionDialog dialog = PlaylistSelectionDialog.newInstance(song.getId());
+            dialog.setOnPlaylistActionListener(() -> {
             });
             dialog.show(((androidx.fragment.app.FragmentActivity) context).getSupportFragmentManager(), "playlist_selection");
         }

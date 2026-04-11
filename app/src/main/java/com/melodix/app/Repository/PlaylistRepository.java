@@ -46,10 +46,6 @@ public class PlaylistRepository {
     }
 
     // ==================== PLAYLIST ====================
-
-    /**
-     * Tạo playlist mới - Dùng return=minimal + query lại (ổn định, ít lỗi RLS)
-     */
     public void createPlaylist(String name, String coverUrl, Callback<List<Playlist>> callback) {
         Map<String, Object> data = new HashMap<>();
         data.put("name", name);
@@ -74,9 +70,7 @@ public class PlaylistRepository {
         ).enqueue(callback);
     }
 
-    /**
-     * Query lại playlist vừa tạo theo user_id và name
-     */
+    //Query lại playlist vừa tạo theo user_id và nam
     private void fetchNewlyCreatedPlaylist(String userId, String playlistName, Callback<List<Playlist>> finalCallback) {
         if (userId == null) {
             android.util.Log.e("CREATE_PLAYLIST", "Cannot fetch playlist: userId is null");
@@ -128,7 +122,6 @@ public class PlaylistRepository {
             return;
         }
 
-        // ✅ Đây là cách quan trọng: Truyền đúng format PostgREST yêu cầu
         String filter = "eq." + userId;
 
         Log.d("REPO_DEBUG", "=== GET USER PLAYLISTS ===");
@@ -189,10 +182,9 @@ public class PlaylistRepository {
                 "eq." + songId).enqueue(callback);
     }
 
-    /**
-     * Lấy danh sách bài hát trong playlist + tên artist (fix Unknown Artist và lỗi tải)
-     * KHÔNG set artist vào Song, giữ nguyên artistname trong PlaylistSong
-     */
+
+     //Lấy danh sách bài hát trong playlist + tên artist
+
     public void getPlaylistSongs(String playlistId, Callback<List<PlaylistSong>> callback) {
         String filter = "eq." + playlistId;
 
@@ -207,7 +199,6 @@ public class PlaylistRepository {
                         if (response.isSuccessful() && response.body() != null) {
                             android.util.Log.d("PLAYLIST_DEBUG", "Số bài hát trả về: " + response.body().size());
 
-                            // CHỈ LOG, KHÔNG SET ARTIST VÀO SONG
                             for (PlaylistSong ps : response.body()) {
                                 if (ps.song != null) {
                                     // Debug: kiểm tra artistname từ view
@@ -216,7 +207,6 @@ public class PlaylistRepository {
                                 }
                             }
 
-                            // IN RA TOÀN BỘ RESPONSE ĐỂ DEBUG
                             try {
                                 String jsonResponse = new com.google.gson.Gson().toJson(response.body());
                                 android.util.Log.d("PLAYLIST_DEBUG", "Full JSON Response: " + jsonResponse);

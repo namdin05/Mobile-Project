@@ -110,7 +110,7 @@ public class CreatePlaylistDialog {
         }
     }
 
-    // ==================== UPLOAD ẢNH DÙNG API KEY ====================
+    // Upload Ảnh
     private void uploadCoverThenCreatePlaylist(String playlistName) {
         try {
             InputStream inputStream = context.getContentResolver().openInputStream(selectedCoverUri);
@@ -141,10 +141,9 @@ public class CreatePlaylistDialog {
             android.util.Log.d("UPLOAD_DEBUG", "File: " + fileName);
             android.util.Log.d("UPLOAD_DEBUG", "Using API KEY (no user token)");
 
-            // DÙNG API KEY - KHÔNG DÙNG USER TOKEN
             storageService.uploadFileToStorage(
                     BuildConfig.API_KEY,
-                    "Bearer " + BuildConfig.API_KEY,  // 👈 Dùng API Key
+                    "Bearer " + BuildConfig.API_KEY,
                     "image/jpeg",
                     "true",
                     bucketName,

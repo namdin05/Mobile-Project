@@ -47,7 +47,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     private List<Song> songListForPlayback = new ArrayList<>();
 
     private String playlistId;
-    private Playlist currentPlaylist;                    // ← Quan trọng: lưu playlist hiện tại
+    private Playlist currentPlaylist;
 
     private TextView tvMeta;
     private TextView tvTitle;
@@ -217,7 +217,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         PlaybackUtils.playSong(this, new ArrayList<>(songListForPlayback), playlistSong.song.getId());
     }
 
-    // ==================== DRAG & DROP ====================
+    // Drag and drop song in playlist
     private void setupDragAndDrop() {
         ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(
                 ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
@@ -255,16 +255,13 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                // Không dùng
             }
         };
 
         new ItemTouchHelper(callback).attachToRecyclerView(rvSongs);
     }
 
-    /**
-     * Lưu thứ tự mới vào database
-     */
+    //Lưu thứ tự mới vào database
     private void saveNewOrderToDatabase() {
         if (playlistSongList == null || playlistSongList.isEmpty()) return;
 
@@ -298,7 +295,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         }
     }
 
-    // ====================== MENU BÀI HÁT TRONG PLAYLIST ======================
+    // Hiển thị menu song trong playlist
     private void showSongMenu(PlaylistSong playlistSong, int position) {
         if (playlistSong == null || playlistSong.song == null) return;
 
@@ -308,11 +305,9 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.dialog_song_menu, null);
         bottomSheet.setContentView(bottomSheetView);
 
-        // Làm nền trong suốt để bo góc đẹp
         View parent = (View) bottomSheetView.getParent();
         if (parent != null) parent.setBackgroundColor(android.graphics.Color.TRANSPARENT);
 
-        // Xử lý các mục menu
         bottomSheetView.findViewById(R.id.menu_play).setOnClickListener(v -> {
             playSongFromPlaylist(playlistSong);
             bottomSheet.dismiss();
@@ -342,7 +337,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             bottomSheet.dismiss();
         });
 
-        // Quan trọng: Xóa khỏi playlist hiện tại
+        // Xóa khỏi playlist hiện tại
         TextView menuRemove = bottomSheetView.findViewById(R.id.menu_remove_playlist);
         menuRemove.setVisibility(View.VISIBLE);
         menuRemove.setOnClickListener(v -> {
@@ -382,7 +377,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     }
 
 
-    // ====================== CHỈNH SỬA PLAYLIST ======================
+    // Edit playlist
     private void showEditPlaylistDialog() {
         if (currentPlaylist == null) {
             Toast.makeText(this, "Chưa tải xong thông tin playlist", Toast.LENGTH_SHORT).show();
@@ -401,8 +396,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                                 .placeholder(R.drawable.ic_music_placeholder)
                                 .into(imgCover);
                     }
-                    // Có thể reload lại dữ liệu nếu cần
-                    // loadPlaylistData();
+
                 },
                 editImagePickerLauncher
         );
@@ -410,7 +404,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         currentEditDialog.show();
     }
 
-    // ====================== XÓA PLAYLIST ======================
+    // Delete Playlist
     private void showDeleteConfirmationDialog() {
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Xóa playlist")

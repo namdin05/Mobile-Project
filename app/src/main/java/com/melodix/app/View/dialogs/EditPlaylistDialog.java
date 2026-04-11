@@ -120,7 +120,7 @@ public class EditPlaylistDialog {
         }
     }
 
-    // ==================== UPLOAD ẢNH ====================
+    // Upload Ảnh
     private void uploadCoverThenUpdate(String playlistName) {
         try {
             InputStream inputStream = context.getContentResolver().openInputStream(selectedCoverUri);
@@ -140,7 +140,6 @@ public class EditPlaylistDialog {
 
             String fileName = "playlist_" + UUID.randomUUID() + ".jpg";
 
-            // Dùng ProfileAPIService vì bạn đã có hàm upload ở đó
             com.melodix.app.Service.ProfileAPIService storageService =
                     com.melodix.app.Service.RetrofitClient.getClient()
                             .create(com.melodix.app.Service.ProfileAPIService.class);
@@ -164,7 +163,7 @@ public class EditPlaylistDialog {
                         String coverUrl = Constants.STORAGE_BASE_URL + Constants.PLAYLIST_COVER_BUCKET + fileName;
                         updatePlaylistOnServer(playlistName, coverUrl);
                     } else {
-                        updatePlaylistOnServer(playlistName, null); // vẫn cho lưu tên dù ảnh lỗi
+                        updatePlaylistOnServer(playlistName, null);
                     }
                 }
 
