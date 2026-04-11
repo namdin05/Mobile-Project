@@ -89,7 +89,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Playlist • 12 songs"
+                    android:text="0 bài hát"
                     android:textColor="@color/mdx_text_secondary"
                     android:textSize="16sp" />
 
