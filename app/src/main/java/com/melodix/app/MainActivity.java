@@ -205,11 +205,11 @@ public class MainActivity extends AppCompatActivity {
         if (song.getCoverUrl() != null && !song.getCoverUrl().isEmpty()) {
             com.bumptech.glide.Glide.with(this)
                     .load(song.getCoverUrl())
-                    .placeholder(R.drawable.app_logo)
-                    .error(R.drawable.app_logo)
+                    .placeholder(R.drawable.ic_logo)
+                    .error(R.drawable.ic_logo)
                     .into(miniCover);
         } else {
-            miniCover.setImageResource(R.drawable.app_logo);
+            miniCover.setImageResource(R.drawable.ic_logo);
         }
 
         // 4. GẮN CHỮ VÀ NÚT BẤM
@@ -244,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
         try { unregisterReceiver(stateReceiver); } catch (Exception ignored) {}
         mainHandler.removeCallbacks(miniPlayerWatcher); // Nghỉ tuần tra để tiết kiệm pin
     }
-}
+
 
     // ==========================================
     // LOGIC XỬ LÝ PUSH NOTIFICATION (FIREBASE)
@@ -327,3 +327,4 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 }
+
