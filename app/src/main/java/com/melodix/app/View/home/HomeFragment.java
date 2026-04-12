@@ -41,6 +41,7 @@ import com.melodix.app.View.adapters.GenreAdapter;
 import com.melodix.app.View.adapters.SongCardAdapter;
 import com.melodix.app.View.adapters.SongAdapter;
 import com.melodix.app.ViewModel.HomeViewModel;
+import com.melodix.app.View.dialogs.PlaylistSelectionDialog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -212,7 +213,20 @@ public class HomeFragment extends Fragment {
         stopAutoSlide(); // dung auto slide tranh memory leak
     }
 
-    // ham xu ly menu cua song adapter
+    private void showPlaylistSelectionDialog(Song song) {
+        if (SessionManager.getInstance(requireContext()).getCurrentUser() == null) {
+            Toast.makeText(requireContext(), "Vui lòng đăng nhập để thêm vào playlist", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        PlaylistSelectionDialog dialog = PlaylistSelectionDialog.newInstance(song.getId());
+        dialog.setOnPlaylistActionListener(() -> {
+            Toast.makeText(requireContext(), "Playlist đã được cập nhật", Toast.LENGTH_SHORT).show();
+        });
+        dialog.show(getChildFragmentManager(), "playlist_selection");
+    }
+
+    // Cập nhật lại hàm này: nhận thêm đối tượng Song để biết bài nào được bấm Menu
     private void handleMenuClick(Song song, String action){
         switch (action){
             case "play":
@@ -224,7 +238,7 @@ public class HomeFragment extends Fragment {
                 Toast.makeText(requireContext(),"LIKE " + song.getTitle(), LENGTH_SHORT).show();
                 break;
             case "playlist":
-                Toast.makeText(requireContext(),"Thêm " + song.getTitle() + " vào PLAYLIST", LENGTH_SHORT).show();
+                showPlaylistSelectionDialog(song);
                 break;
             case "comment":
                 Toast.makeText(requireContext(),"COMMENT " + song.getTitle(), LENGTH_SHORT).show();
