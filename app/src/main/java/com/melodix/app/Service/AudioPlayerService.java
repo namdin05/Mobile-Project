@@ -407,7 +407,7 @@ public class AudioPlayerService extends Service {
 
         // 4. Tạo Notification
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.app_logo)
+                .setSmallIcon(R.drawable.ic_logo)
                 .setContentTitle(currentSong.getTitle())
                 .setContentText(currentSong.getArtistName())
                 .setContentIntent(contentIntent)

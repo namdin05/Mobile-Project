@@ -148,8 +148,12 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     }
 
     public void update(ArrayList<Song> newSongs) {
-        this.songs.clear();
-        this.songs.addAll(newSongs);
-        notifyDataSetChanged();
+        if (newSongs != null)
+        {
+            this.songs.clear();
+            this.songs.addAll(newSongs);
+            notifyDataSetChanged();
+        }
+
     }
 }

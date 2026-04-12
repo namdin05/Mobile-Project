@@ -58,7 +58,7 @@ public class HomeFragment extends Fragment {
         RecyclerView rvNewRelease = view.findViewById(R.id.rv_new_releases);
         RecyclerView rvTrending = view.findViewById(R.id.rv_trending);
 
-         // ==========================================
+        // ==========================================
         // FETCH NEW RELEASE
         // ==========================================
         viewModel.getNewReleases().observe(getViewLifecycleOwner(), songs -> {

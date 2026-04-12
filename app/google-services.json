@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "609900831899",
+    "project_id": "melodik-app",
+    "storage_bucket": "melodik-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:609900831899:android:b7be107e1e7ef77ea0523e",
+        "android_client_info": {
+          "package_name": "com.melodix.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKIQ1r6UCK3cYzS8fpTm0uZO-EnIPWwrM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
