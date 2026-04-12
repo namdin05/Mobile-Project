@@ -69,7 +69,7 @@ public class AudioPlayerService extends Service {
     public static boolean isLoopMode() { return isLoopingOne; }
 
     public static int getCurrentPosition() {
-        if (instance != null && instance.mediaPlayer != null && isPlaying) { // Thêm điều kiện isPlaying
+        if (instance != null && instance.mediaPlayer != null) { // Thêm điều kiện isPlaying
             try { return instance.mediaPlayer.getCurrentPosition(); }
             catch (Exception ignored) {}
         }
@@ -77,7 +77,7 @@ public class AudioPlayerService extends Service {
     }
 
     public static int getDuration() {
-        if (instance != null && instance.mediaPlayer != null && isPlaying) { // Thêm điều kiện isPlaying
+        if (instance != null && instance.mediaPlayer != null) { // Thêm điều kiện isPlaying
             try { return instance.mediaPlayer.getDuration(); }
             catch (Exception ignored) {}
         }

@@ -11,9 +11,10 @@ public class Constants {
     public static final String SONG_AUDIO_BUCKET = "song/";
 
     public static final String GENRE_COVER_BUCKET = "genre_cover/";
-
+    public static final String ALBUM_COVER_BUCKET = "cover_album/";
 
     // Tên các edge function
 
     public static final String SUMMARIZE_COMMENT = "summarize-comments";
+   
 }

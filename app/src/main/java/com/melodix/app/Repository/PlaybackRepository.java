@@ -54,4 +54,18 @@ public class PlaybackRepository {
         }
         return 0; // Mặc định phát bài đầu tiên nếu không tìm thấy
     }
+
+    // =========================================================
+    // THIẾT LẬP BÀI HÁT HIỆN TẠI (DÀNH CHO DEEP LINK / PHÁT LẺ)
+    // =========================================================
+    public void setCurrentSong(Song song) {
+        if (song == null) return;
+
+        // Tạo một hàng đợi mới chỉ chứa đúng 1 bài hát được share
+        this.currentQueue = new ArrayList<>();
+        this.currentQueue.add(song);
+
+        // Đặt vị trí đang phát về bài đầu tiên (và cũng là duy nhất)
+        this.currentIndex = 0;
+    }
 }

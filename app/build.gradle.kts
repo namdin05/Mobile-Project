@@ -66,6 +66,7 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation(libs.media3.common)
+    implementation(libs.swiperefreshlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

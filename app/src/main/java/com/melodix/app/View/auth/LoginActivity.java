@@ -92,10 +92,10 @@ public class LoginActivity extends AppCompatActivity {
                             Toast.makeText(this, "Xin chào Quản trị viên!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, AdminActivity.class));
 
-                        } else if ("artist".equals(role)) {
-                            // 2. ARTIST -> Mở không gian làm việc của Nghệ sĩ
-                            Toast.makeText(this, "Chào mừng Nghệ sĩ trở lại!", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(LoginActivity.this, ArtistActivity.class));
+//                        } else if ("artist".equals(role)) {
+//                            // 2. ARTIST -> Mở không gian làm việc của Nghệ sĩ
+//                            Toast.makeText(this, "Chào mừng Nghệ sĩ trở lại!", Toast.LENGTH_SHORT).show();
+//                            startActivity(new Intent(LoginActivity.this, ArtistActivity.class));
 
                         } else {
                             // 3. USER (Mặc định) -> Mở trang nghe nhạc bình thường

@@ -5,6 +5,7 @@ import static android.widget.Toast.LENGTH_SHORT;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,12 +15,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.google.gson.Gson;
 import com.melodix.app.Model.Album;
 import com.melodix.app.Model.Artist;
 import com.melodix.app.Model.Song;
 import com.melodix.app.PlayerActivity;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
+import com.melodix.app.Utils.ShareUtils;
+import com.melodix.app.Utils.PlaybackUtils;
 import com.melodix.app.View.adapters.SongAdapter;
 import com.melodix.app.View.adapters.AlbumAdapter;
 import com.melodix.app.View.adapters.ArtistAdapter;
@@ -87,11 +91,12 @@ public class ArtistDetailActivity extends AppCompatActivity {
         // ==========================================
         // BẮT SỰ KIỆN CLICK BÀI HÁT
         // ==========================================
-        songAdapter = new SongAdapter(this, new ArrayList<>(), new SongAdapter.OnSongActionListener() {
+        songAdapter = new SongAdapter(this, repository.getAllApprovedSongs(), new SongAdapter.OnSongActionListener() {
             @Override
             public void onSongClick(Song song, int position) {
                 // Gọi hàm phát nhạc và nhét toàn bộ bài hát trên màn hình vào Queue
                 playSongAndSetQueue(song, songAdapter.getSongs());
+//                Log.d("fixxxx", new Gson().toJson(songAdapter.getSongs()));
             }
             @Override
             public void onMenuClick(Song song, int position, String actionId) {
@@ -191,12 +196,17 @@ public class ArtistDetailActivity extends AppCompatActivity {
     // ==========================================
     // HÀM XỬ LÝ PHÁT NHẠC (Y hệt HomeFragment)
     // ==========================================
+//    private void playSongAndSetQueue(Song selectedSong, java.util.List<Song> currentList) {
+//        AppRepository.getInstance(this).setCurrentQueue(new ArrayList<>(currentList), selectedSong.getId());
+//        Intent intent = new Intent(this, PlayerActivity.class);
+//        intent.putExtra(PlayerActivity.EXTRA_SONG_ID, selectedSong.getId());
+//        intent.putExtra("start_playback", true);
+//        startActivity(intent);
+//    }
+
     private void playSongAndSetQueue(Song selectedSong, java.util.List<Song> currentList) {
-        AppRepository.getInstance(this).setCurrentQueue(new ArrayList<>(currentList), selectedSong.getId());
-        Intent intent = new Intent(this, PlayerActivity.class);
-        intent.putExtra(PlayerActivity.EXTRA_SONG_ID, selectedSong.getId());
-        intent.putExtra("start_playback", true);
-        startActivity(intent);
+        // Gọi thẳng PlaybackUtils, nó sẽ tự lo việc lưu Queue vào PlaybackRepository và mở PlayerActivity
+        PlaybackUtils.playSong(this, (ArrayList<Song>) currentList, selectedSong.getId());
     }
 
     // ==========================================
@@ -219,11 +229,12 @@ public class ArtistDetailActivity extends AppCompatActivity {
                 Toast.makeText(this,"Bình luận về " + song.getTitle(), LENGTH_SHORT).show();
                 break;
             case "share":
-                Toast.makeText(this,"Chia sẻ " + song.getTitle(), LENGTH_SHORT).show();
+                ShareUtils.shareSongToFriends(this, song);
                 break;
             case "download":
                 Toast.makeText(this,"Tải xuống " + song.getTitle(), LENGTH_SHORT).show();
                 break;
         }
     }
+
 }

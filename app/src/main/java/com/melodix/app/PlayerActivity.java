@@ -4,29 +4,36 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.melodix.app.Model.LyricLine;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Repository.PlaybackRepository;
 import com.melodix.app.Service.AudioPlayerService;
 import com.melodix.app.Utils.AppUiUtils;
+import com.melodix.app.Utils.LyricUtils;
 import com.melodix.app.Utils.PlaybackUtils;
 import com.melodix.app.Utils.ResourceUtils;
 import com.melodix.app.Utils.ShareUtils;
 import com.melodix.app.Utils.ThemeUtils;
 import com.melodix.app.Utils.TimeUtils;
 import com.melodix.app.View.music.CommentsBottomSheet;
+import com.melodix.app.View.adapters.LyricAdapter;
 //import com.melodix.app.View.adapters.LyricAdapter;
 
 import java.util.ArrayList;
@@ -36,7 +43,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     private AppRepository repository;
     private Song currentSong;
-//    private LyricAdapter lyricAdapter;
+    private LyricAdapter lyricAdapter;
     private SeekBar seekBar;
     private TextView tvElapsed;
     private TextView tvTotal;
@@ -50,6 +57,12 @@ public class PlayerActivity extends AppCompatActivity {
     private final Runnable progressRunnable = new Runnable() {
         @Override
         public void run() {
+            // 1. NHIỆM VỤ MỚI: Tự động soi xem ID bài hát dưới Service có khác với ID trên màn hình không
+            String activeSongId = AudioPlayerService.getCurrentSongId();
+            if (activeSongId != null && (currentSong == null || !activeSongId.equals(currentSong.getId()))) {
+                // Nếu thấy khác -> Bắt buộc tải lại ảnh và tên bài mới ngay lập tức!
+                loadSong(activeSongId);
+            }
             if (currentSong != null && !isUserSeeking) {
                 int position = AudioPlayerService.getCurrentPosition();
                 int duration = AudioPlayerService.getDuration();
@@ -83,7 +96,23 @@ public class PlayerActivity extends AppCompatActivity {
         tvTotal = findViewById(R.id.tv_total);
         btnPlayPause = findViewById(R.id.btn_play_pause);
 
-        String songId = getIntent().getStringExtra(EXTRA_SONG_ID);
+        // Khởi tạo songId mặc định
+        String songId = null;
+
+        // 1. KIỂM TRA DEEP LINK TỪ BÊN NGOÀI
+        Uri data = getIntent().getData();
+        if (data != null && "melodix".equals(data.getScheme())) {
+            songId = data.getLastPathSegment();
+
+            // LÀM ĐƯỜNG VÒNG: Lấy dữ liệu từ Database về trước rồi mới phát nhạc
+            fetchSongFromDbAndPlay(songId);
+
+            // BẮT BUỘC RETURN ĐỂ DỪNG TẠM THỜI ONCREATE LẠI CHỜ DỮ LIỆU
+            return;
+        }
+
+        // 2. NẾU MỞ TỪ TRONG APP THÌ CHẠY BÌNH THƯỜNG NHƯ CŨ
+        if (songId == null) songId = getIntent().getStringExtra(EXTRA_SONG_ID);
         if (songId == null) songId = AudioPlayerService.getCurrentSongId();
         if (songId == null && repository.getCurrentQueueSong() != null) songId = repository.getCurrentQueueSong().getId();
 
@@ -93,7 +122,6 @@ public class PlayerActivity extends AppCompatActivity {
         }
 
         boolean startPlayback = getIntent().getBooleanExtra("start_playback", false);
-
         if (startPlayback || AudioPlayerService.getCurrentSongId() == null || !songId.equals(AudioPlayerService.getCurrentSongId())) {
             Intent serviceIntent = new Intent(this, AudioPlayerService.class);
             serviceIntent.setAction(AudioPlayerService.ACTION_PLAY_SONG);
@@ -103,10 +131,15 @@ public class PlayerActivity extends AppCompatActivity {
 
         loadSong(songId);
 
+        // Đã gom hết các nút bấm và thanh cuộn vào hàm này
+        setupUIEvents();
+    }
+
+    // =========================================================
+    // HÀM GOM CÁC SỰ KIỆN GIAO DIỆN (GIỮ NGUYÊN CODE CỦA BẠN)
+    // =========================================================
+    private void setupUIEvents() {
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
-        findViewById(R.id.btn_share).setOnClickListener(v -> {
-            if (currentSong != null) ShareUtils.share(this, currentSong.getTitle(), getString(R.string.app_share_prefix) + "song/" + currentSong.getId());
-        });
 
         // COMMENT BUTTON
         findViewById(R.id.btn_comments).setOnClickListener(v -> {
@@ -115,6 +148,8 @@ public class PlayerActivity extends AppCompatActivity {
                 bottomSheet.show(getSupportFragmentManager(), "CommentsBottomSheet");
             }
         });
+      
+        findViewById(R.id.btn_share).setOnClickListener(v -> ShareUtils.shareSongToFriends(this, currentSong));
 
 //        findViewById(R.id.btn_lyrics).setOnClickListener(v -> openFullLyrics());
 
@@ -162,7 +197,7 @@ public class PlayerActivity extends AppCompatActivity {
                     // THÊM HÀM NÀY: Làm chậm tốc độ cuộn (Số càng to cuộn càng chậm)
                     @Override
                     protected float calculateSpeedPerPixel(android.util.DisplayMetrics displayMetrics) {
-                        return 150f / displayMetrics.densityDpi; // Mặc định của Android là 25f
+                        return 150f / displayMetrics.densityDpi;
                     }
 
                     // THÊM HÀM NÀY: Kéo dài thời gian hãm phanh lúc gần đến nơi để tạo độ mượt
@@ -178,9 +213,9 @@ public class PlayerActivity extends AppCompatActivity {
         rvLyrics.setLayoutManager(layoutManager);
 
         View overlay = findViewById(R.id.view_lyrics_click_overlay);
-//        if (overlay != null) {
-//            overlay.setOnClickListener(v -> openFullLyrics());
-//        }
+        if (overlay != null) {
+            overlay.setOnClickListener(v -> openFullLyrics());
+        }
         // ------------------------------------------
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -200,13 +235,13 @@ public class PlayerActivity extends AppCompatActivity {
         });
     }
 
-//    private void openFullLyrics() {
-//        if (currentSong != null) {
-//            Intent intent = new Intent(this, LyricsActivity.class);
-//            intent.putExtra(EXTRA_SONG_ID, currentSong.id);
-//            startActivity(intent);
-//        }
-//    }
+    private void openFullLyrics() {
+        if (currentSong != null) {
+            Intent intent = new Intent(this, LyricsActivity.class);
+            intent.putExtra(EXTRA_SONG_ID, currentSong.getId());
+            startActivity(intent);
+        }
+    }
 
     private void loadSong(String songId) {
         currentSong = PlaybackRepository.getInstance().getCurrentSong();
@@ -220,9 +255,31 @@ public class PlayerActivity extends AppCompatActivity {
 
         Glide.with(this).load(currentSong.getCoverUrl()).into(cover);
 
-//        lyricAdapter = new LyricAdapter(currentSong.lyrics);
-//        androidx.recyclerview.widget.RecyclerView rvLyrics = findViewById(R.id.rv_lyrics);
-//        rvLyrics.setAdapter(lyricAdapter);
+        // 1. CHUẨN BỊ GIAO DIỆN LỜI BÀI HÁT
+        RecyclerView rvLyrics = findViewById(R.id.rv_lyrics);
+
+        // Hiện thông báo đang tải (Tùy chọn)
+        ((TextView) findViewById(R.id.tv_ai_summary)).setText("Đang tải lời bài hát...");
+
+        // 2. GỌI HÀM TẢI FILE LRC TỪ MẠNG
+        LyricUtils.downloadAndParseLrc(currentSong.getLyricsUrl(), new LyricUtils.LyricCallback() {
+            @Override
+            public void onLyricsLoaded(ArrayList<LyricLine> lyrics) {
+                // Khi tải xong, lưu vào bài hát hiện tại (để cache lại nếu muốn)
+                // và nạp vào Adapter
+                currentSong.getLyrics().clear();
+                currentSong.getLyrics().addAll(lyrics);
+
+                if (lyrics.isEmpty()) {
+                    ((TextView) findViewById(R.id.tv_ai_summary)).setText("Bài hát này chưa có lời.");
+                    rvLyrics.setAdapter(new LyricAdapter(new ArrayList<>())); // Set list trống
+                } else {
+                    ((TextView) findViewById(R.id.tv_ai_summary)).setText("Tap the button above to generate AI summary...");
+                    lyricAdapter = new LyricAdapter(lyrics);
+                    rvLyrics.setAdapter(lyricAdapter);
+                }
+            }
+        });
         ((TextView) findViewById(R.id.tv_ai_summary)).setText("Tap the button above to generate AI summary from listeners' comments.");
     }
 
@@ -238,21 +295,21 @@ public class PlayerActivity extends AppCompatActivity {
         }
         btnPlayPause.setImageResource(playing ? R.drawable.ic_pause : R.drawable.ic_play);
 
-//        if (currentSong != null && lyricAdapter != null) {
-//            int index = 0;
-//            for (int i = 0; i < currentSong.lyrics.size(); i++) {
-//                if (position >= currentSong.lyrics.get(i).timeMs) index = i;
-//            }
-//            if (index != currentLyricIndex) {
-//                currentLyricIndex = index;
-//                lyricAdapter.setHighlightIndex(index);
-//
-//                androidx.recyclerview.widget.RecyclerView rvLyrics = findViewById(R.id.rv_lyrics);
-//                if (rvLyrics.getScrollState() == androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE) {
-//                    rvLyrics.smoothScrollToPosition(index);
-//                }
-//            }
-//        }
+        if (currentSong != null && lyricAdapter != null) {
+            int index = 0;
+            for (int i = 0; i < currentSong.getLyrics().size(); i++) {
+                if (position >= currentSong.getLyrics().get(i).timeMs) index = i;
+            }
+            if (index != currentLyricIndex) {
+                currentLyricIndex = index;
+                lyricAdapter.setHighlightIndex(index);
+
+                RecyclerView rvLyrics = findViewById(R.id.rv_lyrics);
+                if (rvLyrics.getScrollState() == RecyclerView.SCROLL_STATE_IDLE) {
+                    rvLyrics.smoothScrollToPosition(index);
+                }
+            }
+        }
     }
 
     private void updateLoopButton() {
@@ -281,5 +338,43 @@ public class PlayerActivity extends AppCompatActivity {
         super.onPause();
         try { unregisterReceiver(stateReceiver); } catch (Exception ignored) {}
         progressHandler.removeCallbacks(progressRunnable);
+    }
+
+    // =========================================================
+    // TÍNH NĂNG CHIA SẺ BÀI HÁT CHO NGƯỜI NGHE
+    // =========================================================
+
+
+    // =========================================================
+    // LẤY DỮ LIỆU TỪ DATABASE KHI VÀO TỪ LINK CHIA SẺ
+    // =========================================================
+    private void fetchSongFromDbAndPlay(String songId) {
+        AppRepository.getInstance(this).getSongByIdAsync(songId, new AppRepository.SingleSongCallback() {
+            @Override
+            public void onSuccess(Song song) {
+                if (isFinishing() || isDestroyed()) return;
+
+                // 1. Nhét bài hát vừa lấy được vào kho lưu trữ cục bộ
+                PlaybackRepository.getInstance().setCurrentSong(song);
+
+                // 2. Lúc này Data đã có đủ, ta tự tin ra lệnh cho Service phát nhạc
+                Intent serviceIntent = new Intent(PlayerActivity.this, AudioPlayerService.class);
+                serviceIntent.setAction(AudioPlayerService.ACTION_PLAY_SONG);
+                serviceIntent.putExtra(AudioPlayerService.EXTRA_SONG_ID, song.getId());
+                androidx.core.content.ContextCompat.startForegroundService(PlayerActivity.this, serviceIntent);
+
+                // 3. Gọi hàm vẽ Giao diện (Tên bài, ảnh bìa...)
+                loadSong(song.getId());
+
+                // 4. (Quan trọng) Gọi lại hàm cài đặt sự kiện để các nút không bị đơ
+                setupUIEvents();
+            }
+
+            @Override
+            public void onError(String message) {
+                Toast.makeText(PlayerActivity.this, "Lỗi tải bài hát: " + message, Toast.LENGTH_SHORT).show();
+                finish(); // Lỗi thì đóng luôn màn hình
+            }
+        });
     }
 }

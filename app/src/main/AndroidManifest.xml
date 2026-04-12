@@ -23,6 +23,11 @@
             android:name=".MainActivity"
             android:exported="false"
             tools:ignore="AppLinkUrlError">
+        </activity>
+
+        <activity
+            android:name=".PlayerActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -30,8 +35,6 @@
                 <data android:scheme="melodix" android:host="song" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".PlayerActivity" />
         <service
             android:name=".Service.AudioPlayerService"
             android:exported="false"
@@ -56,13 +59,17 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".LyricsActivity"
+            android:exported="false" />
+
         <activity android:name=".View.AlbumDetailActivity" android:exported="false" />
         <activity android:name=".View.ArtistDetailActivity" android:exported="false" />
         <activity android:name=".View.ArtistSongsActivity" android:exported="false" />
         <activity android:name=".View.ArtistAlbumsActivity" android:exported="false" />
         <activity android:name=".View.auth.RegisterActivity" />
         <activity android:name=".ArtistActivity" />
-        <activity android:name=".View.artist.UploadSongActivity" /> vào AndroidManifest.xml
+        <activity android:name=".View.artist.UploadSongActivity" />
 
         <activity android:name=".AdminActivity" />"
 
@@ -70,6 +77,11 @@
                   android:exported="false"/>
 
 
+        
+        <activity android:name=".View.artist.CreateAlbumActivity" />
+        <activity android:name=".View.artist.ManageSongActivity" />
+        <activity android:name=".View.artist.ArtistAnalyticsActivity" />
+      
         <service
             android:name=".Service.firebase.MessageService"
             android:exported="true">
@@ -77,6 +89,8 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
+
     </application>
 
 </manifest>

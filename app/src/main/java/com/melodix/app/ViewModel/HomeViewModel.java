@@ -22,7 +22,7 @@ public class HomeViewModel extends ViewModel {
     private LiveData<List<Song>> trendingSongs;
     private LiveData<List<Genre>> genres;
     private LiveData<List<Banner>> banners;
-
+    // view model chi goi API 1 lan va giu cac data du Activity, fragment bi destroy hay ko
     public LiveData<List<Song>> getNewReleases() {
         if (newReleases == null) {
             newReleases = songRepository.fetchNewReleaseSongs();
