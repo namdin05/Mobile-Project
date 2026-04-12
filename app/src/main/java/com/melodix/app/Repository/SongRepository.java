@@ -10,8 +10,12 @@ import com.melodix.app.Model.Song;
 import com.melodix.app.Service.AuthAPIService;
 import com.melodix.app.Service.BannerAPIService;
 import com.melodix.app.Service.GenreAPIService;
+import com.melodix.app.Service.ProfileAPIService;
+import com.melodix.app.Service.RetrofitClient;
 import com.melodix.app.Service.SongAPIService;
+import com.melodix.app.Utils.PlaybackUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -21,17 +25,40 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class SongRepository {
-    private static final String BASE_URL = BuildConfig.BASE_URL;
     private static final String API_KEY = BuildConfig.API_KEY;
+
+    private static final String token = "Bearer " + BuildConfig.SERVICE_KEY;
     private SongAPIService songAPIService;
 
     public SongRepository() {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        songAPIService = retrofit.create(SongAPIService.class);
+        songAPIService = RetrofitClient.getClient().create(SongAPIService.class);
     }
+
+    public MutableLiveData<List<Song>> fetchAllSongs(){
+        MutableLiveData<List<Song>> songs = new MutableLiveData<>();
+
+        songAPIService.getAllSongs(API_KEY, token).enqueue(new Callback<List<Song>>() {
+            @Override
+            public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    songs.setValue(response.body());
+                    Log.d("ALL_SONGS", new Gson().toJson(response.body()));
+                } else {
+                    Log.d("FAILED", "L");
+                    songs.setValue(null);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Song>> call, Throwable t) {
+                Log.e("API ERROR", "Loi mang: " + t.getMessage());
+                songs.setValue(null);
+            }
+        });
+        return songs;
+    }
+
+
     public MutableLiveData<List<Song>> fetchNewReleaseSongs(){
         MutableLiveData<List<Song>> songs = new MutableLiveData<>();
 
@@ -76,4 +103,5 @@ public class SongRepository {
         });
         return songs;
     }
+
 }

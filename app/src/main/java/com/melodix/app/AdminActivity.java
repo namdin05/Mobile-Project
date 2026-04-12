@@ -1,19 +1,22 @@
-package com.melodix.app; // Nếu package của bạn chứa chữ View thì nhớ đổi lại nhé
+package com.melodix.app;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationView;
 
 import com.melodix.app.Model.Profile;
 import com.melodix.app.Service.ProfileAPIService;
@@ -34,11 +37,12 @@ import retrofit2.Response;
 
 public class AdminActivity extends AppCompatActivity {
 
-    private BottomNavigationView bottomNav;
     private TextView tvAdminName;
-    private ImageView imgProfile;
 
-    // Hai biến này dùng để lưu tạm dữ liệu, lát nữa truyền sang trang Edit Profile
+    private TextView tvAppTitle;
+    private ImageView imgProfile;
+    private DrawerLayout drawerLayout;
+
     private String currentAdminName = "";
     private String currentAdminAvatarUrl = "";
 
@@ -47,53 +51,84 @@ public class AdminActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin);
 
-        // Ánh xạ View
         tvAdminName = findViewById(R.id.tvAdminName);
         imgProfile = findViewById(R.id.imgProfile);
-        bottomNav = findViewById(R.id.bottom_navigation);
+        drawerLayout = findViewById(R.id.drawer_layout);
+        tvAppTitle = findViewById(R.id.tvAppTitle);
 
-        // 1. Lắng nghe sự kiện bấm vào Avatar để mở Menu
-        imgProfile.setOnClickListener(v -> showProfileMenu(v));
+        ImageButton btnMenu = findViewById(R.id.btnMenu);
+        NavigationView navView = findViewById(R.id.nav_view);
 
-        // 2. Mặc định mở màn hình Stat (Dashboard) khi vừa vào app
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new AdminStatFragment())
-                    .commit();
-            bottomNav.setSelectedItemId(R.id.nav_dashboard);
-        }
+        // 1. Mở menu trượt khi bấm nút Hamburger
+        btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+        tvAppTitle.setText("Tổng quan");
 
-        // 3. Lắng nghe sự kiện thanh điều hướng Bottom Navigation
-        bottomNav.setOnItemSelectedListener(item -> {
-            Fragment selectedFragment = null;
+        // 2. Lắng nghe sự kiện chọn item trên Menu trượt
+        navView.setNavigationItemSelectedListener(item -> {
             int itemId = item.getItemId();
+            Fragment selectedFragment = null;
 
             if (itemId == R.id.nav_dashboard) {
                 selectedFragment = new AdminStatFragment();
-            } else if (itemId == R.id.nav_genres) {
-                selectedFragment = new AdminGenreFragment();
+                tvAppTitle.setText("Tổng quan");
+
+            } else if (itemId == R.id.nav_users) {
+                selectedFragment = new AdminUserFragment();
+                tvAppTitle.setText("Người dùng");
+
             } else if (itemId == R.id.nav_songs) {
                 selectedFragment = new AdminSongFragment();
-            } else if (itemId == R.id.nav_artists) {
-                selectedFragment = new AdminUserFragment();
-            } else if (itemId == R.id.nav_requests) {
-                selectedFragment = new AdminRequestFragment();
+                tvAppTitle.setText("Bài hát");
             }
+            // Cập nhật thêm các Fragment khác của bạn nếu có
+            else if (itemId == R.id.nav_genres) {
+                 selectedFragment = new AdminGenreFragment();
+                 tvAppTitle.setText("Thể loại");
+            }
+            // else if (itemId == R.id.nav_album) {
+            //     selectedFragment = new AdminAlbumFragment();
+            // } else if (itemId == R.id.nav_verify) {
+            //     selectedFragment = new AdminRequestFragment();
+            // }
 
             if (selectedFragment != null) {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, selectedFragment)
                         .commit();
-                return true;
             }
-            return false;
+
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        });
+
+        // 3. Lắng nghe sự kiện bấm vào Avatar để mở Menu Profile
+        imgProfile.setOnClickListener(this::showProfileMenu);
+
+        // 4. Mặc định mở màn hình Stat (Dashboard) khi vừa vào app
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new AdminStatFragment())
+                    .commit();
+        }
+
+        getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // Nếu Menu trượt đang mở -> Đóng menu
+                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                } else {
+                    // Nếu menu đang đóng -> Tạm thời tắt bộ lắng nghe này và gọi back mặc định (thoát app hoặc về trang trước)
+                    this.setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
         });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Mỗi khi màn hình Admin hiện lên mặt tiền, tự động lấy lại dữ liệu mới nhất!
         fetchAdminInfo();
     }
 
@@ -108,7 +143,6 @@ public class AdminActivity extends AppCompatActivity {
 
         ProfileAPIService apiService = RetrofitClient.getClient().create(ProfileAPIService.class);
 
-        // Dùng Service Role Key để không bị kẹt RLS Policy
         String apiKey = BuildConfig.SERVICE_KEY;
         String token = "Bearer " + BuildConfig.SERVICE_KEY;
         String idFilter = "eq." + adminUid;
@@ -119,14 +153,11 @@ public class AdminActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                     Profile adminProfile = response.body().get(0);
 
-                    // Lưu dữ liệu vào biến toàn cục
                     currentAdminName = adminProfile.getDisplayName();
                     currentAdminAvatarUrl = adminProfile.getAvatarUrl();
 
-                    // Đổ tên lên UI
                     tvAdminName.setText(currentAdminName);
 
-                    // Đổ ảnh lên UI bằng Glide
                     if (currentAdminAvatarUrl != null && !currentAdminAvatarUrl.isEmpty()) {
                         Glide.with(AdminActivity.this)
                                 .load(currentAdminAvatarUrl)
@@ -148,14 +179,12 @@ public class AdminActivity extends AppCompatActivity {
         });
     }
 
-    // Hàm hiển thị Dropdown Menu khi bấm vào Avatar
     private void showProfileMenu(View view) {
         PopupMenu popup = new PopupMenu(this, view);
         popup.getMenuInflater().inflate(R.menu.admin_info_menu, popup.getMenu());
 
         popup.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.action_profile) {
-                // Mở màn hình Edit Profile và truyền dữ liệu hiện tại sang đó
                 Intent intent = new Intent(AdminActivity.this, AdminProfileActivity.class);
                 intent.putExtra("CURRENT_NAME", currentAdminName);
                 intent.putExtra("CURRENT_AVATAR", currentAdminAvatarUrl);
@@ -170,20 +199,15 @@ public class AdminActivity extends AppCompatActivity {
         popup.show();
     }
 
-    // Hàm xử lý Đăng xuất
     private void performLogout() {
-        // Xóa toàn bộ dữ liệu trong SharedPreferences
         SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.clear();
         editor.apply();
 
-        // Chuyển về màn hình Login
-        // (Chú ý: Đổi tên LoginActivity cho khớp với class Đăng nhập của bạn)
         Intent intent = new Intent(AdminActivity.this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
-
     }
 }

@@ -32,6 +32,7 @@ import com.melodix.app.Utils.ResourceUtils;
 import com.melodix.app.Utils.ShareUtils;
 import com.melodix.app.Utils.ThemeUtils;
 import com.melodix.app.Utils.TimeUtils;
+import com.melodix.app.View.music.CommentsBottomSheet;
 import com.melodix.app.View.adapters.LyricAdapter;
 //import com.melodix.app.View.adapters.LyricAdapter;
 
@@ -139,14 +140,16 @@ public class PlayerActivity extends AppCompatActivity {
     // =========================================================
     private void setupUIEvents() {
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+
+        // COMMENT BUTTON
+        findViewById(R.id.btn_comments).setOnClickListener(v -> {
+            if (currentSong != null) {
+                CommentsBottomSheet bottomSheet = CommentsBottomSheet.newInstance(currentSong.getId());
+                bottomSheet.show(getSupportFragmentManager(), "CommentsBottomSheet");
+            }
+        });
+      
         findViewById(R.id.btn_share).setOnClickListener(v -> ShareUtils.shareSongToFriends(this, currentSong));
-//        findViewById(R.id.btn_comments).setOnClickListener(v -> {
-//            if (currentSong != null) {
-//                Intent intent = new Intent(this, CommentsActivity.class);
-//                intent.putExtra(CommentsActivity.EXTRA_SONG_ID, currentSong.id);
-//                startActivity(intent);
-//            }
-//        });
 
 //        findViewById(R.id.btn_lyrics).setOnClickListener(v -> openFullLyrics());
 

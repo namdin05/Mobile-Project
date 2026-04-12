@@ -3,6 +3,7 @@ package com.melodix.app.Service;
 import com.melodix.app.Model.Profile;
 
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
@@ -15,8 +16,13 @@ import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
+public interface ProfileAPIService  {
 
-public interface    ProfileAPIService  {
+    @GET("rest/v1/profiles")
+    Call<List<Profile>> getAllProfiles(
+            @Header("apikey") String apiKey,
+            @Header("Authorization") String token
+    );
 
     // Lấy thông tin của 1 user cụ thể dựa vào ID
     @GET("rest/v1/profiles?select=display_name,avatar_url")
@@ -45,6 +51,14 @@ public interface    ProfileAPIService  {
             @Header("Authorization") String token,
             @Query("id") String idFilter, // eq.[UID]
             @Body java.util.Map<String, Object> bodyData // Gửi HashMap cho tiện
+    );
+
+    @PATCH("/rest/v1/profiles")
+    Call<Void> updateFcmToken(
+            @Header("apikey") String apiKey,
+            @Header("Authorization") String token,
+            @Query(value = "id", encoded = true) String idFilter, // THÊM encoded = true VÀO ĐÂY
+            @Body Map<String, Object> bodyData
     );
 
 }

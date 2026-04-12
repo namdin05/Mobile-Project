@@ -5,6 +5,8 @@ plugins {
 
     alias(libs.plugins.android.application)
 
+    // alias(libs.plugins.google.services)
+    id("com.google.gms.google-services")
 }
 val properties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
@@ -88,4 +90,7 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("androidx.viewpager2:viewpager2:1.0.0-alpha01")
     implementation("androidx.media:media:1.7.0")
+
+    implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
+    implementation("com.google.firebase:firebase-messaging")
 }
