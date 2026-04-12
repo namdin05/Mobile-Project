@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.melodix.app" />
+                  <option name="mobileSdkAppId" value="1:609900831899:android:b7be107e1e7ef77ea0523e" />
+                  <option name="projectId" value="melodik-app" />
+                  <option name="projectNumber" value="609900831899" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

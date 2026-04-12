@@ -63,6 +63,9 @@ public class HomeFragment extends Fragment {
         // danh sach bai hat thinh hanh
         RecyclerView rvTrending = view.findViewById(R.id.rv_trending);
 
+        // ==========================================
+        // FETCH NEW RELEASE
+        // ==========================================
         // goi API lay danh sach bai hat moi nhat
         viewModel.getNewReleases().observe(getViewLifecycleOwner(), songs -> {
             // goi song apdapter
