@@ -67,6 +67,8 @@
         <activity android:name=".View.ArtistDetailActivity" android:exported="false" />
         <activity android:name=".View.ArtistSongsActivity" android:exported="false" />
         <activity android:name=".View.ArtistAlbumsActivity" android:exported="false" />
+        <activity android:name=".View.PlaylistDetailActivity" android:exported="false" />
+
         <activity android:name=".View.auth.RegisterActivity" />
         <activity android:name=".ArtistActivity" />
         <activity android:name=".View.artist.UploadSongActivity" />
