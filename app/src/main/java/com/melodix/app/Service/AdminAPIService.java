@@ -1,5 +1,6 @@
 package com.melodix.app.Service;
 
+import com.melodix.app.Model.AppMetric;
 import com.melodix.app.Model.Genre;
 import com.melodix.app.Model.Profile;
 import com.melodix.app.Model.Song;
@@ -66,5 +67,12 @@ public interface AdminAPIService {
             @Header("Authorization") String token,
             @Query("id") String idFilter, // eq.xxx
             @Body java.util.Map<String, Object> genreData
+    );
+
+
+    @GET("rest/v1/app_metrics?select=*")
+    Call<List<AppMetric>> getAppMetrics(
+            @Header("apikey") String apiKey,
+            @Header("Authorization") String token
     );
 }

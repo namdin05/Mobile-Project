@@ -1,4 +1,4 @@
-package com.melodix.app;
+package com.melodix.app.View.admin;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -18,14 +18,12 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
 
+import com.melodix.app.BuildConfig;
 import com.melodix.app.Model.Profile;
+import com.melodix.app.R;
 import com.melodix.app.Service.ProfileAPIService;
 import com.melodix.app.Service.RetrofitClient;
-import com.melodix.app.View.admin.AdminGenreFragment;
-import com.melodix.app.View.admin.AdminUserFragment;
-import com.melodix.app.View.admin.AdminRequestFragment;
-import com.melodix.app.View.admin.AdminSongFragment;
-import com.melodix.app.View.admin.AdminStatFragment;
+import com.melodix.app.View.admin.dashboard.GenreManagementFragment;
 import com.melodix.app.View.auth.LoginActivity;
 import com.melodix.app.View.profile.AdminProfileActivity;
 
@@ -72,18 +70,18 @@ public class AdminActivity extends AppCompatActivity {
                 selectedFragment = new AdminStatFragment();
                 tvAppTitle.setText("Tổng quan");
 
-            } else if (itemId == R.id.nav_users) {
-                selectedFragment = new AdminUserFragment();
-                tvAppTitle.setText("Người dùng");
-
-            } else if (itemId == R.id.nav_songs) {
-                selectedFragment = new AdminSongFragment();
-                tvAppTitle.setText("Bài hát");
-            }
-            // Cập nhật thêm các Fragment khác của bạn nếu có
-            else if (itemId == R.id.nav_genres) {
-                 selectedFragment = new AdminGenreFragment();
-                 tvAppTitle.setText("Thể loại");
+//            } else if (itemId == R.id.nav_users) {
+//                selectedFragment = new AdminUserFragment();
+//                tvAppTitle.setText("Người dùng");
+//
+//            } else if (itemId == R.id.nav_songs) {
+//                selectedFragment = new AdminSongFragment();
+//                tvAppTitle.setText("Bài hát");
+//            }
+//            // Cập nhật thêm các Fragment khác của bạn nếu có
+//            else if (itemId == R.id.nav_genres) {
+//                 selectedFragment = new GenreManagementFragment();
+//                 tvAppTitle.setText("Thể loại");
             }
             // else if (itemId == R.id.nav_album) {
             //     selectedFragment = new AdminAlbumFragment();

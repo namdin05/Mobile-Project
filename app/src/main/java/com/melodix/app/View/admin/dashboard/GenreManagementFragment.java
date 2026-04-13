@@ -1,4 +1,4 @@
-package com.melodix.app.View.admin;
+package com.melodix.app.View.admin.dashboard;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -33,7 +33,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AdminGenreFragment extends Fragment {
+public class GenreManagementFragment extends Fragment {
 
     private RecyclerView rvGenres;
     private MaterialButton btnAddGenre;
@@ -58,7 +58,7 @@ public class AdminGenreFragment extends Fragment {
             }
     );
 
-    public AdminGenreFragment() {}
+    public GenreManagementFragment() {}
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

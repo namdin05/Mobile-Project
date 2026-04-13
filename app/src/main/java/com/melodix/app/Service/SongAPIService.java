@@ -27,4 +27,11 @@ public interface SongAPIService {
             @Header("apikey") String apiKey,
             @Query("limit") int limit
     );
+
+    @GET("rest/v1/songs?select=*")
+    Call<List<Song>> getSongsByAlbum(
+            @Header("apikey") String apiKey,
+            @Header("Authorization") String token,
+            @Query(value = "album_id", encoded = true) String albumIdFilter // Truyền "eq.MÃ_ALBUM" vào đây
+    );
 }
