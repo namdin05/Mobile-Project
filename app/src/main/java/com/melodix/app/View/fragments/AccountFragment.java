@@ -68,7 +68,7 @@ public class AccountFragment extends Fragment {
 
         btnArtistAlbums.setOnClickListener(v -> {
             // Mở trang Tạo Album
-            startActivity(new Intent(requireContext(), com.melodix.app.View.artist.CreateAlbumActivity.class));
+            startActivity(new Intent(requireContext(), com.melodix.app.View.artist.ManageAlbumActivity.class));
         });
 
         btnArtistStats.setOnClickListener(v -> {

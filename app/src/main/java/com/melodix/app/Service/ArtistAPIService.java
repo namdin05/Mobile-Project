@@ -83,6 +83,18 @@
         // Lấy thống kê của 1 nghệ sĩ
         @GET("artist_stats_view?select=*")
         Call<List<ArtistStats>> getArtistStats(@Query("artist_id") String artistIdQuery);
+        // NÂNG CẤP: Gọi hàm RPC để tạo album và thêm bài hát cùng lúc
+        @POST("rest/v1/rpc/create_album_with_songs")
+        Call<okhttp3.ResponseBody> createAlbumWithSongs(
+                @Header("apikey") String apiKey,
+                @Header("Authorization") String token,
+                @Body java.util.Map<String, Object> albumData
+        );
 
+        @retrofit2.http.PATCH("albums")
+        Call<okhttp3.ResponseBody> updateAlbum(
+                @retrofit2.http.Query("id") String operatorAndId,
+                @retrofit2.http.Body java.util.Map<String, Object> albumData
+        );
 
     }

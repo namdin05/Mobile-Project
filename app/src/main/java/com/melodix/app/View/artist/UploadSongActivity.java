@@ -97,7 +97,7 @@ public class UploadSongActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_song);
 
-        apiService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
+        apiService = RetrofitClient.getClient().create(ArtistAPIService.class);
         sessionManager = SessionManager.getInstance(this);
 
         View btnBack = findViewById(R.id.btn_back);
@@ -438,7 +438,17 @@ public class UploadSongActivity extends AppCompatActivity {
                     container.addView(divider);
 
                     for (com.melodix.app.Model.Album album : response.body()) {
-                        container.addView(createPremiumDialogItem("💽", album.title + " (" + album.year + ")", v -> {
+                        if(album.status != null && album.status.equalsIgnoreCase("rejected") ){
+                            continue;
+                        }
+                        String displayTitle = album.title;
+                        if (album.status != null && album.status.equalsIgnoreCase("pending")){
+                            displayTitle = album.title + "( Đang chờ duyệt )";
+                        }else{
+                            displayTitle = album.title + "( " + album.year + " )";
+                        }
+
+                        container.addView(createPremiumDialogItem("💽", displayTitle, v -> {
                             selectedAlbumId = album.id;
                             tvSelectedAlbum.setText(album.title);
                             dialog.dismiss();

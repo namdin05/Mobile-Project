@@ -160,4 +160,8 @@ public class Song {
     public String getLyricsUrl() {
         return lyrics_url;
     }
+
+    public String getAlbumId() {
+        return album_id;
+    }
 }

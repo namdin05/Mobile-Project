@@ -82,6 +82,8 @@
         
         <activity android:name=".View.artist.CreateAlbumActivity" />
         <activity android:name=".View.artist.ManageSongActivity" />
+        <activity android:name=".View.artist.ManageAlbumActivity" />
+        <activity android:name=".View.artist.ManageAlbumDetailActivity" />
         <activity android:name=".View.artist.ArtistAnalyticsActivity" />
       
         <service

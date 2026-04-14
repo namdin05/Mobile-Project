@@ -564,4 +564,28 @@ public class AppRepository {
     public String getAiSummaryForSong(String songId) {
         return "AI Summary đang phân tích hàng ngàn bình luận... Bài hát này hiện đang được stream trực tiếp từ hệ thống Supabase!";
     }
+
+    // Lấy tất cả bài hát của một nghệ sĩ (Cả đã duyệt và chưa duyệt)
+    public void getMyUploadSongs(String artistId, SongListCallback callback) {
+        // Gọi SupabaseClient để tự động gắn API Key
+        com.melodix.app.Service.ArtistAPIService apiService =
+                com.melodix.app.Service.RetrofitClient.getSupabaseClient().create(com.melodix.app.Service.ArtistAPIService.class);
+
+        // Gọi API getMyUploadSongs đã định nghĩa trong ArtistAPIService
+        apiService.getMyUploadSongs("eq." +artistId).enqueue(new retrofit2.Callback<java.util.List<com.melodix.app.Model.Song>>() {
+            @Override
+            public void onResponse(retrofit2.Call<java.util.List<com.melodix.app.Model.Song>> call, retrofit2.Response<java.util.List<com.melodix.app.Model.Song>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(new java.util.ArrayList<>(response.body()));
+                } else {
+                    callback.onError("Lỗi API: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<java.util.List<com.melodix.app.Model.Song>> call, Throwable t) {
+                callback.onError("Lỗi mạng: " + t.getMessage());
+            }
+        });
+    }
 }
