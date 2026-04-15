@@ -145,7 +145,7 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
         tvEmptyTracks.setVisibility(View.GONE);
         rvTracklist.setVisibility(View.GONE);
 
-        albumApiService.getSongsByAlbumId("eq." + albumId).enqueue(new Callback<List<Song>>() {
+        albumApiService.getSongsByAlbumIdForArtist("eq." + albumId).enqueue(new Callback<List<Song>>() {
             @Override
             public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
                 progressBar.setVisibility(View.GONE);
@@ -243,20 +243,28 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
     }
 
     private void removeSong(String songId) {
-        Map<String, Object> updateData = new HashMap<>();
-        updateData.put("album_id", null); // Set null để tống ra khỏi Album
+        // 1. Tự viết cứng một chuỗi JSON chuẩn xác
+        String jsonString = "{\"album_id\": null}";
 
-        artistApiService.updateSong("eq." + songId, updateData).enqueue(new Callback<okhttp3.ResponseBody>() {
+        // 2. Ép kiểu nó thành RequestBody (định dạng application/json)
+        okhttp3.RequestBody requestBody = okhttp3.RequestBody.create(okhttp3.MediaType.parse("application/json"), jsonString);
+
+        // 3. Gọi hàm API Raw mới tạo
+        artistApiService.removeSongFromAlbumRaw("eq." + songId, requestBody).enqueue(new Callback<okhttp3.ResponseBody>() {
             @Override
             public void onResponse(Call<okhttp3.ResponseBody> call, Response<okhttp3.ResponseBody> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(ManageAlbumDetailActivity.this, "Đã gỡ bài hát!", Toast.LENGTH_SHORT).show();
-                    loadTracks(); // Tải lại danh sách
+                    Toast.makeText(ManageAlbumDetailActivity.this, "Đã gỡ bài hát vĩnh viễn!", Toast.LENGTH_SHORT).show();
+                    loadTracks(); // Tải lại danh sách, thề luôn là bay màu!
                 } else {
-                    Toast.makeText(ManageAlbumDetailActivity.this, "Lỗi cập nhật", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ManageAlbumDetailActivity.this, "Lỗi: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
-            @Override public void onFailure(Call<okhttp3.ResponseBody> call, Throwable t) {}
+
+            @Override
+            public void onFailure(Call<okhttp3.ResponseBody> call, Throwable t) {
+                Toast.makeText(ManageAlbumDetailActivity.this, "Lỗi mạng!", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 }

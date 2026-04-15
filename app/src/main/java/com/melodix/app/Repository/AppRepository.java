@@ -414,7 +414,7 @@ public class AppRepository {
 
     // 2. Lấy Album
     public void getAlbumsByArtist(String artistId, AlbumListCallback callback) {
-        artistApiService.getAlbumsByArtistId("eq." + artistId).enqueue(new Callback<List<Album>>() {
+        artistApiService.getAlbumsForPublic("eq." + artistId).enqueue(new Callback<List<Album>>() {
             @Override public void onResponse(Call<List<Album>> call, Response<List<Album>> response) {
                 if (response.isSuccessful() && response.body() != null) callback.onSuccess(new ArrayList<>(response.body()));
                 else callback.onError("Lỗi tải Album");

@@ -145,7 +145,7 @@ public class ManageAlbumActivity extends AppCompatActivity {
         container.addView(progressBar);
 
         // Gọi API lấy bài hát trong Album
-        albumApiService.getSongsByAlbumId("eq." + album.id).enqueue(new Callback<List<Song>>() {
+        albumApiService.getSongsByAlbumIdForArtist("eq." + album.id).enqueue(new Callback<List<Song>>() {
             @Override
             public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
                 progressBar.setVisibility(View.GONE);

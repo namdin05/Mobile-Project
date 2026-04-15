@@ -118,15 +118,12 @@ public class CreateAlbumActivity extends AppCompatActivity {
                 imgCoverPreview.setVisibility(View.VISIBLE);
                 Glide.with(this).load(existingCoverUrl).into(imgCoverPreview);
             }
-
-            // Ẩn danh sách chọn bài hát vì Edit Album chỉ sửa Tên/Ảnh
-            rvAvailableSongs.setVisibility(View.GONE);
-            // Nếu bạn có TextView tiêu đề "Danh sách bài hát", bạn có thể findViewById và ẩn nó đi luôn
-        } else {
-            // Nếu là TẠO MỚI thì mới load danh sách bài hát
-            setupSongSelectionList();
-            fetchMySongs();
+            // Đã xóa lệnh ẩn RecyclerView ở đây
         }
+
+        // Luôn setup và load danh sách bài hát cho cả 2 chế độ
+        setupSongSelectionList();
+        fetchMySongs();
     }
 
     private void setupSongSelectionList() {
@@ -141,11 +138,25 @@ public class CreateAlbumActivity extends AppCompatActivity {
             public void onSuccess(ArrayList<Song> songs) {
                 if (isFinishing()) return;
                 List<Song> availableSongs = new ArrayList<>();
+                selectedSongIds.clear(); // Xóa list tick cũ
+
                 for (Song s : songs) {
+                    // Điều kiện 1: Bài hát chưa thuộc Album nào
                     boolean isSingle = (s.getAlbumId() == null || s.getAlbumId().isEmpty() || s.getAlbumId().equals("null"));
+
+                    // Điều kiện 2: Bài hát ĐANG THUỘC Album này (dành cho chế độ Edit)
+                    boolean belongsToThisAlbum = isEditMode && s.getAlbumId() != null && s.getAlbumId().equals(editAlbumId);
+
+                    // Điều kiện 3: Không bị từ chối
                     boolean isNotRejected = (s.getStatus() == null || !s.getStatus().equalsIgnoreCase("rejected"));
-                    if (isSingle && isNotRejected){
+
+                    if ((isSingle || belongsToThisAlbum) && isNotRejected) {
                         availableSongs.add(s);
+
+                        // NẾU LÀ BÀI HÁT CỦA ALBUM NÀY -> Đánh dấu Tick (chọn) sẵn cho người dùng
+                        if (belongsToThisAlbum) {
+                            selectedSongIds.add(s.getId());
+                        }
                     }
                 }
                 songSelectionAdapter.updateData(new ArrayList<>(availableSongs));
@@ -212,16 +223,18 @@ public class CreateAlbumActivity extends AppCompatActivity {
         Map<String, Object> albumData = new HashMap<>();
 
         if (isEditMode) {
-            // TH1: LÀ CHẾ ĐỘ CẬP NHẬT (Gọi API PATCH)
-            albumData.put("title", title);
-            if (coverUrl != null) albumData.put("cover_url", coverUrl);
+            // TH1: LÀ CHẾ ĐỘ CẬP NHẬT (Gọi API RPC update_album_with_songs)
+            albumData.put("p_album_id", editAlbumId);
+            albumData.put("p_title", title);
+            albumData.put("p_cover", coverUrl); // Gửi null thì Supabase sẽ tự giữ ảnh cũ
+            albumData.put("p_song_ids", selectedSongIds); // Danh sách ID bài hát mới nhất
 
             ArtistAPIService dbService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
-            dbService.updateAlbum("eq." + editAlbumId, albumData).enqueue(new Callback<ResponseBody>() {
+            dbService.updateAlbumWithSongs(albumData).enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                     if (response.isSuccessful()) {
-                        Toast.makeText(CreateAlbumActivity.this, "Đã cập nhật Album!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(CreateAlbumActivity.this, "Đã cập nhật Album & Bài hát!", Toast.LENGTH_SHORT).show();
                         finish();
                     } else {
                         showError("Lỗi cập nhật Album: " + response.code());
@@ -235,7 +248,7 @@ public class CreateAlbumActivity extends AppCompatActivity {
             });
 
         } else {
-            // TH2: LÀ CHẾ ĐỘ TẠO MỚI (Gọi API RPC)
+            // TH2: LÀ CHẾ ĐỘ TẠO MỚI (Gọi API RPC create_album_with_songs)
             albumData.put("p_title", title);
             albumData.put("p_artist_id", artistId);
             albumData.put("p_year", java.util.Calendar.getInstance().get(java.util.Calendar.YEAR));
