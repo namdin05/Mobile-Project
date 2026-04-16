@@ -52,7 +52,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
             if(repository != null){
                 TextView tvTitle = findViewById(R.id.tv_title);
                 String albumName = tvTitle.getText().toString();
-                if (!albumName.equals("Đang tải:....")){
+                if (!albumName.equals("Đang tải...")){
                     com.melodix.app.Utils.ShareUtils.shareContent(
                             AlbumDetailActivity.this,
                             "album",
@@ -81,9 +81,20 @@ public class AlbumDetailActivity extends AppCompatActivity {
                 // Xử lý sự kiện Menu 3 chấm
                 switch (actionId) {
                     case "share":
-                        // GỌI HÀM SHARE THẦN THÁNH Ở ĐÂY!
-                        // Dùng AlbumDetailActivity.this vì ta đang đứng trong một Anonymous Class (lớp ẩn danh)
-                        ShareUtils.shareSongToFriends(AlbumDetailActivity.this, song);
+                        // 👇 XÓA DÒNG NÀY ĐI 👇
+                        // ShareUtils.shareSongToFriends(AlbumDetailActivity.this, song);
+
+                        // 👇 THAY BẰNG ĐOẠN NÀY ĐỂ ĐỒNG BỘ VỚI PLAYER ACTIVITY 👇
+                        if (song != null && song.getId() != null) {
+                            com.melodix.app.Utils.ShareUtils.shareContent(
+                                    AlbumDetailActivity.this,
+                                    "song",           // Type là bài hát
+                                    song.getId(),     // ID của bài hát người dùng vừa bấm
+                                    song.getTitle()   // Tên bài hát
+                            );
+                        } else {
+                            Toast.makeText(AlbumDetailActivity.this, "Lỗi dữ liệu bài hát", Toast.LENGTH_SHORT).show();
+                        }
                         break;
 
                     case "play":

@@ -44,7 +44,17 @@ public class ArtistSongsActivity extends AppCompatActivity {
             public void onMenuClick(Song song, int position, String actionId) {
                 // Đón lõng tín hiệu "share" từ SongAdapter
                 if ("share".equalsIgnoreCase(actionId)) {
-                    ShareUtils.shareSongToFriends(ArtistSongsActivity.this, song);
+                        if (song != null && song.getId() != null) {
+                            com.melodix.app.Utils.ShareUtils.shareContent(
+                                    ArtistSongsActivity.this,
+                                    "song",           // Type là bài hát
+                                    song.getId(),     // ID của bài hát người dùng vừa bấm
+                                    song.getTitle()   // Tên bài hát
+                            );
+                        } else {
+                            Toast.makeText(ArtistSongsActivity.this, "Lỗi dữ liệu bài hát", Toast.LENGTH_SHORT).show();
+                        }
+
                 }
                 else if ("play".equalsIgnoreCase(actionId)) {
                     Toast.makeText(ArtistSongsActivity.this, "Phát bài: " + song.getTitle(), Toast.LENGTH_SHORT).show();

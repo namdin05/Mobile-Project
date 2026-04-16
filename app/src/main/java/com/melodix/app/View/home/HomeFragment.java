@@ -244,7 +244,16 @@ public class HomeFragment extends Fragment {
                 Toast.makeText(requireContext(),"COMMENT " + song.getTitle(), LENGTH_SHORT).show();
                 break;
             case "share":
-                ShareUtils.shareSongToFriends(requireContext(), song);
+                if (song != null && song.getId() != null) {
+                    com.melodix.app.Utils.ShareUtils.shareContent(
+                            requireContext(), // Dùng requireContext() vì đang ở trong Fragment
+                            "song",           // Type bài hát
+                            song.getId(),     // ID bài hát
+                            song.getTitle()   // Tên bài hát
+                    );
+                } else {
+                    Toast.makeText(requireContext(), "Lỗi dữ liệu bài hát", Toast.LENGTH_SHORT).show();
+                }
                 break;
             case "download":
                 Toast.makeText(requireContext(),"DOWNLOAD " + song.getTitle(), LENGTH_SHORT).show();

@@ -96,23 +96,33 @@ public class PlayerActivity extends AppCompatActivity {
         tvTotal = findViewById(R.id.tv_total);
         btnPlayPause = findViewById(R.id.btn_play_pause);
 
-        // Khởi tạo songId mặc định
         String songId = null;
 
-        // 1. KIỂM TRA DEEP LINK TỪ BÊN NGOÀI
+        // 1. KIỂM TRA DEEP LINK TRỰC TIẾP TỪ BROWSER
         Uri data = getIntent().getData();
         if (data != null && "melodix".equals(data.getScheme())) {
             songId = data.getLastPathSegment();
-
-            // LÀM ĐƯỜNG VÒNG: Lấy dữ liệu từ Database về trước rồi mới phát nhạc
             fetchSongFromDbAndPlay(songId);
-
-            // BẮT BUỘC RETURN ĐỂ DỪNG TẠM THỜI ONCREATE LẠI CHỜ DỮ LIỆU
-            return;
+            return; // Khóa màn hình tại đây đợi tải xong
         }
 
-        // 2. NẾU MỞ TỪ TRONG APP THÌ CHẠY BÌNH THƯỜNG NHƯ CŨ
-        if (songId == null) songId = getIntent().getStringExtra(EXTRA_SONG_ID);
+        // 2. KIỂM TRA INTENT DO MAINACTIVITY NÉM SANG (KHI MỞ QUA ĐA NHIỆM)
+        songId = getIntent().getStringExtra(EXTRA_SONG_ID);
+        if (songId != null) {
+            // Lấy ID bài hát máy đang nhớ (Bài A)
+            String cachedSongId = AudioPlayerService.getCurrentSongId();
+            if (cachedSongId == null && repository.getCurrentQueueSong() != null) {
+                cachedSongId = repository.getCurrentQueueSong().getId();
+            }
+
+            // 👇 CHÌA KHÓA Ở ĐÂY: Nếu bấm link Bài B mà máy đang nhớ Bài A -> TẢI MỚI!
+            if (cachedSongId == null || !songId.equals(cachedSongId)) {
+                fetchSongFromDbAndPlay(songId);
+                return; // Dừng vẽ giao diện, chờ tải Bài B xong mới hiện!
+            }
+        }
+
+        // 3. NẾU MỞ APP BÌNH THƯỜNG (Bấm vào thanh Mini Player để mở lại bài đang nghe)
         if (songId == null) songId = AudioPlayerService.getCurrentSongId();
         if (songId == null && repository.getCurrentQueueSong() != null) songId = repository.getCurrentQueueSong().getId();
 
@@ -121,8 +131,9 @@ public class PlayerActivity extends AppCompatActivity {
             return;
         }
 
+        // Đoạn này chỉ chạy khi sếp muốn mở lại Bài A đang nghe dở
         boolean startPlayback = getIntent().getBooleanExtra("start_playback", false);
-        if (startPlayback || AudioPlayerService.getCurrentSongId() == null || !songId.equals(AudioPlayerService.getCurrentSongId())) {
+        if (startPlayback || AudioPlayerService.getCurrentSongId() == null) {
             Intent serviceIntent = new Intent(this, AudioPlayerService.class);
             serviceIntent.setAction(AudioPlayerService.ACTION_PLAY_SONG);
             serviceIntent.putExtra(AudioPlayerService.EXTRA_SONG_ID, songId);
@@ -130,8 +141,6 @@ public class PlayerActivity extends AppCompatActivity {
         }
 
         loadSong(songId);
-
-        // Đã gom hết các nút bấm và thanh cuộn vào hàm này
         setupUIEvents();
     }
 

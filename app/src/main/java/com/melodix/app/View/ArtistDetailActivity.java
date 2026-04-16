@@ -247,7 +247,20 @@ public class ArtistDetailActivity extends AppCompatActivity {
                 Toast.makeText(this,"Bình luận về " + song.getTitle(), LENGTH_SHORT).show();
                 break;
             case "share":
-                ShareUtils.shareSongToFriends(this, song);
+                // 👇 XÓA DÒNG NÀY ĐI 👇
+                // ShareUtils.shareSongToFriends(AlbumDetailActivity.this, song);
+
+                // 👇 THAY BẰNG ĐOẠN NÀY ĐỂ ĐỒNG BỘ VỚI PLAYER ACTIVITY 👇
+                if (song != null && song.getId() != null) {
+                    com.melodix.app.Utils.ShareUtils.shareContent(
+                            ArtistDetailActivity.this,
+                            "song",           // Type là bài hát
+                            song.getId(),     // ID của bài hát người dùng vừa bấm
+                            song.getTitle()   // Tên bài hát
+                    );
+                } else {
+                    Toast.makeText(ArtistDetailActivity.this, "Lỗi dữ liệu bài hát", Toast.LENGTH_SHORT).show();
+                }
                 break;
             case "download":
                 Toast.makeText(this,"Tải xuống " + song.getTitle(), LENGTH_SHORT).show();

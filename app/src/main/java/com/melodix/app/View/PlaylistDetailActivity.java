@@ -368,7 +368,16 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
         bottomSheetView.findViewById(R.id.menu_share).setOnClickListener(v -> {
             // Share bài hát
-            Toast.makeText(this, "Đang chia sẻ...", Toast.LENGTH_SHORT).show();
+            if (playlistSong != null && playlistSong.song != null && playlistSong.song.getId() != null) {
+                com.melodix.app.Utils.ShareUtils.shareContent(
+                        PlaylistDetailActivity.this,
+                        "song",                     // Type là bài hát
+                        playlistSong.song.getId(),  // Lấy ID bài hát
+                        playlistSong.song.getTitle()// Lấy Tên bài hát
+                );
+            } else {
+                Toast.makeText(PlaylistDetailActivity.this, "Lỗi dữ liệu bài hát", Toast.LENGTH_SHORT).show();
+            }
             bottomSheet.dismiss();
         });
 
