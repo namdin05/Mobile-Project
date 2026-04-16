@@ -148,9 +148,20 @@ public class PlayerActivity extends AppCompatActivity {
                 bottomSheet.show(getSupportFragmentManager(), "CommentsBottomSheet");
             }
         });
-      
-        findViewById(R.id.btn_share).setOnClickListener(v -> ShareUtils.shareSongToFriends(this, currentSong));
 
+        findViewById(R.id.btn_share).setOnClickListener(v -> {
+            // Lớp bảo vệ: Chỉ cho share khi đã có dữ liệu bài hát
+            if (currentSong != null && currentSong.getId() != null) {
+                com.melodix.app.Utils.ShareUtils.shareContent(
+                        PlayerActivity.this,
+                        "song",                // Type là bài hát để MainActivity biết đường đón
+                        currentSong.getId(),   // Lấy ID bài hát
+                        currentSong.getTitle() // Lấy Tên bài hát
+                );
+            } else {
+                Toast.makeText(PlayerActivity.this, "Đang tải dữ liệu, vui lòng đợi...", Toast.LENGTH_SHORT).show();
+            }
+        });
 //        findViewById(R.id.btn_lyrics).setOnClickListener(v -> openFullLyrics());
 
 //        findViewById(R.id.btn_speed).setOnClickListener(v -> AppUiUtils.showSpeedDialog(this));
