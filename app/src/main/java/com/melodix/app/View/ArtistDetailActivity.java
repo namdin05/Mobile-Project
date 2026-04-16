@@ -55,6 +55,24 @@ public class ArtistDetailActivity extends AppCompatActivity {
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
 
+        ImageView btnShare = findViewById(R.id.btn_share);
+        btnShare.setOnClickListener(v -> {
+            if(repository != null){
+                TextView tvName = findViewById(R.id.tv_name);
+                String artistName = tvName.getText().toString();
+                com.melodix.app.Utils.ShareUtils.shareContent(
+                        ArtistDetailActivity.this,
+                        "profile",
+                        artistId,
+                        artistName
+                );
+            }else{
+                Toast.makeText(ArtistDetailActivity.this, "Vui lòng đợi tải xong thông tin nghệ sĩ", Toast.LENGTH_SHORT).show();
+
+            }
+
+        });
+
         findViewById(R.id.btn_follow).setOnClickListener(v -> Toast.makeText(this, "Đang phát triển", Toast.LENGTH_SHORT).show());
 
         // ==========================================

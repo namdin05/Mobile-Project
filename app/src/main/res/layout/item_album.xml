@@ -50,7 +50,8 @@
         app:layout_constraintTop_toBottomOf="@id/cv_cover_container"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:text="Midnight Melodies" />
+        tools:text="Midnight Melodies"
+        />
 
     <TextView
         android:id="@+id/tv_album_artist"

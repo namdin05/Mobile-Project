@@ -21,10 +21,27 @@
 
         <activity
             android:name=".MainActivity"
-            android:exported="false"
+            android:exported="true"
+            android:launchMode="singleTask"
             tools:ignore="AppLinkUrlError">
-        </activity>
 
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https"
+                    android:host="giabaocode.github.io"
+                    android:pathPrefix="/melodix-redirect" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="melodix" android:host="redirect" />
+            </intent-filter>
+
+        </activity>
         <activity
             android:name=".PlayerActivity"
             android:exported="true">
@@ -70,10 +87,9 @@
         <activity android:name=".View.PlaylistDetailActivity" android:exported="false" />
 
         <activity android:name=".View.auth.RegisterActivity" />
-        <activity android:name=".ArtistActivity" />
         <activity android:name=".View.artist.UploadSongActivity" />
 
-        <activity android:name=".AdminActivity" />"
+        <activity android:name=".AdminActivity" />
 
         <activity android:name=".View.profile.AdminProfileActivity"
                   android:exported="false"/>
@@ -85,6 +101,9 @@
         <activity android:name=".View.artist.ManageAlbumActivity" />
         <activity android:name=".View.artist.ManageAlbumDetailActivity" />
         <activity android:name=".View.artist.ArtistAnalyticsActivity" />
+        <activity
+            android:name=".View.profile.UserProfileActivity"
+            android:exported="false" />
       
         <service
             android:name=".Service.firebase.MessageService"

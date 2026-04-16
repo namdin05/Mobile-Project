@@ -88,7 +88,21 @@ public class AccountFragment extends Fragment {
             }
         });
 
+// Sự kiện click nút Chia sẻ Profile
+        view.findViewById(R.id.btn_share_profile).setOnClickListener(v -> {
+            // Lấy ID và Tên của user hiện tại từ SessionManager
+            com.melodix.app.Model.Profile currentUser = com.melodix.app.Model.SessionManager.getInstance(requireContext()).getCurrentUser();
 
+            if (currentUser != null && currentUser.getId() != null) {
+                String myId = currentUser.getId();
+                String myName = currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "Người dùng";
+
+                // Gọi "Máy in thiệp" từ ShareUtils
+                com.melodix.app.Utils.ShareUtils.shareContent(requireContext(), "user", myId, myName);
+            } else {
+                android.widget.Toast.makeText(requireContext(), "Chưa tải xong dữ liệu tài khoản", android.widget.Toast.LENGTH_SHORT).show();
+            }
+        });
         return view;
     }
 

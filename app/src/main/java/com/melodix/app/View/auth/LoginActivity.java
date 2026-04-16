@@ -11,11 +11,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.melodix.app.AdminActivity;
-import com.melodix.app.ArtistActivity;
 import com.melodix.app.BuildConfig;
 import com.melodix.app.MainActivity;
 import com.melodix.app.R;

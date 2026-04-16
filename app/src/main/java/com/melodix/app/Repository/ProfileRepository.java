@@ -20,7 +20,7 @@ public class ProfileRepository {
     private final MutableLiveData<List<Profile>> _profiles = new MutableLiveData<>();
     public LiveData<List<Profile>> profiles = _profiles;
 
-    private ProfileRepository() {
+    public ProfileRepository() {
         profileAPIService = RetrofitClient.getClient().create(ProfileAPIService.class);
         fetchAllProfiles();
     }
@@ -46,9 +46,11 @@ public class ProfileRepository {
             }
         });
     }
-
-
-
-
-
+    public void getProfileById(String userId, Callback<List<Profile>> callback) {
+        profileAPIService.getProfileById(
+                BuildConfig.API_KEY,
+                "Bearer " + BuildConfig.API_KEY,
+                "eq." + userId // Ghép đúng định dạng API yêu cầu
+        ).enqueue(callback);
+    }
 }

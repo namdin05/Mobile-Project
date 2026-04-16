@@ -1,5 +1,6 @@
 package com.melodix.app.View;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -24,7 +25,7 @@ import com.melodix.app.Model.Song;
 import com.melodix.app.R;
 import com.melodix.app.Repository.PlaylistRepository;
 import com.melodix.app.View.adapters.PlaylistSongAdapter;
-import com.melodix.app.View.dialogs.EditPlaylistDialog;   // ← Import dialog mới
+import com.melodix.app.View.dialogs.EditPlaylistDialog;
 import com.melodix.app.Utils.PlaybackUtils;
 
 import java.util.ArrayList;
@@ -81,7 +82,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
         initViews();
         loadPlaylistData();
-        setupDragAndDrop();
+        // KHÔNG gọi setupDragAndDrop() ở đây nữa để đợi dữ liệu mạng load xong
         setupMoreMenu();
     }
 
@@ -109,6 +110,11 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                 });
 
         rvSongs.setAdapter(songAdapter);
+
+        View btnAddSong = findViewById(R.id.btn_add_song);
+        if(btnAddSong != null){
+            btnAddSong.setVisibility(View.GONE);
+        }
     }
 
     private void setupMoreMenu() {
@@ -120,6 +126,17 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(this, findViewById(R.id.btn_more));
         popup.getMenuInflater().inflate(R.menu.menu_playlist_options, popup.getMenu());
 
+        // Lớp giáp bảo vệ: Lấy User an toàn
+        com.melodix.app.Model.Profile currentUser = com.melodix.app.Model.SessionManager.getInstance(this).getCurrentUser();
+        String myId = (currentUser != null) ? currentUser.getId() : "";
+        boolean isOwner = currentPlaylist != null && myId.equals(currentPlaylist.ownerUserId);
+
+        if (!isOwner) {
+            // Nếu là khách -> Xóa tính năng sửa/xóa, chỉ để lại Chia sẻ
+            popup.getMenu().removeItem(R.id.action_edit);
+            popup.getMenu().removeItem(R.id.action_delete);
+        }
+
         popup.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
             if (id == R.id.action_edit) {
@@ -127,6 +144,11 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                 return true;
             } else if (id == R.id.action_delete) {
                 showDeleteConfirmationDialog();
+                return true;
+            } else if (id == R.id.action_share) {
+                if (currentPlaylist != null) {
+                    com.melodix.app.Utils.ShareUtils.shareContent(PlaylistDetailActivity.this, "playlist", playlistId, currentPlaylist.name);
+                }
                 return true;
             }
             return false;
@@ -153,6 +175,17 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                                     .placeholder(R.drawable.ic_music_placeholder)
                                     .into(imgCover);
                         }
+
+                        // Kích hoạt kéo thả SAU KHI đã biết ai là chủ playlist
+                        setupDragAndDrop();
+
+                        com.melodix.app.Model.Profile currentUser = com.melodix.app.Model.SessionManager.getInstance(PlaylistDetailActivity.this).getCurrentUser();
+                        String myId = (currentUser != null) ? currentUser.getId() : "";
+                        boolean isOwner = currentPlaylist != null && myId.equals(currentPlaylist.ownerUserId);
+                        View btnAddSong = findViewById(R.id.btn_add_song);
+                        if(btnAddSong != null && isOwner){
+                            btnAddSong.setVisibility(View.VISIBLE);
+                        }
                     });
                 }
             }
@@ -176,6 +209,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
                     for (PlaylistSong ps : loaded) {
                         if (ps != null && ps.song != null) {
+                            ps.song.artistName = ps.artistname; // Đắp thêm tên nghệ sĩ để fix lỗi null trên Player
                             playlistSongList.add(ps);
                             songListForPlayback.add(ps.song);
                         }
@@ -219,6 +253,12 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
     // Drag and drop song in playlist
     private void setupDragAndDrop() {
+        // Lớp giáp an toàn: Chỉ chủ sở hữu mới có quyền kéo thả
+        com.melodix.app.Model.Profile currentUser = com.melodix.app.Model.SessionManager.getInstance(this).getCurrentUser();
+        if (currentUser == null || currentPlaylist == null || !currentUser.getId().equals(currentPlaylist.ownerUserId)) {
+            return;
+        }
+
         ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(
                 ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
 
@@ -261,7 +301,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         new ItemTouchHelper(callback).attachToRecyclerView(rvSongs);
     }
 
-    //Lưu thứ tự mới vào database
+    // Lưu thứ tự mới vào database
     private void saveNewOrderToDatabase() {
         if (playlistSongList == null || playlistSongList.isEmpty()) return;
 
@@ -337,16 +377,26 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             bottomSheet.dismiss();
         });
 
-        // Xóa khỏi playlist hiện tại
+        // Xóa khỏi playlist hiện tại (Đã fix lỗi lặp code và thêm check chủ sở hữu)
         TextView menuRemove = bottomSheetView.findViewById(R.id.menu_remove_playlist);
-        menuRemove.setVisibility(View.VISIBLE);
-        menuRemove.setOnClickListener(v -> {
-            removeSongFromCurrentPlaylist(playlistSong, position);
-            bottomSheet.dismiss();
-        });
+
+        com.melodix.app.Model.Profile currentUser = com.melodix.app.Model.SessionManager.getInstance(this).getCurrentUser();
+        String myId = (currentUser != null) ? currentUser.getId() : "";
+        boolean isOwner = currentPlaylist != null && myId.equals(currentPlaylist.ownerUserId);
+
+        if (isOwner) {
+            menuRemove.setVisibility(View.VISIBLE); // Chỉ chủ mới thấy nút Xóa bài
+            menuRemove.setOnClickListener(v -> {
+                removeSongFromCurrentPlaylist(playlistSong, position);
+                bottomSheet.dismiss();
+            });
+        } else {
+            menuRemove.setVisibility(View.GONE); // Khách thì ẩn đi
+        }
 
         bottomSheet.show();
     }
+
     private void removeSongFromCurrentPlaylist(PlaylistSong playlistSong, int position) {
         if (playlistSong == null || playlistSong.song == null) return;
 
@@ -375,7 +425,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                     }
                 });
     }
-
 
     // Edit playlist
     private void showEditPlaylistDialog() {

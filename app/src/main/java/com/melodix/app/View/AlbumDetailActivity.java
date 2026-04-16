@@ -47,6 +47,24 @@ public class AlbumDetailActivity extends AppCompatActivity {
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
         tvTrackCount = findViewById(R.id.tv_track_count);
 
+        ImageView btnShare = findViewById(R.id.btn_share);
+        btnShare.setOnClickListener(v ->{
+            if(repository != null){
+                TextView tvTitle = findViewById(R.id.tv_title);
+                String albumName = tvTitle.getText().toString();
+                if (!albumName.equals("Đang tải:....")){
+                    com.melodix.app.Utils.ShareUtils.shareContent(
+                            AlbumDetailActivity.this,
+                            "album",
+                            albumId,
+                            albumName
+                    );
+                }else{
+                    Toast.makeText(AlbumDetailActivity.this, "Vui lòng đợi tải xong thông tin album", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
         // 1. Cài đặt RecyclerView cho Track List
         rvTracks = findViewById(R.id.rv_tracks);
         rvTracks.setLayoutManager(new LinearLayoutManager(this));
