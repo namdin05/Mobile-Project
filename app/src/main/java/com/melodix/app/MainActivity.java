@@ -367,7 +367,14 @@ public class MainActivity extends AppCompatActivity {
                         case "profile": // Dành cho Nghệ sĩ
                             nextIntent = new android.content.Intent(this, com.melodix.app.View.ArtistDetailActivity.class);
                             nextIntent.putExtra(com.melodix.app.View.ArtistDetailActivity.EXTRA_ARTIST_ID, id);
-                            break;                    }
+                            break;
+                        case "song":
+                            nextIntent = new android.content.Intent(this, com.melodix.app.PlayerActivity.class);
+                            nextIntent.putExtra(com.melodix.app.PlayerActivity.EXTRA_SONG_ID, id);
+                            // Có thể cần thêm cờ để tự động Play luôn
+                            nextIntent.putExtra("start_playback", true);
+                            break;
+                    }
 
                     if (nextIntent != null) {
                         startActivity(nextIntent);
