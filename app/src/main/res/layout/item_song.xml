@@ -21,13 +21,15 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
         android:layout_weight="1"
         android:orientation="vertical">
 
         <TextView
             android:id="@+id/tv_title"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
             android:maxLines="1"
             android:text="Song title"
             android:textColor="@color/mdx_text"
@@ -36,8 +38,9 @@
 
         <TextView
             android:id="@+id/tv_subtitle"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
             android:maxLines="1"
             android:text="Artist • Genre"
             android:textColor="@color/mdx_text_secondary"
@@ -50,7 +53,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:text="3:45"
-        android:textColor="@color/mdx_text_muted" />
+        android:textColor="@color/mdx_text_secondary" />
 
     <ImageButton
         android:id="@+id/btn_more"
@@ -60,5 +63,5 @@
         app:srcCompat="@drawable/ic_more"
         android:scaleType="centerInside"
         android:padding="8dp"
-        app:tint="#000000"/>
+        app:tint="@color/mdx_text_secondary"/>
 </LinearLayout>

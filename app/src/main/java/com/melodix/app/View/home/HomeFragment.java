@@ -134,7 +134,11 @@ public class HomeFragment extends Fragment {
             GenreAdapter genreAdapter = new GenreAdapter(requireContext(), genres, new GenreAdapter.OnGenreClickListener() {
                 @Override
                 public void onGenreClick(Genre genre) {
-                    Toast.makeText(requireContext(), genre.getName(), LENGTH_LONG).show();
+                    requireActivity().getSupportFragmentManager().beginTransaction()
+                            .setCustomAnimations(R.anim.slide_in_right, 0, 0, R.anim.slide_out_right)
+                            .add(R.id.main_fragment_container, GenreDetailFragment.newInstance(genre.getId(), genre.getName()))
+                            .addToBackStack(null)
+                            .commit();
                 }
             });
             // set layout
@@ -145,15 +149,20 @@ public class HomeFragment extends Fragment {
 
         // xu li logic view all genres
         btnViewAllGenres.setOnClickListener(v -> {
+//            requireActivity().getSupportFragmentManager().beginTransaction()
+//                    .setCustomAnimations(
+//                            R.anim.slide_in_right,  // Màn AllGenres lướt vào
+//                            0,                      // Màn Home đứng im
+//                            0,                      // (Bấm Back) Màn Home đứng im
+//                            R.anim.slide_out_right  // (Bấm Back) Màn AllGenres lướt ra
+//                    ) // goi truoc add de k bi skip
+//                    .add(R.id.main_fragment_container, new AllGenresFragment()) // nen xai add de home ko bi trang xoa
+//                    .addToBackStack(null) // null thi chi quay ve 1 nac
+//                    .commit();
             requireActivity().getSupportFragmentManager().beginTransaction()
-                    .setCustomAnimations(
-                            R.anim.slide_in_right,  // Màn AllGenres lướt vào
-                            0,                      // Màn Home đứng im
-                            0,                      // (Bấm Back) Màn Home đứng im
-                            R.anim.slide_out_right  // (Bấm Back) Màn AllGenres lướt ra
-                    ) // goi truoc add de k bi skip
-                    .add(R.id.main_fragment_container, new AllGenresFragment()) // nen xai add de home ko bi trang xoa
-                    .addToBackStack(null) // null thi chi quay ve 1 nac
+                    .setCustomAnimations(R.anim.slide_in_right, 0, 0, R.anim.slide_out_right)
+                    .add(R.id.main_fragment_container, new AllGenresFragment())
+                    .addToBackStack(null)
                     .commit();
         });
 

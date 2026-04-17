@@ -3,6 +3,8 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/bg_screen"
+    android:clickable="true"
+    android:focusable="true"
     android:elevation="16dp">
 
     <LinearLayout

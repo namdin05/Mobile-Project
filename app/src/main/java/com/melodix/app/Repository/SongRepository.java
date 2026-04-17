@@ -33,7 +33,44 @@ public class SongRepository {
     public SongRepository() {
         songAPIService = RetrofitClient.getClient().create(SongAPIService.class);
     }
+    public androidx.lifecycle.LiveData<List<Song>> fetchSongsByGenre(int genreId) {
+        androidx.lifecycle.MutableLiveData<List<Song>> liveData = new androidx.lifecycle.MutableLiveData<>();
 
+        java.util.Map<String, Integer> body = new java.util.HashMap<>();
+        body.put("p_genre_id", genreId);
+
+        // 1. Khai báo đủ 2 loại Key
+        String apiKey = BuildConfig.SERVICE_KEY;
+        String authHeader = "Bearer " + apiKey;
+
+        // 2. Gọi hàm và truyền đủ 3 tham số (apiKey, authHeader, body)
+        songAPIService.getSongsByGenre(apiKey, authHeader, body).enqueue(new retrofit2.Callback<List<Song>>() {
+            @Override
+            public void onResponse(retrofit2.Call<List<Song>> call, retrofit2.Response<List<Song>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // MÁY QUAY 1: Xem API trả về bao nhiêu bài
+                    android.util.Log.d("DEBUG_API", "Thành công! Supabase trả về: " + response.body().size() + " bài hát.");
+                    liveData.setValue(response.body());
+                } else {
+                    liveData.setValue(new java.util.ArrayList<>());
+                    try {
+                        String errorDetail = response.errorBody() != null ? response.errorBody().string() : "Trống";
+                        android.util.Log.e("DEBUG_API", "Lỗi: " + response.code() + " - " + errorDetail);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<List<Song>> call, Throwable t) {
+                liveData.setValue(new java.util.ArrayList<>());
+                android.util.Log.e("API_ERROR", "Lỗi mạng: " + t.getMessage());
+            }
+        });
+
+        return liveData;
+    }
     public MutableLiveData<List<Song>> fetchAllSongs(){
         MutableLiveData<List<Song>> songs = new MutableLiveData<>();
 
