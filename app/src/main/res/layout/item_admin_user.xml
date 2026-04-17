@@ -6,71 +6,69 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="20dp"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="@color/melodix_card_bg"
+    app:cardBackgroundColor="@color/mdx_card"
     app:cardCornerRadius="16dp"
     app:strokeWidth="1dp"
-    app:strokeColor="#213028">
+    app:strokeColor="@color/mdx_line"> <androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/imgAvatar"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/ic_person"
+        app:shapeAppearanceOverlay="@style/RoundedSquare"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvUserName"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:layout_marginStart="12dp"
+        android:text="Nguyen Van A"
+        android:textColor="@color/mdx_text"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@+id/imgAvatar"
+        app:layout_constraintTop_toTopOf="@+id/imgAvatar" />
 
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/imgAvatar"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:src="@drawable/ic_person"
-            app:shapeAppearanceOverlay="@style/RoundedSquare"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/tvUserRole"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Artist"
+        android:textColor="@color/mdx_primary"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="@+id/tvUserName"
+        app:layout_constraintTop_toBottomOf="@+id/tvUserName" />
 
-        <TextView
-            android:id="@+id/tvUserName"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="Nguyen Van A"
-            android:textColor="@color/melodix_text_primary"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toEndOf="@+id/imgAvatar"
-            app:layout_constraintTop_toTopOf="@+id/imgAvatar" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnBan"
+        style="@style/Widget.Material3.Button.IconButton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        app:icon="@drawable/ic_close"
+        app:iconTint="@color/white"
+        app:backgroundTint="@color/mdx_danger"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-        <TextView
-            android:id="@+id/tvUserRole"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Artist"
-            android:textColor="@color/melodix_accent_green"
-            android:textSize="12sp"
-            app:layout_constraintStart_toStartOf="@+id/tvUserName"
-            app:layout_constraintTop_toBottomOf="@+id/tvUserName" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDetails"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_marginEnd="8dp"
+        android:text="Details"
+        android:textColor="@color/mdx_text_secondary"
+        app:backgroundTint="@color/mdx_chip"
+        app:cornerRadius="8dp"
+        app:layout_constraintEnd_toStartOf="@+id/btnBan"
+        app:layout_constraintTop_toTopOf="@+id/btnBan"
+        app:layout_constraintBottom_toBottomOf="@+id/btnBan"/>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnBan"
-            style="@style/Widget.Material3.Button.IconButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            app:icon="@drawable/ic_close"
-            app:iconTint="@color/melodix_bg_dark"
-            app:backgroundTint="@color/melodix_danger"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnDetails"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginEnd="8dp"
-            android:text="Details"
-            android:textColor="@color/melodix_text_secondary"
-            app:backgroundTint="#1F2E27"
-            app:cornerRadius="8dp"
-            app:layout_constraintEnd_toStartOf="@+id/btnBan"
-            app:layout_constraintTop_toTopOf="@+id/btnBan"
-            app:layout_constraintBottom_toBottomOf="@+id/btnBan"/>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</com.google.android.material.card.MaterialCardView>
+</androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>

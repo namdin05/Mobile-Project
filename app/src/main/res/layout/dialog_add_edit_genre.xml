@@ -5,29 +5,27 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="24dp"
-    android:background="@color/melodix_card_bg">
-
-    <TextView
-        android:id="@+id/tvDialogTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Add Genre"
-        android:textColor="@color/melodix_text_primary"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+    android:background="@color/mdx_surface"> <TextView
+    android:id="@+id/tvDialogTitle"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Add Genre"
+    android:textColor="@color/mdx_text"
+    android:textSize="20sp"
+    android:textStyle="bold" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:hint="Genre Name"
-        app:boxStrokeColor="@color/melodix_accent_green"
-        app:hintTextColor="@color/melodix_accent_green">
+        app:boxStrokeColor="@color/mdx_primary"
+        app:hintTextColor="@color/mdx_primary">
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edtGenreName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/melodix_text_primary" />
+            android:textColor="@color/mdx_text" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <LinearLayout
@@ -44,7 +42,7 @@
             android:scaleType="centerCrop"
             android:src="@drawable/ic_music_note"
             app:shapeAppearanceOverlay="@style/CornerSize10Percent"
-            app:strokeColor="@color/melodix_accent_green"
+            app:strokeColor="@color/mdx_primary"
             app:strokeWidth="1dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -54,9 +52,9 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:text="Select Cover"
-            android:textColor="@color/melodix_accent_green"
+            android:textColor="@color/mdx_primary"
             app:icon="@drawable/ic_camera"
-            app:iconTint="@color/melodix_accent_green" />
+            app:iconTint="@color/mdx_primary" />
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
@@ -65,6 +63,6 @@
         android:layout_height="56dp"
         android:layout_marginTop="24dp"
         android:text="Save"
-        android:textColor="@color/melodix_bg_dark"
-        app:backgroundTint="@color/melodix_accent_green" />
+        android:textColor="@color/white"
+        app:backgroundTint="@color/mdx_primary" />
 </LinearLayout>

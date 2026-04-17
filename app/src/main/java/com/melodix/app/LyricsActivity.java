@@ -56,7 +56,7 @@ public class LyricsActivity extends AppCompatActivity {
         }
         playbackRepository = PlaybackRepository.getInstance();
         appRepository = AppRepository.getInstance(this);
-        ThemeUtils.applyNightMode(appRepository.getCurrentUser() == null || appRepository.getCurrentUser().darkMode);
+//        ThemeUtils.applyNightMode(appRepository.getCurrentUser() == null || appRepository.getCurrentUser().darkMode);
         super.onCreate(savedInstanceState);
 
         // Đảm bảo tên layout này khớp với file xml của bạn (ví dụ: activity_lyrics)

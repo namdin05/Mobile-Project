@@ -1,6 +1,8 @@
 package com.melodix.app.View.fragments;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,14 +15,13 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 
-import com.melodix.app.Model.AppUser;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
-import com.melodix.app.Utils.ResourceUtils;
+import com.melodix.app.Utils.AppUiUtils;
 import com.melodix.app.View.artist.ManageSongActivity;
-import com.melodix.app.View.artist.UploadSongActivity;
 
 public class AccountFragment extends Fragment {
     private AppRepository repository;
@@ -28,11 +29,13 @@ public class AccountFragment extends Fragment {
     private TextView name;
     private TextView headline;
     private Switch dark;
-
-    // FIX LỖI CRASH Ở ĐÂY: Đổi từ MaterialCardView thành LinearLayout (hoặc View)
     private LinearLayout cardArtistCenter;
-
     private LinearLayout btnArtistUpload, btnArtistAlbums, btnArtistStats;
+
+    // Khai báo SharedPreferences để lưu cấu hình Dark Mode
+    private SharedPreferences sharedPreferences;
+    private static final String PREF_NAME = "MelodixSettings";
+    private static final String KEY_DARK_MODE = "dark_mode_enabled";
 
     @Nullable
     @Override
@@ -40,54 +43,64 @@ public class AccountFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_account, container, false);
         repository = AppRepository.getInstance(requireContext());
+        sharedPreferences = requireContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
 
         avatar = view.findViewById(R.id.img_avatar);
         name = view.findViewById(R.id.tv_name);
         headline = view.findViewById(R.id.tv_headline);
-        dark = view.findViewById(R.id.switch_dark_mode);
 
-        // Ánh xạ Artist Center
         cardArtistCenter = view.findViewById(R.id.card_artist_center);
         btnArtistUpload = view.findViewById(R.id.btn_artist_upload);
         btnArtistAlbums = view.findViewById(R.id.btn_artist_albums);
         btnArtistStats = view.findViewById(R.id.btn_artist_stats);
 
+        // ==========================================
+        // 1. TÍNH NĂNG DARK MODE
+        // ==========================================
+        dark = view.findViewById(R.id.switch_dark_mode);
+
+        // Đọc trạng thái lưu trước đó để hiển thị công tắc cho đúng
+        boolean isDarkMode = sharedPreferences.getBoolean(KEY_DARK_MODE, false);
+        dark.setChecked(isDarkMode);
+
         dark.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (buttonView.isPressed()) {
-                if (isChecked) {
-                    androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES);
-                } else {
-                    androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
-                }
+            // Lưu lựa chọn vào bộ nhớ thiết bị
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(KEY_DARK_MODE, isChecked);
+            editor.apply();
+
+            // Áp dụng theme ngay lập tức
+            if (isChecked) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             }
         });
 
-        // Bắt sự kiện click cho các nút của Artist
-        btnArtistUpload.setOnClickListener(v -> {
-            startActivity(new Intent(getContext(), ManageSongActivity.class));        });
-
-        btnArtistAlbums.setOnClickListener(v -> {
-            // Mở trang Tạo Album
-            startActivity(new Intent(requireContext(), com.melodix.app.View.artist.CreateAlbumActivity.class));
+        // ==========================================
+        // 2. TÍNH NĂNG TỐC ĐỘ (SPEED) & HẸN GIỜ (SLEEP TIMER)
+        // ==========================================
+        view.findViewById(R.id.btn_speed).setOnClickListener(v -> {
+            AppUiUtils.showSpeedDialog(requireContext());
         });
 
+        view.findViewById(R.id.btn_sleep_timer).setOnClickListener(v -> {
+            AppUiUtils.showSleepTimerDialog(requireContext());
+        });
+
+        // Các nút của Artist Center
+        btnArtistUpload.setOnClickListener(v -> startActivity(new Intent(getContext(), ManageSongActivity.class)));
+        btnArtistAlbums.setOnClickListener(v -> startActivity(new Intent(requireContext(), com.melodix.app.View.artist.CreateAlbumActivity.class)));
         btnArtistStats.setOnClickListener(v -> {
-            // Lấy user hiện tại từ Session
             com.melodix.app.Model.Profile realUser = com.melodix.app.Model.SessionManager.getInstance(requireContext()).getCurrentUser();
-
             if (realUser != null && realUser.getId() != null) {
-                // Mở màn hình Thống kê và truyền ID vào
                 Intent intent = new Intent(requireContext(), com.melodix.app.View.artist.ArtistAnalyticsActivity.class);
-
-                // ĐÃ FIX: Sửa Arti thành ArtistAnalyticsActivity
                 intent.putExtra(com.melodix.app.View.artist.ArtistAnalyticsActivity.EXTRA_ARTIST_ID, realUser.getId());
-
                 startActivity(intent);
             } else {
                 Toast.makeText(requireContext(), "Lỗi: Không tìm thấy dữ liệu Nghệ sĩ", Toast.LENGTH_SHORT).show();
             }
         });
-
 
         return view;
     }
@@ -95,16 +108,12 @@ public class AccountFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-
-        // 1. LẤY USER THẬT TỪ SESSION MANAGER (Không dùng AppRepository MockData nữa)
         com.melodix.app.Model.Profile realUser = com.melodix.app.Model.SessionManager.getInstance(requireContext()).getCurrentUser();
 
         if (realUser != null) {
-            // 2. Cập nhật Tên
             name.setText(realUser.getDisplayName());
-            headline.setText("Thành viên Melodix"); // Bảng Profile thật không có headline, mình gán chữ mặc định
+            headline.setText("Thành viên Melodix");
 
-            // 3. Load Avatar thật bằng Glide
             if (realUser.getAvatarUrl() != null && !realUser.getAvatarUrl().isEmpty()) {
                 com.bumptech.glide.Glide.with(requireContext())
                         .load(realUser.getAvatarUrl())
@@ -112,10 +121,7 @@ public class AccountFragment extends Fragment {
                         .into(avatar);
             }
 
-            // 4. KIỂM TRA ROLE VÀ HIỂN THỊ ARTIST CENTER
             String role = realUser.getRole();
-            android.util.Log.d("ACCOUNT_ROLE", "Role hiện tại là: " + role); // In ra Logcat để kiểm tra
-
             if ("artist".equalsIgnoreCase(role)) {
                 cardArtistCenter.setVisibility(View.VISIBLE);
             } else {
@@ -123,5 +129,4 @@ public class AccountFragment extends Fragment {
             }
         }
     }
-
 }

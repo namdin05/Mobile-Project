@@ -1,14 +1,12 @@
 package com.melodix.app;
 
-import static android.widget.Toast.LENGTH_SHORT;
-
 import android.Manifest;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -18,17 +16,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
@@ -40,11 +33,9 @@ import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Repository.PlaybackRepository;
 import com.melodix.app.Service.AudioPlayerService;
 import com.melodix.app.Utils.PlaybackUtils;
-import com.melodix.app.Utils.ResourceUtils;
 import com.melodix.app.View.fragments.AccountFragment;
 import com.melodix.app.View.fragments.LibraryFragment;
 import com.melodix.app.View.fragments.SearchFragment;
-import com.melodix.app.View.home.AllGenresFragment;
 import com.melodix.app.View.home.HomeFragment;
 
 import java.util.HashMap;
@@ -57,12 +48,15 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
     private int currentTabId = R.id.nav_home;
     private AppRepository repository;
-    // tao het cac fragment cung luc ngay khi vao app de cac fragment ko bi load lai moi khi chuyen tab
-    final Fragment homeFragment = new HomeFragment();
-    final Fragment searchFragment = new SearchFragment();
 
-    final Fragment libraryFragment = new LibraryFragment();
-    final Fragment accountFragment = new AccountFragment();
+    // Quản lý Fragment
+    private Fragment homeFragment;
+    private Fragment searchFragment;
+    private Fragment libraryFragment;
+    private Fragment accountFragment;
+    private Fragment activeFragment;
+
+    // Quản lý Mini Player
     private LinearLayout miniPlayer;
     private ImageView miniCover;
     private TextView miniTitle;
@@ -73,15 +67,12 @@ public class MainActivity extends AppCompatActivity {
     private final Runnable miniPlayerWatcher = new Runnable() {
         @Override
         public void run() {
-            // Liên tục soi trạng thái nhạc để đổi icon
             if (miniPlayer != null && miniPlayer.getVisibility() == android.view.View.VISIBLE) {
                 miniPlayPause.setImageResource(AudioPlayerService.isPlaying() ? R.drawable.ic_pause : R.drawable.ic_play);
             }
-            mainHandler.postDelayed(this, 500); // Nửa giây soi 1 lần
+            mainHandler.postDelayed(this, 500);
         }
     };
-
-    Fragment activeFragment = homeFragment;
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -96,33 +87,56 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // --- 1. CHỐT DARK MODE TRƯỚC KHI VẼ MÀN HÌNH ---
+        android.content.SharedPreferences prefs = getSharedPreferences("MelodixSettings", MODE_PRIVATE);
+        boolean isDarkMode = prefs.getBoolean("dark_mode_enabled", false);
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(isDarkMode ?
+                androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES :
+                androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
+
         super.onCreate(savedInstanceState);
-//        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        repository = AppRepository.getInstance(this);
 
         askNotificationPermission();
-
         fetchAndSaveFCMToken();
 
+        // --- 2. XỬ LÝ FRAGMENT CHỐNG LỖI DARK MODE ---
+        if (savedInstanceState == null) {
+            // Lần MỞ APP ĐẦU TIÊN: Tạo mới toàn bộ
+            homeFragment = new HomeFragment();
+            searchFragment = new SearchFragment();
+            libraryFragment = new LibraryFragment();
+            accountFragment = new AccountFragment();
 
-//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-//            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-//            return insets;
-//        });
-        repository = AppRepository.getInstance(this);
-        if(savedInstanceState == null){
-            // 1 lan tao het cac fragment, an nhung fragment k xai di
-            getSupportFragmentManager().beginTransaction().add(R.id.main_fragment_container, homeFragment)
-                    .add(R.id.main_fragment_container, searchFragment).hide(searchFragment)
-                    .add(R.id.main_fragment_container, libraryFragment).hide(libraryFragment)
-                    .add(R.id.main_fragment_container, accountFragment).hide(accountFragment)
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.main_fragment_container, homeFragment, "HOME")
+                    .add(R.id.main_fragment_container, searchFragment, "SEARCH").hide(searchFragment)
+                    .add(R.id.main_fragment_container, libraryFragment, "LIB").hide(libraryFragment)
+                    .add(R.id.main_fragment_container, accountFragment, "ACC").hide(accountFragment)
                     .commit();
-        }
-        miniPlayer = findViewById(R.id.mini_player_root);
 
-        // Gom tất cả vào bên trong vòng bảo vệ này
+            activeFragment = homeFragment;
+            currentTabId = R.id.nav_home;
+        } else {
+            // LẦN KHỞI ĐỘNG LẠI (Do đổi Dark Mode/Xoay màn hình): Khôi phục bộ nhớ cũ
+            homeFragment = getSupportFragmentManager().findFragmentByTag("HOME");
+            searchFragment = getSupportFragmentManager().findFragmentByTag("SEARCH");
+            libraryFragment = getSupportFragmentManager().findFragmentByTag("LIB");
+            accountFragment = getSupportFragmentManager().findFragmentByTag("ACC");
+
+            // Tìm xem thằng nào đang mở thì gán nó vào active
+            if (!homeFragment.isHidden()) activeFragment = homeFragment;
+            else if (!searchFragment.isHidden()) activeFragment = searchFragment;
+            else if (!libraryFragment.isHidden()) activeFragment = libraryFragment;
+            else if (!accountFragment.isHidden()) activeFragment = accountFragment;
+
+            currentTabId = savedInstanceState.getInt("ACTIVE_TAB", R.id.nav_home);
+        }
+
+        // --- 3. KHỞI TẠO MINI PLAYER ---
+        miniPlayer = findViewById(R.id.mini_player_root);
         if (miniPlayer != null) {
             miniCover = findViewById(R.id.mini_cover);
             miniTitle = findViewById(R.id.mini_title);
@@ -137,44 +151,57 @@ public class MainActivity extends AppCompatActivity {
             });
 
             miniPlayPause.setOnClickListener(v -> {
-                // 1. Đảo ngược icon NGAY LẬP TỨC trên tay người dùng để tạo độ mượt
                 boolean isNowPlaying = !AudioPlayerService.isPlaying();
                 miniPlayPause.setImageResource(isNowPlaying ? R.drawable.ic_pause : R.drawable.ic_play);
-
-                // 2. Gửi lệnh xuống Service xử lý ngầm
                 PlaybackUtils.sendAction(this, AudioPlayerService.ACTION_TOGGLE_PLAY);
             });
-        } else {
-            android.util.Log.e("TEST_MINI", "LỖI TRẦM TRỌNG: KHÔNG TÌM THẤY MINI PLAYER TRONG XML!");
         }
+
+        // --- 4. BẮT SỰ KIỆN CLICK TAB ---
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_nav);
+        // Đồng bộ lại tab đang chọn lỡ như bị Restart
+        bottomNavigationView.setSelectedItemId(currentTabId);
+
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                 Fragment selectedFragment = null;
                 int newTabId = menuItem.getItemId();
                 if(newTabId == currentTabId) return false;
+
                 boolean isMovingRight = (getTabIdx(newTabId) > getTabIdx(currentTabId));
                 int enterAnim = isMovingRight ? R.anim.slide_in_right : R.anim.slide_in_left;
                 int exitAnim = isMovingRight ? R.anim.slide_out_left : R.anim.slide_out_right;
-                if(newTabId == R.id.nav_home){
-                    selectedFragment = homeFragment;
-                } else if(newTabId == R.id.nav_search){
-                    selectedFragment = searchFragment;
-                } else if(newTabId == R.id.nav_library){
-                    selectedFragment = libraryFragment;
-                } else if(newTabId == R.id.nav_account){
-                    selectedFragment = accountFragment;
+
+                if(newTabId == R.id.nav_home) selectedFragment = homeFragment;
+                else if(newTabId == R.id.nav_search) selectedFragment = searchFragment;
+                else if(newTabId == R.id.nav_library) selectedFragment = libraryFragment;
+                else if(newTabId == R.id.nav_account) selectedFragment = accountFragment;
+
+                if (selectedFragment != null) {
+                    getSupportFragmentManager().beginTransaction()
+                            .setCustomAnimations(enterAnim, exitAnim)
+                            .hide(activeFragment)
+                            .show(selectedFragment)
+                            .commit();
+                    currentTabId = newTabId;
+                    activeFragment = selectedFragment;
                 }
-                getSupportFragmentManager().beginTransaction().setCustomAnimations(enterAnim, exitAnim)
-                        .hide(activeFragment).show(selectedFragment).commit();
-                currentTabId = newTabId;
-                activeFragment = selectedFragment;
                 return true;
             }
         });
-
     }
+
+    // ==========================================
+    // LƯU TRẠNG THÁI TRƯỚC KHI BỊ "GIẾT" BỞI DARK MODE
+    // ==========================================
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // Cất id của tab hiện tại vào balo
+        outState.putInt("ACTIVE_TAB", currentTabId);
+    }
+
     private int getTabIdx(int id){
         if (id == R.id.nav_home) return 1;
         if (id == R.id.nav_search) return 2;
@@ -182,26 +209,22 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.nav_account) return 4;
         return 0;
     }
+
     private void updateMiniPlayer() {
         String currentSongId = AudioPlayerService.getCurrentSongId();
-
         if (currentSongId == null) {
             miniPlayer.setVisibility(android.view.View.GONE);
             return;
         }
 
-        // 1. CHỐT CHẶN: Phải lấy bài hát từ PlaybackRepository (đội đang trực tiếp phát nhạc)
         Song song = PlaybackRepository.getInstance().getCurrentSong();
-
         if (song == null) {
             miniPlayer.setVisibility(android.view.View.GONE);
             return;
         }
 
-        // 2. TÌM THẤY RỒI THÌ HIỆN NÓ LÊN
         miniPlayer.setVisibility(android.view.View.VISIBLE);
 
-        // 3. TẢI ẢNH BẰNG GLIDE (Nhớ kiểm tra URL để không bị kẹt)
         if (song.getCoverUrl() != null && !song.getCoverUrl().isEmpty()) {
             com.bumptech.glide.Glide.with(this)
                     .load(song.getCoverUrl())
@@ -212,7 +235,6 @@ public class MainActivity extends AppCompatActivity {
             miniCover.setImageResource(R.drawable.ic_logo);
         }
 
-        // 4. GẮN CHỮ VÀ NÚT BẤM
         miniTitle.setText(song.getTitle());
         miniSubtitle.setText(song.getArtistName());
         miniPlayPause.setImageResource(AudioPlayerService.isPlaying() ? R.drawable.ic_pause : R.drawable.ic_play);
@@ -221,19 +243,17 @@ public class MainActivity extends AppCompatActivity {
     private final BroadcastReceiver stateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            updateMiniPlayer(); // Có thông báo là lập tức cập nhật Mini Player
+            updateMiniPlayer();
         }
     };
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Đăng ký nghe Service
         androidx.core.content.ContextCompat.registerReceiver(this, stateReceiver,
                 new android.content.IntentFilter(AudioPlayerService.ACTION_STATE_CHANGED),
                 androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED);
 
-        // Vừa vuốt lại vào app là phải check xem nhạc có đang chạy ngầm không để hiện lên
         updateMiniPlayer();
         mainHandler.post(miniPlayerWatcher);
     }
@@ -242,22 +262,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         try { unregisterReceiver(stateReceiver); } catch (Exception ignored) {}
-        mainHandler.removeCallbacks(miniPlayerWatcher); // Nghỉ tuần tra để tiết kiệm pin
+        mainHandler.removeCallbacks(miniPlayerWatcher);
     }
-
 
     // ==========================================
     // LOGIC XỬ LÝ PUSH NOTIFICATION (FIREBASE)
     // ==========================================
-
     private void askNotificationPermission() {
-        // Chỉ Android 13 (TIRAMISU) trở lên mới cần xin quyền này
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
-                    PackageManager.PERMISSION_GRANTED) {
-                // Đã có quyền
-            } else {
-                // Hiển thị popup xin quyền
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
             }
         }
@@ -266,16 +279,8 @@ public class MainActivity extends AppCompatActivity {
     private void fetchAndSaveFCMToken() {
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(task -> {
-                    if (!task.isSuccessful()) {
-                        Log.w("MELODIX_FCM", "Lấy FCM Token thất bại", task.getException());
-                        return;
-                    }
-
-                    // Lấy Token thành công
+                    if (!task.isSuccessful()) return;
                     String token = task.getResult();
-                    Log.d("MELODIX_FCM", "Đã lấy được FCM Token: " + token);
-
-                    // Cập nhật lên Supabase
                     updateTokenToServer(token);
                 });
     }
@@ -283,48 +288,18 @@ public class MainActivity extends AppCompatActivity {
     private void updateTokenToServer(String token) {
         SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
         String userId = prefs.getString("USER_ID", "");
-
-        if (userId.isEmpty()) {
-            Log.w("MELODIX_FCM", "Chưa đăng nhập, không lưu Token");
-            return;
-        }
+        if (userId.isEmpty()) return;
 
         ProfileAPIService apiService = RetrofitClient.getClient().create(ProfileAPIService.class);
-
         Map<String, Object> body = new HashMap<>();
         body.put("fcm_token", token);
 
-        // Dùng Service Key như cách bạn đã làm ở AdminActivity
-        String apiKey = BuildConfig.SERVICE_KEY;
-        String authHeader = "Bearer " + BuildConfig.SERVICE_KEY;
-
-        apiService.updateFcmToken(apiKey, authHeader, "eq." + userId, body)
+        apiService.updateFcmToken(BuildConfig.SERVICE_KEY, "Bearer " + BuildConfig.SERVICE_KEY, "eq." + userId, body)
                 .enqueue(new Callback<Void>() {
                     @Override
-                    public void onResponse(Call<Void> call, Response<Void> response) {
-                        if (response.isSuccessful()) {
-                            Log.d("MELODIX_FCM", "Đã lưu Token lên Supabase thành công!");
-                        } else {
-                            try {
-                                // Ép đọc lỗi chi tiết từ Supabase
-                                String errorBody = response.errorBody() != null ? response.errorBody().string() : "Trống";
-                                // Bắt Retrofit khai ra cái link nó vừa gọi
-                                String urlCalled = response.raw().request().url().toString();
-
-                                Log.e("MELODIX_FCM", "Lưu Token thất bại, mã lỗi: " + response.code());
-                                Log.e("MELODIX_FCM", "Chi tiết lỗi từ Server: " + errorBody);
-                                Log.e("MELODIX_FCM", "URL đã gọi: " + urlCalled);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-
+                    public void onResponse(Call<Void> call, Response<Void> response) {}
                     @Override
-                    public void onFailure(Call<Void> call, Throwable t) {
-                        Log.e("MELODIX_FCM", "Lỗi mạng khi lưu Token: " + t.getMessage());
-                    }
+                    public void onFailure(Call<Void> call, Throwable t) {}
                 });
     }
 }
-

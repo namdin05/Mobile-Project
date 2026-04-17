@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/melodix_accent_green_dark"
+    android:background="@color/mdx_bg"
     android:fillViewport="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -19,7 +19,7 @@
             android:layout_marginStart="20dp"
             android:layout_marginTop="24dp"
             android:text="Latest Update"
-            android:textColor="@color/melodix_text_primary"
+            android:textColor="@color/mdx_text"
             android:textSize="22sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
             android:text="Last sync: 2 mins ago"
-            android:textColor="@color/melodix_text_secondary"
+            android:textColor="@color/mdx_text_secondary"
             android:textSize="12sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvHeader" />
@@ -118,7 +118,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
             android:layout_marginTop="16dp"
-            app:cardBackgroundColor="@color/melodix_card_bg"
+            app:cardBackgroundColor="@color/mdx_card"
             app:cardCornerRadius="16dp"
             app:strokeWidth="0dp"
             app:layout_constraintTop_toBottomOf="@id/glDashboard">
@@ -133,7 +133,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="System Insights"
-                    android:textColor="@color/melodix_accent_green"
+                    android:textColor="@color/mdx_primary"
                     android:textStyle="bold"
                     android:textSize="16sp"/>
 
@@ -141,7 +141,7 @@
                     android:layout_width="40dp"
                     android:layout_height="2dp"
                     android:layout_marginTop="4dp"
-                    android:background="@color/melodix_accent_green"/>
+                    android:background="@color/mdx_primary"/>
 
                 <TextView
                     android:id="@+id/tvAppStats"
@@ -150,7 +150,7 @@
                     android:layout_marginTop="16dp"
                     android:lineSpacingExtra="6dp"
                     android:text="• Total Streams: 4,502,310\n• Active Sessions: 128 users\n• Server Status: Operational (99.9%)\n• Database: PostgreSQL (Supabase)\n• AI Summaries Generated: 1,240"
-                    android:textColor="@color/melodix_text_secondary"
+                    android:textColor="@color/mdx_text_secondary"
                     android:textSize="14sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

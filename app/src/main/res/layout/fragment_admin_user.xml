@@ -4,14 +4,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/melodix_bg_dark">
+    android:background="@color/mdx_bg">
 
     <TextView
         android:id="@+id/tvPageTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="User Management"
-        android:textColor="@color/melodix_text_primary"
+        android:textColor="@color/mdx_text"
         android:textSize="24sp"
         android:textStyle="bold"
         android:layout_marginTop="32dp"
@@ -39,8 +39,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:text="All"
-                android:textColor="@color/melodix_bg_dark"
-                app:backgroundTint="@color/melodix_accent_green"
+                android:textColor="@color/white"
+                app:backgroundTint="@color/mdx_primary"
                 app:cornerRadius="20dp"
                 android:layout_marginEnd="8dp"/>
 
@@ -49,8 +49,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:text="Users"
-                android:textColor="@color/melodix_text_secondary"
-                app:backgroundTint="@color/melodix_card_bg"
+                android:textColor="@color/mdx_text_secondary"
+                app:backgroundTint="@color/mdx_chip"
                 app:cornerRadius="20dp"
                 android:layout_marginEnd="8dp"/>
 
@@ -59,8 +59,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:text="Artists"
-                android:textColor="@color/melodix_text_secondary"
-                app:backgroundTint="@color/melodix_card_bg"
+                android:textColor="@color/mdx_text_secondary"
+                app:backgroundTint="@color/mdx_chip"
                 app:cornerRadius="20dp"
                 android:layout_marginEnd="8dp"/>
         </LinearLayout>

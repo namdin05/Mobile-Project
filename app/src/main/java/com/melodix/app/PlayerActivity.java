@@ -87,7 +87,7 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         repository = AppRepository.getInstance(this);
-        ThemeUtils.applyNightMode(repository.getCurrentUser() == null || repository.getCurrentUser().darkMode);
+//        ThemeUtils.applyNightMode(repository.getCurrentUser() == null || repository.getCurrentUser().darkMode);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 

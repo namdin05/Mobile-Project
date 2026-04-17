@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/melodix_bg_dark"
+    android:background="@color/mdx_bg"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -10,7 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Quản lý Album"
-        android:textColor="@color/melodix_accent_green"
+        android:textColor="@color/mdx_primary"
         android:textSize="22sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp"/>
