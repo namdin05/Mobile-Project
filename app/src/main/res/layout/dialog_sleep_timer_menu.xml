@@ -1,0 +1,29 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_card"
+    android:orientation="vertical"
+    android:paddingVertical="16dp">
+
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="8dp"
+        android:background="@color/mdx_text_muted" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="10dp"
+        android:text="Sleep timer"
+        android:textColor="@color/mdx_text"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView android:id="@+id/menu_timer_off" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/selectableItemBackground" android:paddingHorizontal="24dp" android:paddingVertical="14dp" android:text="Off" android:textColor="@color/mdx_text" android:textSize="16sp" />
+    <TextView android:id="@+id/menu_timer_15" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/selectableItemBackground" android:paddingHorizontal="24dp" android:paddingVertical="14dp" android:text="15 minutes" android:textColor="@color/mdx_text" android:textSize="16sp" />
+    <TextView android:id="@+id/menu_timer_30" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/selectableItemBackground" android:paddingHorizontal="24dp" android:paddingVertical="14dp" android:text="30 minutes" android:textColor="@color/mdx_text" android:textSize="16sp" />
+    <TextView android:id="@+id/menu_timer_60" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/selectableItemBackground" android:paddingHorizontal="24dp" android:paddingVertical="14dp" android:text="60 minutes" android:textColor="@color/mdx_text" android:textSize="16sp" />
+</LinearLayout>

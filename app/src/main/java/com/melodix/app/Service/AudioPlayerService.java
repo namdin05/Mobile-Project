@@ -279,7 +279,7 @@ public class AudioPlayerService extends Service {
 
     private void togglePlayPause() {
         if (mediaPlayer == null) {
-            Song current = repository.getCurrentQueueSong();
+            Song current = playbackRepo.getCurrentSong();
             if (current != null) playSong(current.getId());
             return;
         }
@@ -335,7 +335,7 @@ public class AudioPlayerService extends Service {
     private void stopPlayback() {
         persistLastListen();
         releasePlayer();
-        currentSongId = null;
+//        currentSongId = null;
         isPlaying = false;
         broadcastState();
     }
@@ -344,11 +344,19 @@ public class AudioPlayerService extends Service {
         if (sleepRunnable != null) handler.removeCallbacks(sleepRunnable);
         if (minutes <= 0) return;
         sleepRunnable = () -> {
-            stopPlayback();
-            stopForeground(true);
-            stopSelf();
+            // ĐÃ SỬA: Thay vì gọi stopPlayback() (giết chết player), ta chỉ TẠM DỪNG nó
+            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
+                isPlaying = false;
+                persistLastListen();
+                updateNotification(playbackRepo.getCurrentSong(), false); // Cập nhật hình icon thành nút Play
+                broadcastState(); // Báo cho màn hình Player biết để dừng vạch thời gian
+            }
+
+            // Tắt chế độ "chống trôi" của Service để người dùng có thể vuốt tắt thông báo nếu muốn
+            stopForeground(false);
         };
-        handler.postDelayed(sleepRunnable, minutes * 60L * 1000L);
+        handler.postDelayed(sleepRunnable, minutes * 1000L);
     }
 
     // luu lai luot nghe: dem so giay nghe bai hat nao, cong luot stream cho bai hat...
