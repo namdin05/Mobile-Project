@@ -126,8 +126,8 @@ public class PlayerActivity extends AppCompatActivity {
 
 //        findViewById(R.id.btn_lyrics).setOnClickListener(v -> openFullLyrics());
 
-//        findViewById(R.id.btn_speed).setOnClickListener(v -> AppUiUtils.showSpeedDialog(this));
-//        findViewById(R.id.btn_timer).setOnClickListener(v -> AppUiUtils.showSleepTimerDialog(this));
+        findViewById(R.id.btn_speed).setOnClickListener(v -> AppUiUtils.showSpeedDialog(this));
+        findViewById(R.id.btn_timer).setOnClickListener(v -> AppUiUtils.showSleepTimerDialog(this));
         findViewById(R.id.btn_download).setOnClickListener(v -> {
             if (currentSong != null) {
                 boolean downloaded = repository.toggleDownloadSong(currentSong.getId());
