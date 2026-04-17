@@ -209,7 +209,8 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private void openFullLyrics() {
-        if (currentSong != null) {
+        // Chỉ cho phép mở trang LyricsActivity khi bài hát CÓ tồn tại danh sách lời
+        if (currentSong != null && currentSong.getLyrics() != null && !currentSong.getLyrics().isEmpty()) {
             Intent intent = new Intent(this, LyricsActivity.class);
             intent.putExtra(EXTRA_SONG_ID, currentSong.getId());
             startActivity(intent);
@@ -223,7 +224,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         ImageView cover = findViewById(R.id.img_cover);
         ((TextView) findViewById(R.id.tv_title)).setText(currentSong.getTitle());
-        ((TextView) findViewById(R.id.tv_subtitle)).setText(currentSong.getArtistName() + " • " + currentSong.getAlbumName());
+        ((TextView) findViewById(R.id.tv_subtitle)).setText(currentSong.getArtistName());
         tvTotal.setText(TimeUtils.formatDuration(currentSong.getDurationSeconds()));
 
         Glide.with(this).load(currentSong.getCoverUrl()).into(cover);
@@ -243,13 +244,34 @@ public class PlayerActivity extends AppCompatActivity {
                 currentSong.getLyrics().clear();
                 currentSong.getLyrics().addAll(lyrics);
 
+                // BẮT LẤY CÁI KHUNG FRAMELAYOUT BÊN NGOÀI
+                View lyricsContainer = (View) rvLyrics.getParent();
+                android.view.ViewGroup.LayoutParams params = lyricsContainer.getLayoutParams();
+
                 if (lyrics.isEmpty()) {
-                    ((TextView) findViewById(R.id.tv_ai_summary)).setText("Bài hát này chưa có lời.");
-                    rvLyrics.setAdapter(new LyricAdapter(new ArrayList<>())); // Set list trống
+                    // 1. CHƯA CÓ LỜI: Báo lỗi và khóa bấm
+                    ArrayList<LyricLine> emptyMessage = new ArrayList<>();
+                    emptyMessage.add(new LyricLine(0, "Chưa có lời bài hát"));
+                    rvLyrics.setAdapter(new LyricAdapter(emptyMessage, null));
+
+                    View overlayView = findViewById(R.id.view_lyrics_click_overlay);
+                    if (overlayView != null) overlayView.setClickable(false);
+
+                    // ÉP KHUNG THU NHỎ LẠI VỪA KHÍT DÒNG CHỮ
+                    params.height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+                    lyricsContainer.setLayoutParams(params);
                 } else {
-                    ((TextView) findViewById(R.id.tv_ai_summary)).setText("Tap the button above to generate AI summary...");
-                    lyricAdapter = new LyricAdapter(lyrics);
+                    // 2. CÓ LỜI: Nạp adapter và mở khóa bấm
+                    lyricAdapter = new LyricAdapter(lyrics, null);
                     rvLyrics.setAdapter(lyricAdapter);
+
+                    View overlayView = findViewById(R.id.view_lyrics_click_overlay);
+                    if (overlayView != null) overlayView.setClickable(true);
+
+                    // PHỤC HỒI LẠI CHIỀU CAO 200dp NHƯ THIẾT KẾ BAN ĐẦU
+                    // (Phải nhân với density để đổi từ dp sang pixel cho chuẩn mọi màn hình)
+                    params.height = (int) (200 * getResources().getDisplayMetrics().density);
+                    lyricsContainer.setLayoutParams(params);
                 }
             }
         });

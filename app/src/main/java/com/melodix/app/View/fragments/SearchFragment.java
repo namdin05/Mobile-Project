@@ -34,6 +34,7 @@ import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Utils.Constants;
 
+import com.melodix.app.Utils.PlaybackUtils;
 import com.melodix.app.View.AlbumDetailActivity;
 import com.melodix.app.View.ArtistDetailActivity;
 import com.melodix.app.View.PlaylistDetailActivity;
@@ -154,7 +155,7 @@ public class SearchFragment extends Fragment {
             }
         });
 
-        // 4.2. Khi chạm vào vùng của danh sách kết quả (nhưng không trúng item nào)
+       //  4.2. Khi chạm vào vùng của danh sách kết quả (nhưng không trúng item nào)
         rvResults.setOnTouchListener((v, event) -> {
             hideKeyboard();
             return false; // Giữ nguyên false để không chặn sự kiện click vào bài hát
@@ -317,6 +318,12 @@ public class SearchFragment extends Fragment {
     private void openResult(SearchResultItem item) {
         switch (item.type) {
             case Constants.FILTER_SONG:
+                Song clickedSong = repository.getSongById(item.targetId);
+                if (clickedSong != null) {
+                    ArrayList<Song> playList = new ArrayList<>();
+                    playList.add(clickedSong);
+                    PlaybackUtils.playSong(requireContext(), playList, clickedSong.getId());
+                }
                 break;
             case Constants.FILTER_ARTIST:
                 Intent artistIntent = new Intent(requireContext(), ArtistDetailActivity.class);

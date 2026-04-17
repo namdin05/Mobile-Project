@@ -19,8 +19,16 @@ public class LyricAdapter extends RecyclerView.Adapter<LyricAdapter.ViewHolder> 
     private ArrayList<LyricLine> list;
     private int currentHighlightIndex = -1;
 
-    public LyricAdapter(ArrayList<LyricLine> list) {
+    // 1. THÊM BỘ ĐÀM LIÊN LẠC
+    public interface OnLyricClickListener {
+        void onLyricClick(long timeMs);
+    }
+    private OnLyricClickListener listener;
+
+    // 2. SỬA LẠI HÀM KHỞI TẠO ĐỂ NHẬN BỘ ĐÀM
+    public LyricAdapter(ArrayList<LyricLine> list, OnLyricClickListener listener) {
         this.list = list;
+        this.listener = listener;
     }
 
     public void setHighlightIndex(int index) {
@@ -47,6 +55,12 @@ public class LyricAdapter extends RecyclerView.Adapter<LyricAdapter.ViewHolder> 
 
         // BƯỚC 1: CỰC KỲ QUAN TRỌNG - Rút phích cắm mọi animation đang chạy ngầm trên view này
         holder.tvText.animate().cancel();
+        // 3. BẮT SỰ KIỆN CLICK VÀO DÒNG CHỮ
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onLyricClick(list.get(position).timeMs);
+            }
+        });
 
         boolean isHighlight = (position == currentHighlightIndex);
         if (payloads.isEmpty()) {

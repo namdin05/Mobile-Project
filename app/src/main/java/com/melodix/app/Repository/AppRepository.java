@@ -245,7 +245,12 @@ public class AppRepository {
             supabaseApi.searchSongs(ftsQuery).enqueue(new Callback<List<Song>>() {
                 @Override public void onResponse(Call<List<Song>> call, retrofit2.Response<List<Song>> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        for (Song song : response.body()) syncResults.add(new SearchResultItem(Constants.FILTER_SONG, song.getId(), song.getTitle(), "Bài hát", song.getCoverUrl()));
+                        searchCacheSongs.clear();
+                        for (Song song : response.body()) {
+                            searchCacheSongs.add(song);
+                            syncResults.add(new SearchResultItem(Constants.FILTER_SONG, song.getId(), song.getTitle(), "Bài hát", song.getCoverUrl()));
+
+                        }
                     }
                     checkCompletion.run();
                 }
@@ -391,6 +396,7 @@ public class AppRepository {
     // =========================================================================
     private ArrayList<Song> currentQueue = new ArrayList<>();
     private int currentQueueIndex = -1;
+    private final ArrayList<Song> searchCacheSongs = new ArrayList<>();
 
     public void setCurrentQueue(ArrayList<Song> queue, String startSongId) {
         this.currentQueue = new ArrayList<>(queue != null ? queue : new ArrayList<>());
@@ -452,6 +458,11 @@ public class AppRepository {
         // 1. Ưu tiên quét trong Hàng đợi hiện tại (Vì đây là nhạc load từ Supabase về)
         if (currentQueue != null) {
             for (Song song : currentQueue) {
+                if (song.getId().equals(id)) return song;
+            }
+        }
+        if (searchCacheSongs != null) {
+            for (Song song : searchCacheSongs) {
                 if (song.getId().equals(id)) return song;
             }
         }
