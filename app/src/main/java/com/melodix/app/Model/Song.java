@@ -41,7 +41,7 @@ public class Song {
 
     // ĐÃ THÊM SERIALIZED NAME Ở ĐÂY ĐỂ NHẬN CHUỖI GỘP NHIỀU NGHỆ SĨ
     @SerializedName("artistName")
-    private String artistName;
+    public String artistName;
 
     // THÊM SERIALIZED NAME ĐỂ NHẬN SỐ LƯỢT THÍCH TỪ SUPABASE
     @SerializedName("like_count")

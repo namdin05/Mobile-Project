@@ -189,7 +189,9 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return true;
             }
+
         });
+        handleDeepLink(getIntent());
     }
 
     // ==========================================
@@ -200,6 +202,13 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         // Cất id của tab hiện tại vào balo
         outState.putInt("ACTIVE_TAB", currentTabId);
+
+    }
+
+    @Override
+    protected void onNewIntent(android.content.Intent intent) {
+        super.onNewIntent(intent);
+        handleDeepLink(intent);
     }
 
     private int getTabIdx(int id){
@@ -302,4 +311,52 @@ public class MainActivity extends AppCompatActivity {
                     public void onFailure(Call<Void> call, Throwable t) {}
                 });
     }
-}
+
+    // Hàm Lễ tân phân loại link
+// Lễ tân phân loại link
+    private void handleDeepLink(android.content.Intent intent) {
+        if (intent != null && android.content.Intent.ACTION_VIEW.equals(intent.getAction())) {
+            android.net.Uri data = intent.getData();
+
+            // 👇 SỬA ĐÚNG DÒNG NÀY ĐỂ BẮT CẢ 2 ĐƯỜNG 👇
+            if (data != null && ("giabaocode.github.io".equals(data.getHost()) || "redirect".equals(data.getHost()))) {
+
+                String type = data.getQueryParameter("type");
+                String id = data.getQueryParameter("id");
+
+                if (type != null && id != null) {
+                    android.content.Intent nextIntent = null;
+
+                    switch (type) {
+                        case "user":
+                            nextIntent = new android.content.Intent(this, com.melodix.app.View.profile.UserProfileActivity.class);
+                            nextIntent.putExtra(com.melodix.app.View.profile.UserProfileActivity.EXTRA_USER_ID, id);
+                            break;
+                        case "playlist":
+                            nextIntent = new android.content.Intent(this, com.melodix.app.View.PlaylistDetailActivity.class);
+                            nextIntent.putExtra(com.melodix.app.View.PlaylistDetailActivity.EXTRA_PLAYLIST_ID, id);
+                            break;
+                        case "album":
+                            nextIntent = new android.content.Intent(this, com.melodix.app.View.AlbumDetailActivity.class);
+                            nextIntent.putExtra(com.melodix.app.View.AlbumDetailActivity.EXTRA_ALBUM_ID, id);
+                            break;
+                        case "profile": // Dành cho Nghệ sĩ
+                            nextIntent = new android.content.Intent(this, com.melodix.app.View.ArtistDetailActivity.class);
+                            nextIntent.putExtra(com.melodix.app.View.ArtistDetailActivity.EXTRA_ARTIST_ID, id);
+                            break;
+                        case "song":
+                            nextIntent = new android.content.Intent(this, com.melodix.app.PlayerActivity.class);
+                            nextIntent.putExtra(com.melodix.app.PlayerActivity.EXTRA_SONG_ID, id);
+                            // Có thể cần thêm cờ để tự động Play luôn
+                            nextIntent.putExtra("start_playback", true);
+                            break;
+                    }
+
+                    if (nextIntent != null) {
+                        startActivity(nextIntent);
+                    }
+                }
+            }
+        }
+    }}
+

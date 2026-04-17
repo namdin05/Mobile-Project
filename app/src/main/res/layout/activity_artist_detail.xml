@@ -3,7 +3,8 @@
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/bg_screen"
     android:fillViewport="true"
     android:fitsSystemWindows="true">
 
@@ -13,18 +14,37 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <ImageButton
-            android:id="@+id/btn_back"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:padding="12dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_back"
-            android:contentDescription="Back"
-            android:scaleType="fitCenter"
-            app:tint="@android:color/white"
-            xmlns:app="http://schemas.android.com/apk/res-auto" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="12dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_back"
+                app:tint="@color/mdx_text" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/btn_share"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="12dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_share"
+                app:tint="@color/mdx_text" />
+        </LinearLayout>
         <ImageView
             android:id="@+id/img_avatar"
             android:layout_width="160dp"
@@ -38,7 +58,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:gravity="center"
-            android:textColor="@android:color/white"
+            android:textColor="@color/mdx_text"
             android:textSize="24sp"
             android:textStyle="bold" />
 
@@ -83,7 +103,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Bài hát nổi bật"
-                android:textColor="@android:color/white"
+                android:textColor="@color/mdx_text"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
@@ -113,7 +133,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Albums"
-                android:textColor="@android:color/white"
+                android:textColor="@color/mdx_text"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
@@ -125,7 +145,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:text="Tất cả >"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="#A0A0A0"
                 android:visibility="gone" />
         </RelativeLayout>
 
@@ -142,7 +162,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="Nghệ sĩ liên quan"
-            android:textColor="@android:color/white"
+            android:textColor="@color/mdx_text"
             android:textSize="18sp"
             android:textStyle="bold"
             android:visibility="gone" />
