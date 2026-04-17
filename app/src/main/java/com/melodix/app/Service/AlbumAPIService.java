@@ -13,4 +13,8 @@ public interface AlbumAPIService {
 
     @GET("song_details_view?select=*&status=eq.approved")
     Call<List<Song>> getSongsByAlbumId(@Query("album_id") String albumIdQuery);
+
+
+    @GET("song_details_view?select=*")
+    Call<List<Song>> getSongsByAlbumIdForArtist(@Query("album_id") String albumIdQuery);
 }

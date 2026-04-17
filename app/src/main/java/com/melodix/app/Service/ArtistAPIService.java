@@ -74,6 +74,10 @@
         @GET("album_details_view?select=*")
         Call<List<Album>> getAlbumsByArtistId(@Query("artist_id") String artistIdQuery);
 
+        // NẾU CÓ HÀM NÀY CHO KHÁN GIẢ THÌ PHẢI CHẶN LẠI:
+        @GET("album_details_view?select=*&status=eq.approved")
+        Call<List<Album>> getAlbumsForPublic(@Query("artist_id") String artistIdQuery);
+
         @GET("artist_search_view?select=*")
         Call<List<Artist>> getRelatedArtists(@Query("id") String excludeIdQuery, @Query("limit") int limit);
 
@@ -83,6 +87,32 @@
         // Lấy thống kê của 1 nghệ sĩ
         @GET("artist_stats_view?select=*")
         Call<List<ArtistStats>> getArtistStats(@Query("artist_id") String artistIdQuery);
+        // NÂNG CẤP: Gọi hàm RPC để tạo album và thêm bài hát cùng lúc
+        @POST("rest/v1/rpc/create_album_with_songs")
+        Call<okhttp3.ResponseBody> createAlbumWithSongs(
+                @Header("apikey") String apiKey,
+                @Header("Authorization") String token,
+                @Body java.util.Map<String, Object> albumData
+        );
 
+        @retrofit2.http.PATCH("albums")
+        Call<okhttp3.ResponseBody> updateAlbum(
+                @retrofit2.http.Query("id") String operatorAndId,
+                @retrofit2.http.Body java.util.Map<String, Object> albumData
+        );
+
+        // Thêm hàm này vào để ép gửi JsonObject có chứa JsonNull
+        // Dùng RequestBody của OkHttp để cấm Retrofit tự động can thiệp dữ liệu
+        @retrofit2.http.PATCH("songs")
+        Call<okhttp3.ResponseBody> removeSongFromAlbumRaw(
+                @retrofit2.http.Query("id") String operatorAndId,
+                @retrofit2.http.Body okhttp3.RequestBody body
+        );
+
+        // Hàm gọi RPC để Cập nhật Album và Danh sách bài hát cùng lúc
+        @retrofit2.http.POST("rpc/update_album_with_songs")
+        Call<okhttp3.ResponseBody> updateAlbumWithSongs(
+                @retrofit2.http.Body java.util.Map<String, Object> bodyData
+        );
 
     }
