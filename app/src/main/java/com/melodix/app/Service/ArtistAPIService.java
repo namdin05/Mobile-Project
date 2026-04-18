@@ -114,5 +114,10 @@
         Call<okhttp3.ResponseBody> updateAlbumWithSongs(
                 @retrofit2.http.Body java.util.Map<String, Object> bodyData
         );
-
+        // Gọi HEAD request cực nhẹ để lấy đúng con số Count, không tải data thừa
+        @retrofit2.http.HEAD("follows")
+        Call<Void> getFollowerCount(
+                @retrofit2.http.Header("Prefer") String preferCount, // Bắt buộc truyền "count=exact"
+                @retrofit2.http.Query("artist_id") String artistIdQuery
+        );
     }
