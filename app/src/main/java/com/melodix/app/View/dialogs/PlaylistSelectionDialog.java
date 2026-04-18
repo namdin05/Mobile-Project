@@ -1,7 +1,5 @@
 package com.melodix.app.View.dialogs;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,10 +18,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.melodix.app.Model.Playlist;
+import com.melodix.app.Model.SessionManager;
 import com.melodix.app.R;
 import com.melodix.app.Utils.PlaylistSelectionManager;
 import com.melodix.app.View.adapters.PlaylistSelectAdapter;
-
+import com.melodix.app.View.dialogs.CreatePlaylistDialog;
 import androidx.fragment.app.Fragment;
 import com.melodix.app.View.fragments.LibraryFragment;
 import java.util.ArrayList;
@@ -106,16 +105,14 @@ public class PlaylistSelectionDialog extends BottomSheetDialogFragment {
     private void loadPlaylists() {
         if (getContext() == null) return;
 
-        // ĐÃ SỬA: Lấy USER_ID từ SharedPreferences thay vì SessionManager
-        SharedPreferences prefs = getContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
-        String userId = prefs.getString("USER_ID", null);
-        boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
-
-        if (!isLoggedIn || userId == null) {
+        SessionManager session = SessionManager.getInstance(getContext());
+        if (session.getCurrentUser() == null) {
             Toast.makeText(getContext(), "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show();
             dismiss();
             return;
         }
+
+        String userId = session.getCurrentUser().getId();
 
         selectionManager.loadUserPlaylistsWithSongStatus(userId, songId,
                 new PlaylistSelectionManager.OnPlaylistsLoadedListener() {

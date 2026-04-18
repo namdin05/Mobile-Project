@@ -41,19 +41,6 @@ public class PlaybackRepository {
         return getCurrentSong();
     }
 
-    public Song getSongById(String songId) {
-        if (currentQueue == null || currentQueue.isEmpty()) return null;
-
-        for (int i = 0; i < currentQueue.size(); i++) {
-            if (currentQueue.get(i).getId().equals(songId)) {
-                this.currentIndex = i; // CẬP NHẬT LẠI TRÍ NHỚ: Lưu lại vị trí mới!
-                return currentQueue.get(i);
-            }
-        }
-        return null; // Không tìm thấy thì trả về null
-    }
-
-
     // Lùi bài trước đó
     public Song movePrevious() {
         if (currentQueue.isEmpty()) return null;

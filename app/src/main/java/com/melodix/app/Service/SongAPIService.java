@@ -28,7 +28,6 @@ public interface SongAPIService {
             @Query("limit") int limit
     );
 
-    // Gọi hàm RPC từ Supabase bằng phương thức POST
     @retrofit2.http.POST("rest/v1/rpc/get_songs_by_genre")
     Call<List<Song>> getSongsByGenre(
             @Header("apikey") String apiKey,

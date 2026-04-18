@@ -71,25 +71,19 @@ public class LyricAdapter extends RecyclerView.Adapter<LyricAdapter.ViewHolder> 
 
         boolean isHighlight = (position == currentHighlightIndex);
         if (payloads.isEmpty()) {
-            // NẾU LÀ VUỐT MÀN HÌNH -> Gắn cứng trạng thái tĩnh
+            // BƯỚC 2: NẾU LÀ VUỐT MÀN HÌNH -> Gắn cứng trạng thái tĩnh
             holder.tvText.setTextColor(isHighlight ? activeColor : inactiveColor);
             holder.tvText.setAlpha(isHighlight ? 1.0f : 0.4f);
             holder.tvText.setScaleX(isHighlight ? 1.1f : 1.0f);
             holder.tvText.setScaleY(isHighlight ? 1.1f : 1.0f);
         } else {
-            // NẾU LÀ TỰ ĐỘNG CHUYỂN CÂU HÁT -> Chạy animation
+            // BƯỚC 3: NẾU LÀ TỰ ĐỘNG CHUYỂN CÂU HÁT -> Chạy animation mượt mà
             if (isHighlight) {
                 holder.tvText.setTextColor(activeColor);
-                // Dòng đang hát: Phóng to và Sáng lên mượt mà (300ms)
                 holder.tvText.animate().alpha(1.0f).scaleX(1.1f).scaleY(1.1f).setDuration(300).start();
             } else {
                 holder.tvText.setTextColor(inactiveColor);
-
-                // ĐÃ SỬA: Ép độ mờ (alpha) xuống 40% NGAY LẬP TỨC để chặn cú chớp sáng
-                holder.tvText.setAlpha(0.4f);
-
-                // Chỉ chạy animation thu nhỏ kích thước chữ thôi
-                holder.tvText.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).start();
+                holder.tvText.animate().alpha(0.4f).scaleX(1.0f).scaleY(1.0f).setDuration(300).start();
             }
         }
     }

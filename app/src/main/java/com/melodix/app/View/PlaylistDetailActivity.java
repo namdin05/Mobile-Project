@@ -1,7 +1,6 @@
 package com.melodix.app.View;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -51,9 +50,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     private String playlistId;
     private Playlist currentPlaylist;
 
-    // ĐÃ SỬA: Biến lưu ID người dùng hiện tại lấy từ SharedPreferences
-    private String currentUserId = "";
-
     private TextView tvMeta;
     private TextView tvTitle;
     private ImageView imgCover;
@@ -65,10 +61,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playlist_detail);
-
-        // ĐÃ SỬA: Lấy USER_ID một lần duy nhất lúc mở màn hình
-        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
-        currentUserId = prefs.getString("USER_ID", "");
 
         playlistRepository = new PlaylistRepository(this);
         playlistId = getIntent().getStringExtra(EXTRA_PLAYLIST_ID);
@@ -90,6 +82,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
         initViews();
         loadPlaylistData();
+        // KHÔNG gọi setupDragAndDrop() ở đây nữa để đợi dữ liệu mạng load xong
         setupMoreMenu();
     }
 
@@ -133,8 +126,10 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(this, findViewById(R.id.btn_more));
         popup.getMenuInflater().inflate(R.menu.menu_playlist_options, popup.getMenu());
 
-        // ĐÃ SỬA: Kiểm tra chủ sở hữu qua SharedPreferences ID
-        boolean isOwner = currentPlaylist != null && currentUserId.equals(currentPlaylist.ownerUserId);
+        // Lớp giáp bảo vệ: Lấy User an toàn
+        com.melodix.app.Model.Profile currentUser = com.melodix.app.Model.SessionManager.getInstance(this).getCurrentUser();
+        String myId = (currentUser != null) ? currentUser.getId() : "";
+        boolean isOwner = currentPlaylist != null && myId.equals(currentPlaylist.ownerUserId);
 
         if (!isOwner) {
             // Nếu là khách -> Xóa tính năng sửa/xóa, chỉ để lại Chia sẻ
@@ -184,8 +179,9 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                         // Kích hoạt kéo thả SAU KHI đã biết ai là chủ playlist
                         setupDragAndDrop();
 
-                        // ĐÃ SỬA: Kiểm tra chủ sở hữu qua SharedPreferences ID
-                        boolean isOwner = currentPlaylist != null && currentUserId.equals(currentPlaylist.ownerUserId);
+                        com.melodix.app.Model.Profile currentUser = com.melodix.app.Model.SessionManager.getInstance(PlaylistDetailActivity.this).getCurrentUser();
+                        String myId = (currentUser != null) ? currentUser.getId() : "";
+                        boolean isOwner = currentPlaylist != null && myId.equals(currentPlaylist.ownerUserId);
                         View btnAddSong = findViewById(R.id.btn_add_song);
                         if(btnAddSong != null && isOwner){
                             btnAddSong.setVisibility(View.VISIBLE);
@@ -257,8 +253,9 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
     // Drag and drop song in playlist
     private void setupDragAndDrop() {
-        // ĐÃ SỬA: Kiểm tra quyền kéo thả qua SharedPreferences ID
-        if (currentUserId.isEmpty() || currentPlaylist == null || !currentUserId.equals(currentPlaylist.ownerUserId)) {
+        // Lớp giáp an toàn: Chỉ chủ sở hữu mới có quyền kéo thả
+        com.melodix.app.Model.Profile currentUser = com.melodix.app.Model.SessionManager.getInstance(this).getCurrentUser();
+        if (currentUser == null || currentPlaylist == null || !currentUser.getId().equals(currentPlaylist.ownerUserId)) {
             return;
         }
 
@@ -389,9 +386,12 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             bottomSheet.dismiss();
         });
 
-        // ĐÃ SỬA: Kiểm tra quyền xóa bài hát (Chỉ chủ sở hữu Playlist mới được xóa)
+        // Xóa khỏi playlist hiện tại (Đã fix lỗi lặp code và thêm check chủ sở hữu)
         TextView menuRemove = bottomSheetView.findViewById(R.id.menu_remove_playlist);
-        boolean isOwner = currentPlaylist != null && currentUserId.equals(currentPlaylist.ownerUserId);
+
+        com.melodix.app.Model.Profile currentUser = com.melodix.app.Model.SessionManager.getInstance(this).getCurrentUser();
+        String myId = (currentUser != null) ? currentUser.getId() : "";
+        boolean isOwner = currentPlaylist != null && myId.equals(currentPlaylist.ownerUserId);
 
         if (isOwner) {
             menuRemove.setVisibility(View.VISIBLE); // Chỉ chủ mới thấy nút Xóa bài

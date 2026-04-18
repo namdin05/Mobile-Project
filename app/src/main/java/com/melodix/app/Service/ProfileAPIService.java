@@ -61,4 +61,37 @@ public interface ProfileAPIService  {
             @Body Map<String, Object> bodyData
     );
 
+
+    // 1. Đếm số người ĐANG THEO DÕI user này (Followers)
+    @retrofit2.http.HEAD("follow")
+    Call<Void> getFollowerCount(
+            @retrofit2.http.Header("Prefer") String preferCount, // Bắt buộc truyền "count=exact"
+            @retrofit2.http.Query("artist_id") String artistIdQuery
+    );
+
+    // 2. Đếm số người mà user này ĐANG ĐI THEO DÕI (Following)
+    @retrofit2.http.HEAD("follow")
+    Call<Void> getFollowingCount(
+            @retrofit2.http.Header("Prefer") String preferCount,
+            @retrofit2.http.Query("follower_id") String followerIdQuery
+    );
+
+    // 3. Kiểm tra xem mình đã follow user này chưa
+    @retrofit2.http.GET("follow?select=follower_id")
+    Call<List<Object>> checkFollowStatus(
+            @retrofit2.http.Query("follower_id") String followerIdEq,
+            @retrofit2.http.Query("artist_id") String artistIdEq
+    );
+
+    // 4. Nhấn Follow (Thêm record)
+    @retrofit2.http.POST("follow")
+    Call<Void> followUser(@retrofit2.http.Body java.util.Map<String, String> followData);
+
+    // 5. Bỏ Follow (Xóa record)
+    @retrofit2.http.DELETE("follow")
+    Call<Void> unfollowUser(
+            @retrofit2.http.Query("follower_id") String followerIdEq,
+            @retrofit2.http.Query("artist_id") String artistIdEq
+    );
+
 }
