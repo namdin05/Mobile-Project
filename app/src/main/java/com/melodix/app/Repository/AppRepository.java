@@ -14,6 +14,7 @@ import com.melodix.app.Model.ArtistStats;
 import com.melodix.app.Model.Playlist;
 import com.melodix.app.Model.SearchResultItem;
 import com.melodix.app.Model.Song;
+import com.melodix.app.Service.ProfileAPIService;
 import com.melodix.app.Service.RetrofitClient;
 import com.melodix.app.Utils.Constants;
 import com.melodix.app.Model.SessionManager; // Trỏ đúng về SessionManager mới của sếp
@@ -49,6 +50,10 @@ public class AppRepository {
     private final AlbumAPIService albumApiService;
     private final ArtistAPIService artistApiService;
 
+    private final ProfileAPIService profileApiService;
+
+
+
     // Giữ lại bộ đếm thời gian để chống giật lag khi gõ phím
     private long lastSearchTime = 0;
 
@@ -62,7 +67,8 @@ public class AppRepository {
         this.prefs = appContext.getSharedPreferences(Constants.PREFS_DATA, Context.MODE_PRIVATE);
         this.gson = new GsonBuilder().create();
         this.sessionManager = SessionManager.getInstance(appContext);
-
+// Thêm dòng này vào bên trong hàm khởi tạo (Constructor) của AppRepository
+        this.profileApiService = RetrofitClient.getSupabaseClient().create(ProfileAPIService.class);
         this.searchApiService = RetrofitClient.getSupabaseClient().create(SearchAPIService.class);
         this.albumApiService = RetrofitClient.getSupabaseClient().create(AlbumAPIService.class);
         this.artistApiService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
@@ -538,7 +544,7 @@ public class AppRepository {
 
     // 2. Viết hàm lấy số lượng Follower
     public void getFollowerCount(String artistId, CountCallback callback) {
-        artistApiService.getFollowerCount("count=exact", "eq." + artistId).enqueue(new Callback<Void>() {
+        profileApiService.getFollowerCount("count=exact", "eq." + artistId).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 String range = response.headers().get("Content-Range");
@@ -561,6 +567,32 @@ public class AppRepository {
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
                 android.util.Log.e("FOLLOW_TEST", "Mất kết nối mạng: " + t.getMessage());
+                callback.onSuccess(0);
+            }
+        });
+    }
+
+    // Khai báo callback dùng chung
+
+
+    // Hàm đếm số người theo dõi (Followers)
+
+    // Hàm đếm số người đang theo dõi (Following)
+    public void getFollowingCount(String targetUserId, CountCallback callback) {
+        profileApiService.getFollowingCount("count=exact", "eq." + targetUserId).enqueue(new retrofit2.Callback<Void>() {
+            @Override
+            public void onResponse(retrofit2.Call<Void> call, retrofit2.Response<Void> response) {
+                String range = response.headers().get("Content-Range");
+                if (range != null && range.contains("/")) {
+                    try {
+                        callback.onSuccess(Integer.parseInt(range.split("/")[1]));
+                        return;
+                    } catch (Exception ignored) {}
+                }
+                callback.onSuccess(0);
+            }
+            @Override
+            public void onFailure(retrofit2.Call<Void> call, Throwable t) {
                 callback.onSuccess(0);
             }
         });
