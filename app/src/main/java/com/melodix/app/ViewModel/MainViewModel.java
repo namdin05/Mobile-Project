@@ -4,16 +4,14 @@ import android.app.Application;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
-
-import com.melodix.app.Model.Profile;
+import com.melodix.app.Model.AppUser;
 import com.melodix.app.Model.Song;
 import com.melodix.app.Repository.AppRepository;
-
 import java.util.ArrayList;
 
 public class MainViewModel extends AndroidViewModel {
     private final AppRepository repository;
-    public final MutableLiveData<Profile> currentUser = new MutableLiveData<>();
+    public final MutableLiveData<AppUser> currentUser = new MutableLiveData<>();
     public final MutableLiveData<ArrayList<Song>> trending = new MutableLiveData<>();
 
     public MainViewModel(@NonNull Application application) {

@@ -91,14 +91,32 @@ public class AccountFragment extends Fragment {
         // Các nút của Artist Center
         btnArtistUpload.setOnClickListener(v -> startActivity(new Intent(getContext(), ManageSongActivity.class)));
         btnArtistAlbums.setOnClickListener(v -> startActivity(new Intent(requireContext(), com.melodix.app.View.artist.CreateAlbumActivity.class)));
+
         btnArtistStats.setOnClickListener(v -> {
-            com.melodix.app.Model.Profile realUser = com.melodix.app.Model.SessionManager.getInstance(requireContext()).getCurrentUser();
-            if (realUser != null && realUser.getId() != null) {
+            // ĐÃ SỬA: Lấy USER_ID từ SharedPreferences MelodixPrefs
+            SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+            String userId = prefs.getString("USER_ID", null);
+
+            if (userId != null) {
                 Intent intent = new Intent(requireContext(), com.melodix.app.View.artist.ArtistAnalyticsActivity.class);
-                intent.putExtra(com.melodix.app.View.artist.ArtistAnalyticsActivity.EXTRA_ARTIST_ID, realUser.getId());
+                intent.putExtra(com.melodix.app.View.artist.ArtistAnalyticsActivity.EXTRA_ARTIST_ID, userId);
                 startActivity(intent);
             } else {
                 Toast.makeText(requireContext(), "Lỗi: Không tìm thấy dữ liệu Nghệ sĩ", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        view.findViewById(R.id.btn_share_profile).setOnClickListener(v -> {
+            // ĐÃ SỬA: Lấy ID và Tên của user hiện tại từ SharedPreferences
+            SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+            String myId = prefs.getString("USER_ID", null);
+            String myName = prefs.getString("USER_NAME", "Người dùng");
+
+            if (myId != null) {
+                // Gọi "Máy in thiệp" từ ShareUtils
+                com.melodix.app.Utils.ShareUtils.shareContent(requireContext(), "user", myId, myName);
+            } else {
+                Toast.makeText(requireContext(), "Chưa tải xong dữ liệu tài khoản", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -108,20 +126,27 @@ public class AccountFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        com.melodix.app.Model.Profile realUser = com.melodix.app.Model.SessionManager.getInstance(requireContext()).getCurrentUser();
 
-        if (realUser != null) {
-            name.setText(realUser.getDisplayName());
+        // ĐÃ SỬA: Lấy toàn bộ thông tin User từ SharedPreferences để hiển thị
+        SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+        boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
+
+        if (isLoggedIn) {
+            String displayName = prefs.getString("USER_NAME", "Người dùng");
+            String avatarUrl = prefs.getString("USER_AVATAR", "");
+            String role = prefs.getString("USER_ROLE", "user");
+
+            name.setText(displayName);
             headline.setText("Thành viên Melodix");
 
-            if (realUser.getAvatarUrl() != null && !realUser.getAvatarUrl().isEmpty()) {
+            if (!avatarUrl.isEmpty()) {
                 com.bumptech.glide.Glide.with(requireContext())
-                        .load(realUser.getAvatarUrl())
+                        .load(avatarUrl)
                         .circleCrop()
                         .into(avatar);
             }
 
-            String role = realUser.getRole();
+            // Kiểm tra phân quyền: Nếu là "artist" thì hiện khung công cụ Artist Center
             if ("artist".equalsIgnoreCase(role)) {
                 cardArtistCenter.setVisibility(View.VISIBLE);
             } else {

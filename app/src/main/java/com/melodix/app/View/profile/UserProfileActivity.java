@@ -2,7 +2,6 @@ package com.melodix.app.View.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,17 +15,15 @@ import com.melodix.app.Model.Playlist;
 import com.melodix.app.Model.PlaylistSong;
 import com.melodix.app.Model.Profile;
 import com.melodix.app.R;
-import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Repository.PlaylistRepository;
 import com.melodix.app.Repository.ProfileRepository;
-import com.melodix.app.Service.ProfileAPIService;
-import com.melodix.app.Service.RetrofitClient;
 import com.melodix.app.View.adapters.PlaylistAdapter;
+import com.melodix.app.View.adapters.PlaylistSongAdapter;
+// IMPORT ADAPTER CỦA SẾP VÀO ĐÂY (Ví dụ:)
+// import com.melodix.app.View.adapters.PlaylistAdapter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import retrofit2.Call;
@@ -38,88 +35,64 @@ public class UserProfileActivity extends AppCompatActivity {
     public static final String EXTRA_USER_ID = "extra_user_id";
 
     private ImageView imgAvatar;
-    private TextView tvName, tvFollowerCount, tvFollowingCount;
+    private TextView tvName;
     private RecyclerView rvPlaylists;
-    private Button btnFollow;
 
-    private boolean isFollowing = false;
-    private int followerCount = 0;
-    private int followingCount = 0;
-
-    private String targetUserId;
-    private String myUserId;
-
-    // Khởi tạo API dùng chung cho toàn Class
-    private ProfileAPIService apiService;
-
-    // Callback dùng chung cho các API không cần quan tâm kết quả trả về
-    private final Callback<Void> silentCallback = new Callback<Void>() {
-        @Override public void onResponse(Call<Void> call, Response<Void> response) {}
-        @Override public void onFailure(Call<Void> call, Throwable t) {}
-    };
+    // KHAI BÁO ADAPTER: Sếp mở comment và đổi tên cho khớp với Adapter hiển thị Playlist của sếp nhé!
+    // private PlaylistAdapter playlistAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_profile);
 
-        targetUserId = getIntent().getStringExtra(EXTRA_USER_ID);
+        String userId = getIntent().getStringExtra(EXTRA_USER_ID);
 
-        if (targetUserId == null || targetUserId.isEmpty()) {
+        // Lớp giáp 1: Check xem có ID truyền sang không
+        if (userId == null || userId.isEmpty()) {
             Toast.makeText(this, "Không tìm thấy thông tin người dùng", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
         initViews();
-        loadUserInfo();
-        loadUserPlaylists();
-
-        Profile myProfile = AppRepository.getInstance(this).getCurrentUser();
-        if (myProfile != null) {
-            myUserId = myProfile.getId();
-        }
-
-        loadFollowStats();
-
-        if (myUserId != null && !myUserId.equals(targetUserId)) {
-            btnFollow.setVisibility(android.view.View.VISIBLE);
-            checkCurrentFollowStatus();
-            btnFollow.setOnClickListener(v -> toggleFollowStatus());
-        } else {
-            btnFollow.setVisibility(android.view.View.GONE);
-        }
+        loadUserInfo(userId);
+        loadUserPlaylists(userId);
     }
 
     private void initViews() {
         imgAvatar = findViewById(R.id.img_user_avatar);
         tvName = findViewById(R.id.tv_user_name);
         rvPlaylists = findViewById(R.id.rv_user_playlists);
-        tvFollowerCount = findViewById(R.id.tv_follower_count);
-        tvFollowingCount = findViewById(R.id.tv_following_count);
-        btnFollow = findViewById(R.id.btn_follow);
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
-        rvPlaylists.setLayoutManager(new LinearLayoutManager(this));
 
-        // Khởi tạo API 1 lần duy nhất
-        apiService = RetrofitClient.getSupabaseClient().create(ProfileAPIService.class);
+        rvPlaylists.setLayoutManager(new LinearLayoutManager(this));
     }
 
-    private void loadUserInfo() {
-        new ProfileRepository().getProfileById(targetUserId, new Callback<List<Profile>>() {
+    private void loadUserInfo(String userId) {
+        ProfileRepository profileRepo = new ProfileRepository();
+        profileRepo.getProfileById(userId, new Callback<List<Profile>>() {
             @Override
             public void onResponse(Call<List<Profile>> call, Response<List<Profile>> response) {
+                // Lớp giáp 2: Chống crash nếu user đã thoát ra lúc mạng đang load
                 if (isFinishing() || isDestroyed()) return;
 
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                     Profile profile = response.body().get(0);
+
+                    // 1. Hiển thị Tên
                     tvName.setText(profile.getDisplayName() != null ? profile.getDisplayName() : "Người dùng Melodix");
 
+                    // 2. Hiển thị Avatar (Dùng thư viện Glide bo tròn)
                     if (profile.getAvatarUrl() != null && !profile.getAvatarUrl().isEmpty()) {
-                        Glide.with(UserProfileActivity.this).load(profile.getAvatarUrl())
-                                .placeholder(R.drawable.circle_placeholder).circleCrop().into(imgAvatar);
+                        Glide.with(UserProfileActivity.this)
+                                .load(profile.getAvatarUrl())
+                                .placeholder(R.drawable.circle_placeholder)
+                                .circleCrop()
+                                .into(imgAvatar);
                     } else {
+                        // Nếu user chưa có avatar thì set ảnh mặc định
                         imgAvatar.setImageResource(R.drawable.circle_placeholder);
                     }
                 } else {
@@ -129,125 +102,86 @@ public class UserProfileActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<Profile>> call, Throwable t) {
-                if (!isFinishing() && !isDestroyed()) tvName.setText("Lỗi kết nối mạng");
+                if (isFinishing() || isDestroyed()) return;
+                tvName.setText("Lỗi kết nối mạng");
             }
         });
     }
 
-    private void loadUserPlaylists() {
+    private void loadUserPlaylists(String userId) {
         PlaylistRepository playlistRepo = new PlaylistRepository(this);
-        playlistRepo.getUserPlaylists(targetUserId, new Callback<List<Playlist>>() {
+
+        playlistRepo.getUserPlaylists(userId, new Callback<List<Playlist>>() {
             @Override
             public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
-                if (isFinishing() || isDestroyed() || !response.isSuccessful() || response.body() == null) return;
+                // Lớp giáp bảo vệ: Chống crash nếu User đã đóng Activity
+                if (isFinishing() || isDestroyed()) return;
 
-                List<Playlist> publicPlaylists = new ArrayList<>();
-                for (Playlist p : response.body()) {
-                    if (p.isPublic) publicPlaylists.add(p);
-                }
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Playlist> publicPlaylists = new ArrayList<>();
 
-                if (!publicPlaylists.isEmpty()) {
-                    AtomicInteger requestsCompleted = new AtomicInteger(0);
-                    int totalRequests = publicPlaylists.size();
+                    // 1. Lọc danh sách Playlist công khai
+                    for (Playlist p : response.body()) {
+                        if (p.isPublic) {
+                            publicPlaylists.add(p);
+                        }
+                    }
 
-                    for (Playlist finalP : publicPlaylists) {
-                        playlistRepo.getPlaylistSongs(finalP.id, new Callback<List<PlaylistSong>>() {
-                            @Override
-                            public void onResponse(Call<List<PlaylistSong>> call, Response<List<PlaylistSong>> responseSongs) {
-                                if (responseSongs.isSuccessful() && responseSongs.body() != null) {
-                                    finalP.songCount = responseSongs.body().size();
+                    if (!publicPlaylists.isEmpty()) {
+                        // 👇 CHIẾN THUẬT MỚI: Gom đủ data mới hiện lên
+                        int totalRequests = publicPlaylists.size();
+
+                        // Dùng AtomicInteger để đếm số lượng API đã chạy xong một cách an toàn
+                        AtomicInteger requestsCompleted = new AtomicInteger(0);
+
+                        for (int i = 0; i < totalRequests; i++) {
+                            final Playlist finalP = publicPlaylists.get(i);
+
+                            // Chạy ngầm đi đếm bài hát cho từng Playlist
+                            playlistRepo.getPlaylistSongs(finalP.id, new Callback<List<PlaylistSong>>() {
+                                @Override
+                                public void onResponse(Call<List<PlaylistSong>> call, Response<List<PlaylistSong>> responseSongs) {
+                                    if (responseSongs.isSuccessful() && responseSongs.body() != null) {
+                                        finalP.songCount = responseSongs.body().size(); // Gán số lượng thật
+                                    }
+                                    checkIfAllDone();
                                 }
-                                checkIfAllDone();
-                            }
-                            @Override
-                            public void onFailure(Call<List<PlaylistSong>> call, Throwable t) {
-                                checkIfAllDone();
-                            }
-                            private void checkIfAllDone() {
-                                if (requestsCompleted.incrementAndGet() == totalRequests) {
-                                    runOnUiThread(() -> {
-                                        PlaylistAdapter adapter = new PlaylistAdapter(UserProfileActivity.this, publicPlaylists, playlist -> {
-                                            Intent intent = new Intent(UserProfileActivity.this, com.melodix.app.View.PlaylistDetailActivity.class);
-                                            intent.putExtra("extra_playlist_id", playlist.id);
-                                            startActivity(intent);
+
+                                @Override
+                                public void onFailure(Call<List<PlaylistSong>> call, Throwable t) {
+                                    // Dù lỗi mạng thì vẫn phải đếm để ứng dụng không bị kẹt
+                                    checkIfAllDone();
+                                }
+
+                                // Hàm kiểm tra xem đã đếm xong TẤT CẢ các playlist chưa
+                                private void checkIfAllDone() {
+                                    // Mỗi lần chạy xong 1 playlist thì tăng biến đếm lên 1
+                                    if (requestsCompleted.incrementAndGet() == totalRequests) {
+
+                                        // KHI ĐÃ ĐẾM XONG TOÀN BỘ -> MỚI RÁP ADAPTER VÀO
+                                        runOnUiThread(() -> {
+                                            PlaylistAdapter adapter = new PlaylistAdapter(UserProfileActivity.this, publicPlaylists, playlist -> {
+                                                Intent intent = new Intent(UserProfileActivity.this, com.melodix.app.View.PlaylistDetailActivity.class);
+                                                intent.putExtra("extra_playlist_id", playlist.id);
+                                                startActivity(intent);
+                                            });
+                                            rvPlaylists.setAdapter(adapter);
                                         });
-                                        rvPlaylists.setAdapter(adapter);
-                                    });
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
+                    } else {
+                        android.util.Log.d("PATCH_DEBUG", "Người dùng không có playlist công khai nào.");
                     }
                 }
             }
+
             @Override
             public void onFailure(Call<List<Playlist>> call, Throwable t) {
-                if (!isFinishing() && !isDestroyed()) Toast.makeText(UserProfileActivity.this, "Lỗi kết nối", Toast.LENGTH_SHORT).show();
+                if (isFinishing() || isDestroyed()) return;
+                Toast.makeText(UserProfileActivity.this, "Lỗi kết nối danh sách phát", Toast.LENGTH_SHORT).show();
             }
         });
     }
-
-    // ==========================================
-    // LOGIC FOLLOW & THỐNG KÊ (ĐÃ TỐI ƯU DRY)
-    // ==========================================
-
-    private void loadFollowStats() {
-        AppRepository repo = AppRepository.getInstance(this);
-
-        repo.getFollowerCount(targetUserId, count -> {
-            if (isFinishing() || isDestroyed()) return;
-            followerCount = count;
-            tvFollowerCount.setText(formatCount(followerCount) + " người theo dõi");
-        });
-
-        repo.getFollowingCount(targetUserId, count -> {
-            if (isFinishing() || isDestroyed()) return;
-            followingCount = count;
-            tvFollowingCount.setText(formatCount(followingCount) + " đang theo dõi");
-        });
-    }
-
-    // Hàm Helper định dạng số lượng chung cho 2 bộ đếm
-    private String formatCount(int count) {
-        return count >= 1000 ? String.format(java.util.Locale.US, "%.1fK", count / 1000f) : String.valueOf(count);
-    }
-
-    private void checkCurrentFollowStatus() {
-        apiService.checkFollowStatus("eq." + myUserId, "eq." + targetUserId).enqueue(new Callback<List<Object>>() {
-            @Override
-            public void onResponse(Call<List<Object>> call, Response<List<Object>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    isFollowing = !response.body().isEmpty();
-                    updateFollowButtonUI();
-                }
-            }
-            @Override public void onFailure(Call<List<Object>> call, Throwable t) {}
-        });
-    }
-
-    private void updateFollowButtonUI() {
-        btnFollow.setText(isFollowing ? "Đang theo dõi" : "Theo dõi");
-        int color = android.graphics.Color.parseColor(isFollowing ? "#535353" : "#1DB954");
-        btnFollow.setBackgroundTintList(android.content.res.ColorStateList.valueOf(color));
-    }
-
-    private void toggleFollowStatus() {
-        // 1. Đảo trạng thái và tính toán lại số lượng cực nhanh
-        isFollowing = !isFollowing;
-        followerCount += isFollowing ? 1 : -1;
-        followerCount = Math.max(0, followerCount); // Đảm bảo không bao giờ bị âm số
-
-        // 2. Cập nhật UI ngay lập tức
-        updateFollowButtonUI();
-        tvFollowerCount.setText(formatCount(followerCount) + " người theo dõi");
-
-        // 3. Gọi API chạy ngầm phía sau bằng silentCallback
-        if (isFollowing) {
-            Map<String, String> data = new HashMap<>();
-            data.put("follower_id", myUserId);
-            data.put("artist_id", targetUserId);
-            apiService.followUser(data).enqueue(silentCallback);
-        } else {
-            apiService.unfollowUser("eq." + myUserId, "eq." + targetUserId).enqueue(silentCallback);
-        }
-    }
-}
+ }

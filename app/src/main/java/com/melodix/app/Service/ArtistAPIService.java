@@ -114,6 +114,5 @@
         Call<okhttp3.ResponseBody> updateAlbumWithSongs(
                 @retrofit2.http.Body java.util.Map<String, Object> bodyData
         );
-        // Gọi HEAD request cực nhẹ để lấy đúng con số Count, không tải data thừa
 
     }

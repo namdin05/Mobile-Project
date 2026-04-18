@@ -1,12 +1,12 @@
 package com.melodix.app.Repository;
 
 import android.content.Context;
-import android.widget.Toast;
+import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.melodix.app.BuildConfig;
 import com.melodix.app.Model.Playlist;
 import com.melodix.app.Model.PlaylistSong;
-import com.melodix.app.Model.SessionManager;
 import com.melodix.app.Model.Song;
 import com.melodix.app.Service.PlaylistAPIService;
 import com.melodix.app.Service.RetrofitClient;
@@ -14,7 +14,6 @@ import com.melodix.app.Service.RetrofitClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import android.util.Log;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -36,13 +35,21 @@ public class PlaylistRepository {
         token = "Bearer " + BuildConfig.API_KEY;
     }
 
+    // ĐÃ SỬA: Lấy Token từ SharedPreferences
     private String getAuthToken() {
-        SessionManager session = SessionManager.getInstance(context);
-        if (session.getToken() != null) {
-            return "Bearer " + session.getToken();   // Token JWT thật
+        SharedPreferences prefs = context.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+        String savedToken = prefs.getString("AUTH_TOKEN", null);
+        if (savedToken != null && !savedToken.isEmpty()) {
+            return "Bearer " + savedToken;   // Token JWT thật
         }
         // Fallback nếu không có token
         return "Bearer " + BuildConfig.API_KEY;
+    }
+
+    // ĐÃ SỬA: Lấy User ID từ SharedPreferences
+    private String getCurrentUserId() {
+        SharedPreferences prefs = context.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+        return prefs.getString("USER_ID", null);
     }
 
     // ==================== PLAYLIST ====================
@@ -105,14 +112,6 @@ public class PlaylistRepository {
                         finalCallback.onFailure(call, t);
                     }
                 });
-    }
-
-    private String getCurrentUserId() {
-        SessionManager session = SessionManager.getInstance(context);
-        if (session.getCurrentUser() != null) {
-            return session.getCurrentUser().getId();
-        }
-        return null;
     }
 
     public void getUserPlaylists(String userId, Callback<List<Playlist>> callback) {
@@ -183,7 +182,7 @@ public class PlaylistRepository {
     }
 
 
-     //Lấy danh sách bài hát trong playlist + tên artist
+    //Lấy danh sách bài hát trong playlist + tên artist
 
     public void getPlaylistSongs(String playlistId, Callback<List<PlaylistSong>> callback) {
         String filter = "eq." + playlistId;
