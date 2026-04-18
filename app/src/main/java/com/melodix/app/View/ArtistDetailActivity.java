@@ -141,6 +141,21 @@ public class ArtistDetailActivity extends AppCompatActivity {
                 if (TextUtils.isEmpty(artist.bio)) tvBio.setVisibility(View.GONE);
                 else { tvBio.setVisibility(View.VISIBLE); tvBio.setText(artist.bio); }
 
+                TextView tvFollowerCount = findViewById(R.id.tv_follower_count);
+
+                repository.getFollowerCount(artistId, count -> {
+                    if (isFinishing() || isDestroyed()) return;
+
+                    // Ép nó hiện lên luôn (không thèm kiểm tra lớn hơn 0 nữa)
+                    tvFollowerCount.setVisibility(View.VISIBLE);
+
+                    String displayCount = count >= 1000 ?
+                            String.format(java.util.Locale.US, "%.1fK", count / 1000f) :
+                            String.valueOf(count);
+
+                    tvFollowerCount.setText(displayCount + " người theo dõi");
+                });
+
                 // LẤY BÀI HÁT
                 repository.getSongsByArtist(artistId, new AppRepository.SongListCallback() {
                     @Override public void onSuccess(ArrayList<Song> songs) {
