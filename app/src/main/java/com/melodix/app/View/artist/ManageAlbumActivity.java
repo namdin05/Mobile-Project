@@ -1,6 +1,8 @@
 package com.melodix.app.View.artist;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -22,11 +24,10 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.melodix.app.Model.Album;
-import com.melodix.app.Model.SessionManager;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
 import com.melodix.app.Service.ArtistAPIService;
-import com.melodix.app.Service.AlbumAPIService; // Nhớ import Service mới của bạn
+import com.melodix.app.Service.AlbumAPIService;
 import com.melodix.app.Service.RetrofitClient;
 import com.melodix.app.View.adapters.ManageAlbumAdapter;
 
@@ -52,19 +53,26 @@ public class ManageAlbumActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_manage_album); // File giao diện của bạn
+        setContentView(R.layout.activity_manage_album);
 
         // Khởi tạo API
         artistApiService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
         albumApiService = RetrofitClient.getSupabaseClient().create(AlbumAPIService.class);
 
-        myArtistId = SessionManager.getInstance(this).getCurrentUser().getId();
+        // ĐÃ SỬA: Lấy USER_ID từ SharedPreferences thay vì SessionManager
+        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+        myArtistId = prefs.getString("USER_ID", null);
+
+        if (myArtistId == null) {
+            Toast.makeText(this, "Phiên đăng nhập hết hạn!", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         rvAlbums = findViewById(R.id.rv_manage_albums);
         swipeRefresh = findViewById(R.id.swipe_refresh);
 
         albumList = new ArrayList<>();
-        // Đổi chỗ này
         adapter = new ManageAlbumAdapter(this, albumList, album -> {
             Intent intent = new Intent(ManageAlbumActivity.this, ManageAlbumDetailActivity.class);
             intent.putExtra("ALBUM_ID", album.id);
@@ -79,15 +87,16 @@ public class ManageAlbumActivity extends AppCompatActivity {
         swipeRefresh.setOnRefreshListener(this::loadMyAlbums);
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
-        // Chuyển sang trang Tạo Album khi bấm nút Dấu Cộng
         findViewById(R.id.btn_create_new_album).setOnClickListener(v -> {
-            startActivity(new android.content.Intent(ManageAlbumActivity.this, CreateAlbumActivity.class));
+            startActivity(new Intent(ManageAlbumActivity.this, CreateAlbumActivity.class));
         });
 
         loadMyAlbums();
     }
 
     private void loadMyAlbums() {
+        if (myArtistId == null) return;
+
         swipeRefresh.setRefreshing(true);
         artistApiService.getAlbumsByArtistId("eq." + myArtistId).enqueue(new Callback<List<Album>>() {
             @Override
@@ -205,7 +214,7 @@ public class ManageAlbumActivity extends AppCompatActivity {
         // Nút Gỡ
         TextView btnRemove = new TextView(this);
         btnRemove.setText("Gỡ");
-        btnRemove.setTextColor(Color.parseColor("#FF453A")); // Đỏ
+        btnRemove.setTextColor(Color.parseColor("#FF453A"));
         btnRemove.setTextSize(14);
         btnRemove.setTypeface(null, Typeface.BOLD);
         btnRemove.setPadding(30, 10, 0, 10);
@@ -229,24 +238,21 @@ public class ManageAlbumActivity extends AppCompatActivity {
         layout.setClickable(true);
 
         layout.setOnClickListener(v -> {
-            // Gọi tiện ích phát nhạc y chang như ManageSongActivity!
             com.melodix.app.Utils.PlaybackUtils.playSong(ManageAlbumActivity.this, new ArrayList<>(allSongs), song.getId());
         });
         return layout;
     }
 
-    // LOGIC CẬP NHẬT DATABASE ĐỂ GỠ BÀI HÁT
     private void removeSongFromAlbum(String songId, BottomSheetDialog parentDialog) {
         Map<String, Object> updateData = new HashMap<>();
-        updateData.put("album_id", null); // Tống ra khỏi album
+        updateData.put("album_id", null);
 
         artistApiService.updateSong("eq." + songId, updateData).enqueue(new Callback<okhttp3.ResponseBody>() {
             @Override
             public void onResponse(Call<okhttp3.ResponseBody> call, Response<okhttp3.ResponseBody> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(ManageAlbumActivity.this, "Đã gỡ bài hát khỏi Album", Toast.LENGTH_SHORT).show();
-                    parentDialog.dismiss(); // Đóng sheet
-                    // Tùy chọn: Gọi lại loadMyAlbums nếu cần cập nhật giao diện
+                    parentDialog.dismiss();
                 } else {
                     Toast.makeText(ManageAlbumActivity.this, "Lỗi khi gỡ bài hát", Toast.LENGTH_SHORT).show();
                 }

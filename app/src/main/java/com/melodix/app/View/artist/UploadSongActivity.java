@@ -1,6 +1,7 @@
 package com.melodix.app.View.artist;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -18,7 +19,6 @@ import com.melodix.app.Model.SongRequestUpload;
 import com.melodix.app.R;
 import com.melodix.app.Service.ArtistAPIService;
 import com.melodix.app.Service.RetrofitClient;
-import com.melodix.app.Model.SessionManager;
 import com.melodix.app.Service.SearchAPIService;
 
 import java.io.ByteArrayOutputStream;
@@ -49,7 +49,6 @@ public class UploadSongActivity extends AppCompatActivity {
     private Uri audioUri = null;
 
     private ArtistAPIService apiService;
-    private SessionManager sessionManager;
     private com.google.android.material.chip.ChipGroup chipGroupCollab;
 
     private View btnSelectAlbum, btnAddGenre;
@@ -64,6 +63,9 @@ public class UploadSongActivity extends AppCompatActivity {
     private boolean isEditMode = false;
     private String editSongId = null;
     private String existingCoverUrl = null;
+
+    // ĐÃ SỬA: Dùng String để lưu currentUserId lấy từ SharedPreferences
+    private String currentUserId;
 
     private final ActivityResultLauncher<String> pickCoverLauncher = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
@@ -98,13 +100,17 @@ public class UploadSongActivity extends AppCompatActivity {
         setContentView(R.layout.activity_upload_song);
 
         apiService = RetrofitClient.getClient().create(ArtistAPIService.class);
-        sessionManager = SessionManager.getInstance(this);
+
+        // ĐÃ SỬA: Lấy USER_ID từ SharedPreferences thay vì SessionManager
+        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
+        currentUserId = prefs.getString("USER_ID", null);
 
         View btnBack = findViewById(R.id.btn_back);
         btnBack.setOnClickListener(v -> finish());
 
-        if (sessionManager.getCurrentUser() != null && sessionManager.getCurrentUser().getId() != null) {
-            selectedArtistIds.add(sessionManager.getCurrentUser().getId());
+        // ĐÃ SỬA: Dùng currentUserId
+        if (currentUserId != null) {
+            selectedArtistIds.add(currentUserId);
         }
 
         edtSongTitle = findViewById(R.id.edt_song_title);
@@ -159,7 +165,6 @@ public class UploadSongActivity extends AppCompatActivity {
     private void startUploadProcess() {
         String songTitle = edtSongTitle.getText().toString().trim();
 
-        // 1. Kiểm tra Lỗi nhập liệu
         if (songTitle.isEmpty()) {
             Toast.makeText(this, "Vui lòng nhập tên bài hát!", Toast.LENGTH_SHORT).show();
             return;
@@ -175,14 +180,12 @@ public class UploadSongActivity extends AppCompatActivity {
             return;
         }
 
-        // 2. Khóa nút bấm
         btnSubmitUpload.setEnabled(false);
         btnSubmitUpload.setText(isEditMode ? "ĐANG CẬP NHẬT..." : "ĐANG XỬ LÝ (1/3)...");
 
         String apiKey = BuildConfig.API_KEY;
         String token = "Bearer " + BuildConfig.API_KEY;
 
-        // 3. Nếu người dùng CHỌN ẢNH BÌA MỚI -> Upload ảnh trước
         if (coverUri != null) {
             long timestamp = System.currentTimeMillis();
             String coverFileName = "cover_" + timestamp + ".jpg";
@@ -213,13 +216,11 @@ public class UploadSongActivity extends AppCompatActivity {
                         }
                     });
         } else {
-            // Nếu không chọn ảnh mới (Chế độ Edit), bỏ qua bước up ảnh, xài ảnh cũ
             uploadAudioStep(apiKey, token, existingCoverUrl, songTitle);
         }
     }
 
     private void uploadAudioStep(String apiKey, String token, String finalCoverUrl, String songTitle) {
-        // Nếu người dùng CHỌN NHẠC MỚI -> Upload Nhạc
         if (audioUri != null) {
             btnSubmitUpload.setText("ĐANG TẢI NHẠC (2/3)...");
             long timestamp = System.currentTimeMillis();
@@ -251,7 +252,6 @@ public class UploadSongActivity extends AppCompatActivity {
                         }
                     });
         } else {
-            // Nếu không chọn nhạc mới (Chế độ Edit), bỏ qua bước up nhạc
             submitToDatabase(apiKey, token, songTitle, finalCoverUrl, null);
         }
     }
@@ -260,14 +260,10 @@ public class UploadSongActivity extends AppCompatActivity {
         btnSubmitUpload.setText(isEditMode ? "ĐANG LƯU DỮ LIỆU..." : "ĐANG LƯU DỮ LIỆU (3/3)...");
 
         if (isEditMode) {
-            // ==========================================
-            // CHẾ ĐỘ CHỈNH SỬA (Gọi hàm PATCH updateSong)
-            // ==========================================
             java.util.Map<String, Object> songData = new java.util.HashMap<>();
             songData.put("title", songTitle);
             if (coverUrl != null) songData.put("cover_url", coverUrl);
 
-            // Nếu up file nhạc mới thì cập nhật lại link và thời lượng
             if (audioUrl != null) {
                 songData.put("audio_url", audioUrl);
                 songData.put("duration_seconds", getAudioDuration(audioUri));
@@ -276,14 +272,13 @@ public class UploadSongActivity extends AppCompatActivity {
                 songData.put("album_id", selectedAlbumId);
             }
 
-            // Gửi dữ liệu lên API
             ArtistAPIService updateApi = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
             updateApi.updateSong("eq." + editSongId, songData).enqueue(new Callback<okhttp3.ResponseBody>() {
                 @Override
                 public void onResponse(Call<okhttp3.ResponseBody> call, Response<okhttp3.ResponseBody> response) {
                     if (response.isSuccessful()) {
                         Toast.makeText(UploadSongActivity.this, "Đã cập nhật bài hát!", Toast.LENGTH_LONG).show();
-                        finish(); // Đóng màn hình, quay về list
+                        finish();
                     } else {
                         logErrorBody("UPDATE_SONG_ERROR", response);
                         showError("Cập nhật thất bại: " + response.code());
@@ -297,9 +292,6 @@ public class UploadSongActivity extends AppCompatActivity {
             });
 
         } else {
-            // ==========================================
-            // CHẾ ĐỘ ĐĂNG MỚI (Gọi hàm RPC cũ của bạn)
-            // ==========================================
             int duration = getAudioDuration(audioUri);
             SongRequestUpload requestBody = new SongRequestUpload(
                     songTitle, coverUrl, audioUrl, duration, selectedAlbumId, null, selectedArtistIds, selectedGenreIds
@@ -418,7 +410,9 @@ public class UploadSongActivity extends AppCompatActivity {
         container.addView(title);
 
         ArtistAPIService supabaseApi = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
-        supabaseApi.getAlbumsByArtistId("eq." + sessionManager.getCurrentUser().getId()).enqueue(new Callback<java.util.List<com.melodix.app.Model.Album>>() {
+
+        // ĐÃ SỬA: Dùng biến currentUserId để truy vấn thay vì gọi sessionManager
+        supabaseApi.getAlbumsByArtistId("eq." + currentUserId).enqueue(new Callback<java.util.List<com.melodix.app.Model.Album>>() {
             @Override
             public void onResponse(Call<java.util.List<com.melodix.app.Model.Album>> call, Response<java.util.List<com.melodix.app.Model.Album>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -510,6 +504,7 @@ public class UploadSongActivity extends AppCompatActivity {
         });
         dialog.show();
     }
+
     private void openCollabSearchDialog() {
         com.google.android.material.bottomsheet.BottomSheetDialog dialog =
                 new com.google.android.material.bottomsheet.BottomSheetDialog(this, R.style.BottomSheetTheme);
@@ -523,22 +518,19 @@ public class UploadSongActivity extends AppCompatActivity {
         bgShape.setCornerRadii(new float[]{60, 60, 60, 60, 0, 0, 0, 0});
         container.setBackground(bgShape);
 
-        // 1. THANH TÌM KIẾM BO GÓC MỀM MẠI
         EditText edtSearch = new EditText(this);
         edtSearch.setHint("🔍 Nhập tên nghệ sĩ...");
         edtSearch.setTextColor(android.graphics.Color.BLACK);
-        edtSearch.setHintTextColor(android.graphics.Color.parseColor("#8E8E93")); // Màu xám chuẩn iOS
+        edtSearch.setHintTextColor(android.graphics.Color.parseColor("#8E8E93"));
         edtSearch.setPadding(50, 40, 50, 40);
         edtSearch.setSingleLine(true);
         edtSearch.setTextSize(16);
-        // Tắt gạch chân mặc định xấu xí của EditText
         edtSearch.setBackgroundResource(android.R.color.transparent);
 
-        // Bọc EditText trong 1 cái khung xám nhạt cho ra dáng thanh Search
         android.widget.LinearLayout searchContainer = new android.widget.LinearLayout(this);
         android.graphics.drawable.GradientDrawable searchBg = new android.graphics.drawable.GradientDrawable();
         searchBg.setColor(android.graphics.Color.parseColor("#F2F2F7"));
-        searchBg.setCornerRadius(30); // Bo góc mềm hơn
+        searchBg.setCornerRadius(30);
         searchContainer.setBackground(searchBg);
 
         android.widget.LinearLayout.LayoutParams searchParams = new android.widget.LinearLayout.LayoutParams(
@@ -551,20 +543,17 @@ public class UploadSongActivity extends AppCompatActivity {
                 android.widget.LinearLayout.LayoutParams.WRAP_CONTENT));
         container.addView(searchContainer);
 
-        // 2. KHU VỰC HIỂN THỊ KẾT QUẢ (Hoặc Loading / Empty)
         android.widget.FrameLayout resultFrame = new android.widget.FrameLayout(this);
         android.widget.LinearLayout.LayoutParams frameParams = new android.widget.LinearLayout.LayoutParams(
                 android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
                 android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
-        frameParams.setMargins(0, 0, 0, 40); // Cách lề dưới một chút cho khỏi sát mép màn hình
+        frameParams.setMargins(0, 0, 0, 40);
         resultFrame.setLayoutParams(frameParams);
 
-        // --- Danh sách kết quả ---
         android.widget.LinearLayout resultContainer = new android.widget.LinearLayout(this);
         resultContainer.setOrientation(android.widget.LinearLayout.VERTICAL);
         resultFrame.addView(resultContainer);
 
-        // --- Vòng xoay Loading ---
         android.widget.ProgressBar progressBar = new android.widget.ProgressBar(this);
         android.widget.FrameLayout.LayoutParams progressParams = new android.widget.FrameLayout.LayoutParams(
                 android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -572,10 +561,9 @@ public class UploadSongActivity extends AppCompatActivity {
                 android.view.Gravity.CENTER);
         progressParams.topMargin = 50;
         progressBar.setLayoutParams(progressParams);
-        progressBar.setVisibility(View.GONE); // Mặc định ẩn
+        progressBar.setVisibility(View.GONE);
         resultFrame.addView(progressBar);
 
-        // --- Text thông báo Không tìm thấy ---
         TextView tvEmpty = new TextView(this);
         tvEmpty.setText("Dữ liệu trống rỗng 🍃\nHãy thử tìm tên nghệ sĩ khác xem sao.");
         tvEmpty.setGravity(android.view.Gravity.CENTER);
@@ -587,7 +575,7 @@ public class UploadSongActivity extends AppCompatActivity {
                 android.view.Gravity.CENTER);
         emptyParams.topMargin = 100;
         tvEmpty.setLayoutParams(emptyParams);
-        tvEmpty.setVisibility(View.GONE); // Mặc định ẩn
+        tvEmpty.setVisibility(View.GONE);
         resultFrame.addView(tvEmpty);
 
         container.addView(resultFrame);
@@ -597,7 +585,6 @@ public class UploadSongActivity extends AppCompatActivity {
 
         SearchAPIService searchAPI = RetrofitClient.getSupabaseClient().create(SearchAPIService.class);
 
-        // 3. KỸ THUẬT DEBOUNCE (CHỐNG SPAM API)
         android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
         final Runnable[] searchRunnable = {null};
 
@@ -609,7 +596,6 @@ public class UploadSongActivity extends AppCompatActivity {
             public void afterTextChanged(android.text.Editable s) {
                 String query = s.toString().trim();
 
-                // Hủy lệnh gọi API cũ nếu người dùng vẫn đang tiếp tục gõ
                 if (searchRunnable[0] != null) {
                     searchHandler.removeCallbacks(searchRunnable[0]);
                 }
@@ -621,12 +607,10 @@ public class UploadSongActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Hiển thị vòng xoay loading, dọn sạch kết quả cũ
                 resultContainer.removeAllViews();
                 tvEmpty.setVisibility(View.GONE);
                 progressBar.setVisibility(View.VISIBLE);
 
-                // Lên lịch gọi API sau khi người dùng ngừng gõ 500ms
                 searchRunnable[0] = () -> {
                     String formattedQuery = query.replaceAll("\\s+", " & ") + ":*";
                     String ftsQuery = "fts(simple)." + android.net.Uri.encode(formattedQuery);
@@ -634,14 +618,12 @@ public class UploadSongActivity extends AppCompatActivity {
                     searchAPI.searchArtists(ftsQuery).enqueue(new Callback<java.util.List<com.melodix.app.Model.Artist>>() {
                         @Override
                         public void onResponse(Call<java.util.List<com.melodix.app.Model.Artist>> call, Response<java.util.List<com.melodix.app.Model.Artist>> response) {
-                            progressBar.setVisibility(View.GONE); // Tắt loading
+                            progressBar.setVisibility(View.GONE);
 
                             if (response.isSuccessful() && response.body() != null) {
                                 if (response.body().isEmpty()) {
-                                    // Bật Empty State nếu không có ai
                                     tvEmpty.setVisibility(View.VISIBLE);
                                 } else {
-                                    // Hiển thị kết quả
                                     for (com.melodix.app.Model.Artist artist : response.body()) {
                                         resultContainer.addView(createPremiumArtistDialogItem(artist.avatarRes, artist.name, v -> {
                                             addArtistChip(artist.id, artist.name);
@@ -661,7 +643,6 @@ public class UploadSongActivity extends AppCompatActivity {
                         }
                     });
                 };
-                // Kích hoạt thời gian chờ 500 milliseconds (Nửa giây)
                 searchHandler.postDelayed(searchRunnable[0], 500);
             }
         });
@@ -694,6 +675,7 @@ public class UploadSongActivity extends AppCompatActivity {
 
         chipGroupGenre.addView(chip);
     }
+
     private void addArtistChip(String artistId, String artistName) {
         if (selectedArtistIds.contains(artistId)) {
             Toast.makeText(this, "Nghệ sĩ này đã được thêm rồi!", Toast.LENGTH_SHORT).show();
@@ -812,8 +794,9 @@ public class UploadSongActivity extends AppCompatActivity {
         selectedArtistIds.clear();
         chipGroupCollab.removeAllViews();
 
-        if (sessionManager.getCurrentUser() != null && sessionManager.getCurrentUser().getId() != null) {
-            selectedArtistIds.add(sessionManager.getCurrentUser().getId());
+        // ĐÃ SỬA: Dùng currentUserId
+        if (currentUserId != null) {
+            selectedArtistIds.add(currentUserId);
         }
     }
 }

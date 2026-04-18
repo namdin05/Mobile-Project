@@ -3,7 +3,9 @@ package com.melodix.app.View.home;
 import static android.widget.Toast.LENGTH_LONG;
 import static android.widget.Toast.LENGTH_SHORT;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,11 +30,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.melodix.app.Model.Banner;
 import com.melodix.app.Model.Genre;
-import com.melodix.app.Model.Profile;
-import com.melodix.app.Model.SessionManager;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
-import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.PlayerActivity;
 import com.melodix.app.Utils.PlaybackUtils;
 import com.melodix.app.Utils.ShareUtils;
@@ -47,10 +46,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HomeFragment extends Fragment {
-    Profile user;
     ViewPager2 bannerPager;
     private android.os.Handler sliderHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable sliderRunnable;
+    private ImageView avatar;
+    private TextView greeting;
 
     // logic
     @Override
@@ -75,8 +75,9 @@ public class HomeFragment extends Fragment {
                     playSongAndSetQueue(song, songs); // Gọi hàm phát nhạc
                 }
                 @Override
-                public void onMenuClick(Song song, int postion, String action){
-                    handleMenuClick(song, action); // Cập nhật lại hàm truyền thêm tham số Song
+                public void onMenuClick(Song song, int position, String action){
+                    // ĐÃ SỬA LỖI MENU 3 CHẤM: Truyền nguyên danh sách 'songs' vào
+                    handleMenuClick(song, action, songs);
                 }
             });
             Log.d("NEW_RELEASE_SONG", new Gson().toJson(songs));
@@ -86,28 +87,34 @@ public class HomeFragment extends Fragment {
             rvNewRelease.setAdapter(songAdapter);
         });
 
-        //  lay nguoi dung hien tai
-        user = SessionManager.getInstance(requireContext()).getCurrentUser();
-        if(user != null)  Log.d("get_session_user", user.getDisplayName()+" hello");
+        // ĐÃ SỬA: Lấy thông tin user từ SharedPreferences
+        SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+        boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
+        String avatarUrl = prefs.getString("USER_AVATAR", "");
+        String userName = prefs.getString("USER_NAME", "");
+
+        if(isLoggedIn)  Log.d("get_session_user", userName + " hello");
         else Log.d("get_session_user", "chua load xong user");
 
         // khai bao account section
-        ImageView avatar = view.findViewById(R.id.img_avatar);
-        TextView greeting = view.findViewById(R.id.tv_greeting);
+        avatar = view.findViewById(R.id.img_avatar);
+        greeting = view.findViewById(R.id.tv_greeting);
         TextView subGreeting = view.findViewById(R.id.tv_subgreeting);
         TextView btnViewAllGenres = view.findViewById(R.id.tv_view_all_genres);
         // ========
 
-        if (user != null) {
-            Glide.with(requireContext()).load(user.getAvatarUrl()).circleCrop().into(avatar);
+        // Cập nhật Avatar nếu đã đăng nhập
+        if (isLoggedIn && !avatarUrl.isEmpty()) {
+            Glide.with(requireContext()).load(avatarUrl).circleCrop().into(avatar);
             greeting.setText("Welcome back");
         }
+
         // tim den bottomNavigationView cua MainActivity
         BottomNavigationView bottomNavigationView = requireActivity().findViewById(R.id.bottom_nav);
         avatar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                bottomNavigationView.setSelectedItemId(R.id.nav_account); // R.id.nav_account chinh la tham so truyen vao onNavigationItemSelected(@NonNull MenuItem menuItem)
+                bottomNavigationView.setSelectedItemId(R.id.nav_account);
             }
         });
 
@@ -134,7 +141,11 @@ public class HomeFragment extends Fragment {
             GenreAdapter genreAdapter = new GenreAdapter(requireContext(), genres, new GenreAdapter.OnGenreClickListener() {
                 @Override
                 public void onGenreClick(Genre genre) {
-                    Toast.makeText(requireContext(), genre.getName(), LENGTH_LONG).show();
+                    requireActivity().getSupportFragmentManager().beginTransaction()
+                            .setCustomAnimations(R.anim.slide_in_right, 0, 0, R.anim.slide_out_right)
+                            .add(R.id.main_fragment_container, GenreDetailFragment.newInstance(genre.getId(), genre.getName()))
+                            .addToBackStack(null)
+                            .commit();
                 }
             });
             // set layout
@@ -146,14 +157,9 @@ public class HomeFragment extends Fragment {
         // xu li logic view all genres
         btnViewAllGenres.setOnClickListener(v -> {
             requireActivity().getSupportFragmentManager().beginTransaction()
-                    .setCustomAnimations(
-                            R.anim.slide_in_right,  // Màn AllGenres lướt vào
-                            0,                      // Màn Home đứng im
-                            0,                      // (Bấm Back) Màn Home đứng im
-                            R.anim.slide_out_right  // (Bấm Back) Màn AllGenres lướt ra
-                    ) // goi truoc add de k bi skip
-                    .add(R.id.main_fragment_container, new AllGenresFragment()) // nen xai add de home ko bi trang xoa
-                    .addToBackStack(null) // null thi chi quay ve 1 nac
+                    .setCustomAnimations(R.anim.slide_in_right, 0, 0, R.anim.slide_out_right)
+                    .add(R.id.main_fragment_container, new AllGenresFragment())
+                    .addToBackStack(null)
                     .commit();
         });
 
@@ -187,6 +193,20 @@ public class HomeFragment extends Fragment {
                     bannerPager.setCurrentItem(nextItem, true);
                 }
             }
+            // 2. Tự động lấy User mới nhất và cập nhật Avatar mỗi 3 giây
+            if (isAdded() && getContext() != null) { // Đảm bảo Fragment chưa bị đóng
+                SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+                boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
+                String currentAvatarUrl = prefs.getString("USER_AVATAR", "");
+
+                if (isLoggedIn && !currentAvatarUrl.isEmpty() && avatar != null) {
+                    Glide.with(this)
+                            .load(currentAvatarUrl)
+                            .circleCrop()
+                            .into(avatar);
+                    if (greeting != null) greeting.setText("Welcome back");
+                }
+            }
             sliderHandler.postDelayed(sliderRunnable, 3000); // Lặp lại sau 3s
         };
         sliderHandler.postDelayed(sliderRunnable, 3000);
@@ -214,7 +234,10 @@ public class HomeFragment extends Fragment {
     }
 
     private void showPlaylistSelectionDialog(Song song) {
-        if (SessionManager.getInstance(requireContext()).getCurrentUser() == null) {
+        SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+        boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
+
+        if (!isLoggedIn) {
             Toast.makeText(requireContext(), "Vui lòng đăng nhập để thêm vào playlist", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -226,13 +249,12 @@ public class HomeFragment extends Fragment {
         dialog.show(getChildFragmentManager(), "playlist_selection");
     }
 
-    // Cập nhật lại hàm này: nhận thêm đối tượng Song để biết bài nào được bấm Menu
-    private void handleMenuClick(Song song, String action){
+    // ĐÃ SỬA: Nhận listSongs để nạp toàn bộ Queue khi người dùng bấm Play từ Menu
+    private void handleMenuClick(Song song, String action, List<Song> listSongs){
         switch (action){
             case "play":
-                List<Song> singleList = new ArrayList<>();
-                singleList.add(song);
-                playSongAndSetQueue(song, singleList);
+                // Truyền nguyên danh sách để nghe được bài tiếp theo
+                playSongAndSetQueue(song, listSongs);
                 break;
             case "like":
                 Toast.makeText(requireContext(),"LIKE " + song.getTitle(), LENGTH_SHORT).show();
@@ -246,10 +268,10 @@ public class HomeFragment extends Fragment {
             case "share":
                 if (song != null && song.getId() != null) {
                     com.melodix.app.Utils.ShareUtils.shareContent(
-                            requireContext(), // Dùng requireContext() vì đang ở trong Fragment
-                            "song",           // Type bài hát
-                            song.getId(),     // ID bài hát
-                            song.getTitle()   // Tên bài hát
+                            requireContext(),
+                            "song",
+                            song.getId(),
+                            song.getTitle()
                     );
                 } else {
                     Toast.makeText(requireContext(), "Lỗi dữ liệu bài hát", Toast.LENGTH_SHORT).show();

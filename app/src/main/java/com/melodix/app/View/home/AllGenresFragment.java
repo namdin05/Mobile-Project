@@ -30,7 +30,19 @@ public class AllGenresFragment extends Fragment {
             GenreAdapter genreAdapter = new GenreAdapter(requireContext(), genres, new GenreAdapter.OnGenreClickListener() {
                 @Override
                 public void onGenreClick(Genre genre) {
-                    Toast.makeText(requireContext(), "PLAY THIS SONG", Toast.LENGTH_LONG).show();
+                    android.util.Log.d("TEST_CLICK", "ĐÃ BẤM VÀO THỂ LOẠI: " + genre.getName());
+                    try {
+                        requireActivity().getSupportFragmentManager().beginTransaction()
+                                .setCustomAnimations(R.anim.slide_in_right, 0, 0, R.anim.slide_out_right)
+                                .add(R.id.main_fragment_container, GenreDetailFragment.newInstance(String.valueOf(genre.getId()), genre.getName()))
+                                .addToBackStack(null)
+                                .commit();
+
+                        // MÁY QUAY 2: Kiểm tra xem lệnh chuyển trang có chạy mượt không
+                        android.util.Log.d("TEST_CLICK", "Đã gọi lệnh chuyển trang thành công!");
+                    } catch (Exception e) {
+                        android.util.Log.e("TEST_CLICK", "Lỗi chuyển trang: " + e.getMessage());
+                    }
                 }
             });
             rvAllGenres.setLayoutManager(new GridLayoutManager(requireContext(), 2));
