@@ -35,4 +35,12 @@ public interface SongAPIService {
             @Header("Authorization") String token,   // <--- BẮT BUỘC PHẢI THÊM DÒNG NÀY
             @retrofit2.http.Body java.util.Map<String, Integer> body
     );
+
+    // ĐỔI TÊN ĐƯỜNG DẪN Ở ĐÂY 👇
+    @retrofit2.http.POST("rest/v1/rpc/add_song_stream")
+    retrofit2.Call<Void> recordPlay(
+            @retrofit2.http.Header("apikey") String apiKey,
+            @retrofit2.http.Header("Authorization") String token,
+            @retrofit2.http.Body java.util.Map<String, Object> body
+    );
 }

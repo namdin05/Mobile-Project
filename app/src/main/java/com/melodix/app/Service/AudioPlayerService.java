@@ -25,9 +25,8 @@ import com.melodix.app.Repository.PlaybackRepository;
 import com.melodix.app.Utils.ResourceUtils;
 import com.melodix.app.PlayerActivity;
 
-import java.io.File;
-
 public class AudioPlayerService extends Service {
+    private static boolean hasRecordedPlay = false; // Bấm nút chặn spam view
     private PlaybackRepository playbackRepo = PlaybackRepository.getInstance();
     public static final int NOTIFICATION_ID = 991;
     private static final String CHANNEL_ID = "melodix_playback_channel";
@@ -44,7 +43,6 @@ public class AudioPlayerService extends Service {
     public static final String ACTION_SET_SLEEP_TIMER = "com.melodix.app.action.SET_SLEEP_TIMER";
     public static final String ACTION_STATE_CHANGED = "com.melodix.app.action.STATE_CHANGED";
 
-    // Đây là chiêu thức mình dùng để ép dừng nhạc
     public static final String ACTION_PAUSE = "com.melodix.app.ACTION_PAUSE";
 
     public static final String EXTRA_SONG_ID = "extra_song_id";
@@ -100,31 +98,14 @@ public class AudioPlayerService extends Service {
         mediaSession = new MediaSessionCompat(this, "AudioPlayerService");
         mediaSession.setActive(true);
         mediaSession.setCallback(new android.support.v4.media.session.MediaSessionCompat.Callback() {
-            @Override
-            public void onPlay() {
-                togglePlayPause();
-            }
-
-            @Override
-            public void onPause() {
-                togglePlayPause();
-            }
-
-            @Override
-            public void onSkipToNext() {
-                playNext();
-            }
-
-            @Override
-            public void onSkipToPrevious() {
-                playPrevious();
-            }
-
-            @Override
-            public void onSeekTo(long pos) {
+            @Override public void onPlay() { togglePlayPause(); }
+            @Override public void onPause() { togglePlayPause(); }
+            @Override public void onSkipToNext() { playNext(); }
+            @Override public void onSkipToPrevious() { playPrevious(); }
+            @Override public void onSeekTo(long pos) {
                 if (mediaPlayer != null) {
                     mediaPlayer.seekTo((int) pos);
-                    updateNotification(repository.getSongById(currentSongId), isPlaying);
+                    updateNotification(playbackRepo.getCurrentSong(), isPlaying);
                 }
             }
         });
@@ -133,6 +114,19 @@ public class AudioPlayerService extends Service {
             @Override
             public void run() {
                 broadcastState();
+
+                // ĐỒNG HỒ ĐẾM GIÂY VÀ CỘNG VIEW (Đã tích hợp test log)
+                if (mediaPlayer != null && isPlaying) {
+                    int listenedSec = mediaPlayer.getCurrentPosition() / 1000;
+
+                    Log.d("TEST_TIME", "⏳ Đang nghe: " + listenedSec + "s - Đã cộng view chưa: " + hasRecordedPlay);
+
+                    if (listenedSec >= 15 && !hasRecordedPlay) {
+                        Log.d("TEST_TIME", "🚀 Đã đủ 15s! Bắt đầu gọi API cộng view...");
+                        repository.recordPlay(currentSongId); // Gọi hàm 1 tham số
+                        hasRecordedPlay = true;
+                    }
+                }
                 handler.postDelayed(this, 1000);
             }
         };
@@ -202,13 +196,13 @@ public class AudioPlayerService extends Service {
     private void playSong(String songId) {
         Song song = playbackRepo.getCurrentSong();
         if (song == null) {
-            android.util.Log.e("TEST_MUSIC", "LỖI: Không tìm thấy bài hát trong Queue! Bị thoát sớm.");
+            Log.e("TEST_MUSIC", "LỖI: Không tìm thấy bài hát trong Queue! Bị thoát sớm.");
             return;
         }
 
-        persistLastListen();
         releasePlayer();
         currentSongId = song.getId();
+        hasRecordedPlay = false; // Reset cờ cho bài hát mới
 
         try {
             mediaPlayer = new MediaPlayer();
@@ -232,21 +226,12 @@ public class AudioPlayerService extends Service {
             mediaPlayer.prepareAsync();
 
             mediaPlayer.setOnCompletionListener(mp -> {
-                int listenedSec = 0;
-                try {
-                    if (mp != null && isPlaying) {
-                        listenedSec = mp.getDuration() / 1000;
-                    }
-                } catch (Exception e) {
-                    android.util.Log.e("TEST_MUSIC", "Lỗi lấy Duration khi hết bài");
-                }
-
-                repository.recordPlay(currentSongId, listenedSec);
-
+                // ĐÃ XÓA KHÚC GỌI API BỊ LỖI Ở ĐÂY
                 if (isLoopingOne) {
                     try {
                         mp.seekTo(0);
                         mp.start();
+                        hasRecordedPlay = false; // Nếu bài hát tự lặp lại thì cho tính thêm view nữa
                         broadcastState();
                     } catch (Exception e) {}
                 } else {
@@ -265,9 +250,7 @@ public class AudioPlayerService extends Service {
         applyPlaybackSpeed();
         mediaPlayer.start();
         isPlaying = true;
-
         updateNotification(playbackRepo.getCurrentSong(), true);
-
         broadcastState();
     }
 
@@ -280,7 +263,6 @@ public class AudioPlayerService extends Service {
         if (mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
             isPlaying = false;
-            persistLastListen();
             updateNotification(playbackRepo.getCurrentSong(), false);
         } else {
             mediaPlayer.start();
@@ -324,7 +306,6 @@ public class AudioPlayerService extends Service {
     }
 
     private void stopPlayback() {
-        persistLastListen();
         releasePlayer();
         isPlaying = false;
         broadcastState();
@@ -337,20 +318,12 @@ public class AudioPlayerService extends Service {
             if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                 mediaPlayer.pause();
                 isPlaying = false;
-                persistLastListen();
                 updateNotification(playbackRepo.getCurrentSong(), false);
                 broadcastState();
             }
             stopForeground(false);
         };
         handler.postDelayed(sleepRunnable, minutes * 1000L);
-    }
-
-    private void persistLastListen() {
-        if (mediaPlayer != null && currentSongId != null) {
-            int listenedSec = mediaPlayer.getCurrentPosition() / 1000;
-            repository.recordPlay(currentSongId, listenedSec);
-        }
     }
 
     private void updateNotification(Song currentSong, boolean isPlaying) {
@@ -447,7 +420,6 @@ public class AudioPlayerService extends Service {
     public void onDestroy() {
         instance = null;
         handler.removeCallbacksAndMessages(null);
-        persistLastListen();
         releasePlayer();
         if (mediaSession != null) {
             mediaSession.release();

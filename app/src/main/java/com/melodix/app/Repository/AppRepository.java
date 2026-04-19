@@ -517,10 +517,45 @@ public class AppRepository {
         return null;
     }
 
-    public void recordPlay(String songId, int listenedSec) {
-        // Tương lai bạn sẽ gọi API Supabase lên bảng 'plays' và 'listen_history' ở đây.
-    }
+    public void recordPlay(String songId) {
+        String userId = getCurrentUserId();
 
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        body.put("p_song_id", songId);
+
+        if (userId != null && !userId.isEmpty()) {
+            body.put("p_user_id", userId);
+        }
+
+        String apiKey = com.melodix.app.BuildConfig.API_KEY;
+        String rawToken = prefs.getString("AUTH_TOKEN", com.melodix.app.BuildConfig.SERVICE_KEY);
+        String token = rawToken.startsWith("Bearer") ? rawToken : "Bearer " + rawToken;
+
+        android.util.Log.d("PLAY_COUNT", "Đang gửi API cộng view (Đã fix lỗi trùng Header)...");
+
+        // 👇 CHÌA KHÓA Ở ĐÂY: Dùng getClient() thay vì getSupabaseClient() để không bị nhồi 2 lần Header
+        com.melodix.app.Service.SongAPIService apiService =
+                com.melodix.app.Service.RetrofitClient.getClient().create(com.melodix.app.Service.SongAPIService.class);
+
+        apiService.recordPlay(apiKey, token, body).enqueue(new retrofit2.Callback<Void>() {
+            @Override
+            public void onResponse(retrofit2.Call<Void> call, retrofit2.Response<Void> response) {
+                if (response.isSuccessful()) {
+                    android.util.Log.d("PLAY_COUNT", "✅ Đã cộng 1 view thành công cho bài hát!");
+                } else {
+                    try {
+                        String errorBody = response.errorBody() != null ? response.errorBody().string() : "Không có chi tiết";
+                        android.util.Log.e("PLAY_COUNT", "❌ Lỗi API (Code " + response.code() + "): " + errorBody);
+                    } catch (Exception e) { e.printStackTrace(); }
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<Void> call, Throwable t) {
+                android.util.Log.e("PLAY_COUNT", "❌ Lỗi rớt mạng: " + t.getMessage());
+            }
+        });
+    }
     public String getAiSummaryForSong(String songId) {
         return "AI Summary đang phân tích hàng ngàn bình luận... Bài hát này hiện đang được stream trực tiếp từ hệ thống Supabase!";
     }
