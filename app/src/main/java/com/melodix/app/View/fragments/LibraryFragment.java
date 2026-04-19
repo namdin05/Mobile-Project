@@ -19,9 +19,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.melodix.app.Model.Playlist;
 import com.melodix.app.Model.PlaylistSong;
+import com.melodix.app.Model.AppDatabase;
+import com.melodix.app.Model.DownloadedSong;
 import com.melodix.app.R;
 import com.melodix.app.Repository.PlaylistRepository;
 import com.melodix.app.View.adapters.PlaylistAdapter;
+import com.melodix.app.View.adapters.DownloadedSongAdapter;
 import com.melodix.app.View.dialogs.CreatePlaylistDialog;
 
 import java.util.ArrayList;
@@ -47,6 +50,8 @@ public class LibraryFragment extends Fragment {
     private PlaylistAdapter playlistAdapter;
     private List<Playlist> playlistList = new ArrayList<>();
     private Button btnCreatePlaylist;
+    private RecyclerView rvDownloaded;
+    private DownloadedSongAdapter downloadedSongAdapter;
     private PlaylistRepository playlistRepository;
 
     // Launcher chọn ảnh cho Create Playlist Dialog
@@ -68,6 +73,13 @@ public class LibraryFragment extends Fragment {
         playlistAdapter = new PlaylistAdapter(requireContext(), playlistList, this::onPlaylistClick);
         rvPlaylists.setAdapter(playlistAdapter);
 
+        rvDownloaded = view.findViewById(R.id.rv_downloaded);
+        rvDownloaded.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        // Tạo adapter cho danh sách bài hát đã tải
+        downloadedSongAdapter = new DownloadedSongAdapter(requireContext());
+        rvDownloaded.setAdapter(downloadedSongAdapter);
+
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
@@ -81,6 +93,7 @@ public class LibraryFragment extends Fragment {
         }
 
         loadUserPlaylists();
+        loadDownloadedSongs();
 
         return view;
     }
@@ -106,7 +119,21 @@ public class LibraryFragment extends Fragment {
         currentDialog.show();
     }
 
+    private void loadDownloadedSongs() {
+        AppDatabase.getInstance(requireContext())
+                .downloadedSongDao()
+                .getAllDownloaded()
+                .observe(getViewLifecycleOwner(), downloadedSongs -> {
+                    if (downloadedSongAdapter != null) {
+                        downloadedSongAdapter.updateList(downloadedSongs);
+                    }
 
+                    // Ẩn/hiện phần Downloaded nếu không có bài nào
+                    if (rvDownloaded != null) {
+                        rvDownloaded.setVisibility(downloadedSongs.isEmpty() ? View.GONE : View.VISIBLE);
+                    }
+                });
+    }
 
     public void loadUserPlaylists() {
         String userId = getCurrentUserId();
@@ -196,5 +223,6 @@ public class LibraryFragment extends Fragment {
     public void onResume() {
         super.onResume();
         loadUserPlaylists();
+        loadDownloadedSongs();
     }
 }

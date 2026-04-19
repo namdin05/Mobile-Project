@@ -7,12 +7,17 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import com.melodix.app.Model.Song;
+import com.melodix.app.Repository.DownloadRepository;
 import com.melodix.app.R;
 import com.melodix.app.Utils.TimeUtils;
 import com.melodix.app.View.dialogs.PlaylistSelectionDialog;
+import com.melodix.app.View.music.CommentsBottomSheet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -126,6 +131,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         bottomSheetView.findViewById(R.id.menu_comments).setOnClickListener(v -> {
             if (listener != null) listener.onMenuClick(song, position, "comment");
             bottomSheet.dismiss();
+            showCommentsBottomSheet(song);
         });
 
         bottomSheetView.findViewById(R.id.menu_share).setOnClickListener(v -> {
@@ -134,7 +140,19 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         });
 
         bottomSheetView.findViewById(R.id.menu_download).setOnClickListener(v -> {
-            if (listener != null) listener.onMenuClick(song, position, "download");
+            try {
+                if (song == null || song.getId() == null) {
+                    Toast.makeText(context, "Không thể tải bài hát này", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                DownloadRepository repo = new DownloadRepository(context);
+                repo.enqueueDownload(song);
+
+            } catch (Exception e) {
+                Log.e("DOWNLOAD_CRASH", "Lỗi khi gọi download", e);
+                Toast.makeText(context, "Lỗi tải xuống: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
             bottomSheet.dismiss();
         });
 
@@ -152,6 +170,12 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         bottomSheet.show();
     }
 
+    private void showCommentsBottomSheet(Song song) {
+        if (context instanceof FragmentActivity) {
+            CommentsBottomSheet commentsBottomSheet = CommentsBottomSheet.newInstance(song.getId());
+            commentsBottomSheet.show(((FragmentActivity) context).getSupportFragmentManager(), "comments_bottom_sheet");
+        }
+    }
     private void showPlaylistSelectionDialog(Song song) {
         if (context instanceof androidx.fragment.app.FragmentActivity) {
             PlaylistSelectionDialog dialog = PlaylistSelectionDialog.newInstance(song.getId());

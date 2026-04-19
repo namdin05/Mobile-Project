@@ -35,11 +35,16 @@ import com.melodix.app.Utils.TimeUtils;
 import com.melodix.app.View.music.CommentsBottomSheet;
 import com.melodix.app.View.adapters.LyricAdapter;
 //import com.melodix.app.View.adapters.LyricAdapter;
+import com.melodix.app.Model.AppDatabase;
+import com.melodix.app.Model.DownloadedSong;
+
 
 import java.util.ArrayList;
 
 public class PlayerActivity extends AppCompatActivity {
     public static final String EXTRA_SONG_ID = "extra_song_id";
+    public static final String EXTRA_AUTO_PLAY = "auto_play";
+
 
     private AppRepository repository;
     private Song currentSong;
@@ -50,6 +55,8 @@ public class PlayerActivity extends AppCompatActivity {
     private ImageButton btnPlayPause;
     private boolean isUserSeeking = false;
     private int currentLyricIndex = -1;
+    private boolean isAutoPlay = false;
+
 
     // tao bo lap lich
     private final android.os.Handler progressHandler = new android.os.Handler(android.os.Looper.getMainLooper());
@@ -91,6 +98,7 @@ public class PlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
+        isAutoPlay = getIntent().getBooleanExtra(EXTRA_AUTO_PLAY, false);
         seekBar = findViewById(R.id.seek_bar);
         tvElapsed = findViewById(R.id.tv_elapsed);
         tvTotal = findViewById(R.id.tv_total);
@@ -122,6 +130,15 @@ public class PlayerActivity extends AppCompatActivity {
             }
         }
 
+        // 2. NẾU MỞ TỪ TRONG APP THÌ CHẠY BÌNH THƯỜNG NHƯ CŨ
+        if (songId == null) songId = getIntent().getStringExtra(EXTRA_SONG_ID);
+
+        Uri fileUri = getIntent().getData();
+        if (fileUri != null && "content".equals(fileUri.getScheme()) && songId == null) {
+            handleOpenDownloadedFile(fileUri);
+            return;
+        }
+
         // 3. NẾU MỞ APP BÌNH THƯỜNG (Bấm vào thanh Mini Player để mở lại bài đang nghe)
         if (songId == null) songId = AudioPlayerService.getCurrentSongId();
         if (songId == null && repository.getCurrentQueueSong() != null) songId = repository.getCurrentQueueSong().getId();
@@ -133,7 +150,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         // Đoạn này chỉ chạy khi sếp muốn mở lại Bài A đang nghe dở
         boolean startPlayback = getIntent().getBooleanExtra("start_playback", false);
-        if (startPlayback || AudioPlayerService.getCurrentSongId() == null) {
+        if (isAutoPlay || startPlayback || AudioPlayerService.getCurrentSongId() == null || !songId.equals(AudioPlayerService.getCurrentSongId())) {
             Intent serviceIntent = new Intent(this, AudioPlayerService.class);
             serviceIntent.setAction(AudioPlayerService.ACTION_PLAY_SONG);
             serviceIntent.putExtra(AudioPlayerService.EXTRA_SONG_ID, songId);
@@ -352,6 +369,57 @@ public class PlayerActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    private void handleOpenDownloadedFile(Uri uri) {
+        if (uri == null) {
+            finish();
+            return;
+        }
+
+        new Thread(() -> {
+            DownloadedSong downloaded = AppDatabase.getInstance(this)
+                    .downloadedSongDao()
+                    .getByLocalPath(uri.toString());
+
+            if (downloaded != null) {
+                runOnUiThread(() -> {
+                    // Tạo Song offline bằng constructor
+                    Song offlineSong = new Song(
+                            downloaded.songId,                    // id
+                            downloaded.title != null ? downloaded.title : "Unknown Title",  // title
+                            null,                                 // artistId (không có)
+                            downloaded.artistName != null ? downloaded.artistName : "Unknown Artist", // artistName
+                            null,                                 // albumId
+                            "Downloaded",                         // albumName
+                            downloaded.coverUrl,                  // coverRes
+                            downloaded.localAudioPath,            // audioRes ← Quan trọng nhất: dùng local path
+                            null,                                 // genre
+                            "Bài hát đã tải về",                  // description
+                            downloaded.durationSeconds,           // durationSec
+                            0,                                    // plays
+                            0                                     // likes
+                    );
+
+                    // Lưu vào PlaybackRepository để Service sử dụng
+                    PlaybackRepository.getInstance().setCurrentSong(offlineSong);
+
+                    // Khởi động Service phát nhạc
+                    Intent serviceIntent = new Intent(this, AudioPlayerService.class);
+                    serviceIntent.setAction(AudioPlayerService.ACTION_PLAY_SONG);
+                    serviceIntent.putExtra(AudioPlayerService.EXTRA_SONG_ID, downloaded.songId);
+                    androidx.core.content.ContextCompat.startForegroundService(this, serviceIntent);
+
+                    // Load giao diện Player
+                    loadSong(downloaded.songId);
+                });
+            } else {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Không tìm thấy bài hát đã tải", Toast.LENGTH_SHORT).show();
+                    finish();
+                });
+            }
+        }).start();
     }
 
     private void updateLoopButton() {
