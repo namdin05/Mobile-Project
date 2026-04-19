@@ -1,9 +1,10 @@
 package com.melodix.app.Service;
 
 import com.melodix.app.BuildConfig;
+import com.melodix.app.Utils.Constants; // 👉 ĐÃ THÊM IMPORT CONSTANTS
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit; // 👉 MỚI THÊM ĐỂ QUẢN LÝ THỜI GIAN
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -56,9 +57,10 @@ public class RetrofitClient {
                     .addInterceptor(new Interceptor() {
                         @Override
                         public Response intercept(Chain chain) throws IOException {
+                            // 👇 ĐÃ SỬA: Lấy thẻ xịn từ Constants thay vì BuildConfig bị lỗi
                             Request newRequest = chain.request().newBuilder()
-                                    .addHeader("apikey", BuildConfig.API_KEY)
-                                    .addHeader("Authorization", "Bearer " + BuildConfig.API_KEY)
+                                    .addHeader("apikey", Constants.API_KEY)
+                                    .addHeader("Authorization", "Bearer " + Constants.API_KEY)
                                     .build();
                             return chain.proceed(newRequest);
                         }

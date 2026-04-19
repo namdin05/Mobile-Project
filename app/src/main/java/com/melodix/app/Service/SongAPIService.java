@@ -37,10 +37,8 @@ public interface SongAPIService {
     );
 
     // ĐỔI TÊN ĐƯỜNG DẪN Ở ĐÂY 👇
-    @retrofit2.http.POST("rest/v1/rpc/add_song_stream")
+    @retrofit2.http.POST("rpc/add_song_stream") // Bỏ rest/v1 vì BaseURL của SupabaseClient đã có rồi
     retrofit2.Call<Void> recordPlay(
-            @retrofit2.http.Header("apikey") String apiKey,
-            @retrofit2.http.Header("Authorization") String token,
             @retrofit2.http.Body java.util.Map<String, Object> body
     );
 }
