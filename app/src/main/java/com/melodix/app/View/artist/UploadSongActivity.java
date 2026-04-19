@@ -223,8 +223,8 @@ public class UploadSongActivity extends AppCompatActivity {
     private void uploadAudioStep(String apiKey, String token, String finalCoverUrl, String songTitle) {
         if (audioUri != null) {
             btnSubmitUpload.setText("ĐANG TẢI NHẠC (2/3)...");
-            long timestamp = System.currentTimeMillis();
-            String audioFileName = "song_" + timestamp + ".mp3";
+            String slugTitle = generateSlug(songTitle);
+            String audioFileName = slugTitle + ".mp3";
             byte[] audioBytes = readBytesFromUri(audioUri);
 
             if (audioBytes == null) {
@@ -798,5 +798,23 @@ public class UploadSongActivity extends AppCompatActivity {
         if (currentUserId != null) {
             selectedArtistIds.add(currentUserId);
         }
+    }
+    // ==========================================
+    // HÀM CHUYỂN TÊN CÓ DẤU THÀNH KHÔNG DẤU VIẾT LIỀN
+    // Vd: "Chắc Ai Đó Sẽ Về!" -> "chacaidoseve"
+    // ==========================================
+    private String generateSlug(String input) {
+        if (input == null || input.isEmpty()) return "unknown_song";
+
+        // 1. Tách dấu ra khỏi chữ cái
+        String normalized = java.text.Normalizer.normalize(input, java.text.Normalizer.Form.NFD);
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        String noAccents = pattern.matcher(normalized).replaceAll("");
+
+        // 2. Xử lý riêng chữ Đ (vì Normalizer không xử lý được chữ này)
+        noAccents = noAccents.replace("đ", "d").replace("Đ", "D");
+
+        // 3. Xóa BỎ TOÀN BỘ khoảng trắng và ký tự đặc biệt, sau đó chuyển thành chữ thường
+        return noAccents.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
     }
 }

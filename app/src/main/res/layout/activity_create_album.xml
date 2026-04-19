@@ -112,9 +112,21 @@
                 android:layout_height="wrap_content"
                 android:minHeight="120dp"
                 android:nestedScrollingEnabled="false"
-                android:background="@drawable/bg_search_bar"
+                android:background="@drawable/bg_card"
                 android:padding="8dp"
-                android:layout_marginBottom="24dp"/>
+                android:layout_marginBottom="8dp"/> <TextView
+            android:id="@+id/btn_go_to_upload_song"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+ Tải lên bài hát mới"
+            android:textColor="#1DB954"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="24dp" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_create_album"
                 android:layout_width="match_parent"

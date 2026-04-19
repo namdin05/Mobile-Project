@@ -37,7 +37,15 @@ public class UserProfileActivity extends AppCompatActivity {
     private ImageView imgAvatar;
     private TextView tvName;
     private RecyclerView rvPlaylists;
+    private TextView tvFollowerCount, tvFollowingCount;
+    private android.widget.Button btnFollow;
 
+    private boolean isFollowing = false;
+    private int followerCount = 0;
+    private int followingCount = 0;
+
+    private String targetUserId;
+    private String myUserId;
     // KHAI BÁO ADAPTER: Sếp mở comment và đổi tên cho khớp với Adapter hiển thị Playlist của sếp nhé!
     // private PlaylistAdapter playlistAdapter;
 
@@ -58,6 +66,26 @@ public class UserProfileActivity extends AppCompatActivity {
         initViews();
         loadUserInfo(userId);
         loadUserPlaylists(userId);
+        targetUserId = userId;
+
+        // Lấy ID của chính mình từ AppRepository
+        // 👇 LẤY ID CHUẨN TỪ SHAREDPREFERENCES CỦA SẾP 👇
+        // 👇 LẤY ID CHUẨN TỪ SHAREDPREFERENCES CỦA SẾP 👇
+        android.content.SharedPreferences prefs = getSharedPreferences("MelodixPrefs", android.content.Context.MODE_PRIVATE);
+        myUserId = prefs.getString("USER_ID", null);
+
+        // Tải số lượng thống kê
+        loadFollowerCount();
+        loadFollowingCount();
+
+        // Kiểm tra có phải hồ sơ của chính mình không?
+        if (myUserId != null && !myUserId.equals(targetUserId)) {
+            btnFollow.setVisibility(android.view.View.VISIBLE);
+            checkCurrentFollowStatus();
+            btnFollow.setOnClickListener(v -> toggleFollowStatus());
+        } else {
+            btnFollow.setVisibility(android.view.View.GONE); // Là mình thì giấu nút đi
+        }
     }
 
     private void initViews() {
@@ -68,6 +96,9 @@ public class UserProfileActivity extends AppCompatActivity {
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
 
         rvPlaylists.setLayoutManager(new LinearLayoutManager(this));
+        tvFollowerCount = findViewById(R.id.tv_follower_count);
+        tvFollowingCount = findViewById(R.id.tv_following_count);
+        btnFollow = findViewById(R.id.btn_follow);
     }
 
     private void loadUserInfo(String userId) {
@@ -183,5 +214,93 @@ public class UserProfileActivity extends AppCompatActivity {
                 Toast.makeText(UserProfileActivity.this, "Lỗi kết nối danh sách phát", Toast.LENGTH_SHORT).show();
             }
         });
+
     }
+    // ==========================================
+    // LOGIC FOLLOW & THỐNG KÊ
+    // ==========================================
+    private void loadFollowerCount() {
+        com.melodix.app.Repository.AppRepository.getInstance(this).getFollowerCount(targetUserId, count -> {
+            if (isFinishing() || isDestroyed()) return;
+            followerCount = count;
+            updateFollowerCountUI();
+        });
+    }
+
+    private void loadFollowingCount() {
+        com.melodix.app.Repository.AppRepository.getInstance(this).getFollowingCount(targetUserId, count -> {
+            if (isFinishing() || isDestroyed()) return;
+            followingCount = count;
+            updateFollowingCountUI();
+        });
+    }
+
+    private void updateFollowerCountUI() {
+        String displayCount = followerCount >= 1000 ?
+                String.format(java.util.Locale.US, "%.1fK", followerCount / 1000f) : String.valueOf(followerCount);
+        tvFollowerCount.setText(displayCount + " người theo dõi");
+    }
+
+    private void updateFollowingCountUI() {
+        String displayCount = followingCount >= 1000 ?
+                String.format(java.util.Locale.US, "%.1fK", followingCount / 1000f) : String.valueOf(followingCount);
+        tvFollowingCount.setText(displayCount + " đang theo dõi");
+    }
+
+    private void checkCurrentFollowStatus() {
+        com.melodix.app.Service.ProfileAPIService apiService = com.melodix.app.Service.RetrofitClient.getSupabaseClient().create(com.melodix.app.Service.ProfileAPIService.class);
+        apiService.checkFollowStatus("eq." + myUserId, "eq." + targetUserId).enqueue(new retrofit2.Callback<List<Object>>() {
+            @Override
+            public void onResponse(retrofit2.Call<List<Object>> call, retrofit2.Response<List<Object>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    isFollowing = !response.body().isEmpty();
+                    updateFollowButtonUI();
+                }
+            }
+            @Override public void onFailure(retrofit2.Call<List<Object>> call, Throwable t) {}
+        });
+    }
+
+    private void updateFollowButtonUI() {
+        if (isFollowing) {
+            btnFollow.setText("Đang theo dõi");
+            btnFollow.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#535353"))); // Màu xám
+        } else {
+            btnFollow.setText("Theo dõi");
+            btnFollow.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1DB954"))); // Màu xanh Spotify
+        }
+    }
+
+    private void toggleFollowStatus() {
+        com.melodix.app.Service.ProfileAPIService apiService = com.melodix.app.Service.RetrofitClient.getSupabaseClient().create(com.melodix.app.Service.ProfileAPIService.class);
+
+        if (isFollowing) {
+            // HÀNH ĐỘNG: BỎ THEO DÕI (Cập nhật UI ngay lập tức để tạo độ mượt)
+            isFollowing = false;
+            followerCount = Math.max(0, followerCount - 1);
+            updateFollowButtonUI();
+            updateFollowerCountUI();
+
+            apiService.unfollowUser("eq." + myUserId, "eq." + targetUserId).enqueue(new retrofit2.Callback<Void>() {
+                @Override public void onResponse(retrofit2.Call<Void> call, retrofit2.Response<Void> response) {}
+                @Override public void onFailure(retrofit2.Call<Void> call, Throwable t) {}
+            });
+        } else {
+            // HÀNH ĐỘNG: THEO DÕI
+            isFollowing = true;
+            followerCount++;
+            updateFollowButtonUI();
+            updateFollowerCountUI();
+
+            java.util.Map<String, String> data = new java.util.HashMap<>();
+            data.put("follower_id", myUserId);
+            data.put("artist_id", targetUserId); // Mượn cột artist_id làm target_user_id
+
+            apiService.followUser(data).enqueue(new retrofit2.Callback<Void>() {
+                @Override public void onResponse(retrofit2.Call<Void> call, retrofit2.Response<Void> response) {}
+                @Override public void onFailure(retrofit2.Call<Void> call, Throwable t) {}
+            });
+        }
+    }
+
  }

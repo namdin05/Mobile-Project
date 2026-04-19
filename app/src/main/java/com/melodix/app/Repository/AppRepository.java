@@ -51,6 +51,7 @@ public class AppRepository {
 
     public interface SingleSongCallback {
         void onSuccess(Song song);
+
         void onError(String message);
     }
 
@@ -110,6 +111,7 @@ public class AppRepository {
                     callback.onError("Không tìm thấy dữ liệu Album! Mã lỗi: " + response.code());
                 }
             }
+
             @Override
             public void onFailure(Call<List<Album>> call, Throwable t) {
                 callback.onError("Lỗi kết nối mạng: " + t.getMessage());
@@ -119,6 +121,7 @@ public class AppRepository {
 
     public interface SongListCallback {
         void onSuccess(ArrayList<Song> songs);
+
         void onError(String message);
     }
 
@@ -132,6 +135,7 @@ public class AppRepository {
                     callback.onError("Không tải được danh sách bài hát.");
                 }
             }
+
             @Override
             public void onFailure(Call<List<Song>> call, Throwable t) {
                 callback.onError("Lỗi mạng: " + t.getMessage());
@@ -145,7 +149,8 @@ public class AppRepository {
 
     public ArrayList<String> getRecentSearches() {
         String json = prefs.getString(KEY_RECENT_SEARCHES, "[]");
-        java.lang.reflect.Type type = new TypeToken<ArrayList<String>>(){}.getType();
+        java.lang.reflect.Type type = new TypeToken<ArrayList<String>>() {
+        }.getType();
         return gson.fromJson(json, type);
     }
 
@@ -218,7 +223,8 @@ public class AppRepository {
 
         if (searchSongs) {
             searchApiService.searchSongs(ftsQuery).enqueue(new Callback<List<Song>>() {
-                @Override public void onResponse(Call<List<Song>> call, retrofit2.Response<List<Song>> response) {
+                @Override
+                public void onResponse(Call<List<Song>> call, retrofit2.Response<List<Song>> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         searchCacheSongs.clear();
                         for (Song song : response.body()) {
@@ -228,49 +234,72 @@ public class AppRepository {
                     }
                     checkCompletion.run();
                 }
-                @Override public void onFailure(Call<List<Song>> call, Throwable t) { checkCompletion.run(); }
+
+                @Override
+                public void onFailure(Call<List<Song>> call, Throwable t) {
+                    checkCompletion.run();
+                }
             });
         }
 
         if (searchArtists) {
             searchApiService.searchArtists(ftsQuery).enqueue(new Callback<List<Artist>>() {
-                @Override public void onResponse(Call<List<Artist>> call, retrofit2.Response<List<Artist>> response) {
+                @Override
+                public void onResponse(Call<List<Artist>> call, retrofit2.Response<List<Artist>> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        for (Artist artist : response.body()) syncResults.add(new SearchResultItem(Constants.FILTER_ARTIST, artist.id, artist.name, "Nghệ sĩ", artist.avatarRes));
+                        for (Artist artist : response.body())
+                            syncResults.add(new SearchResultItem(Constants.FILTER_ARTIST, artist.id, artist.name, "Nghệ sĩ", artist.avatarRes));
                     }
                     checkCompletion.run();
                 }
-                @Override public void onFailure(Call<List<Artist>> call, Throwable t) { checkCompletion.run(); }
+
+                @Override
+                public void onFailure(Call<List<Artist>> call, Throwable t) {
+                    checkCompletion.run();
+                }
             });
         }
 
         if (searchAlbums) {
             searchApiService.searchAlbums(ftsQuery).enqueue(new Callback<List<Album>>() {
-                @Override public void onResponse(Call<List<Album>> call, retrofit2.Response<List<Album>> response) {
+                @Override
+                public void onResponse(Call<List<Album>> call, retrofit2.Response<List<Album>> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        for (Album album : response.body()) syncResults.add(new SearchResultItem(Constants.FILTER_ALBUM, album.id, album.title, "Album", album.coverRes));
+                        for (Album album : response.body())
+                            syncResults.add(new SearchResultItem(Constants.FILTER_ALBUM, album.id, album.title, "Album", album.coverRes));
                     }
                     checkCompletion.run();
                 }
-                @Override public void onFailure(Call<List<Album>> call, Throwable t) { checkCompletion.run(); }
+
+                @Override
+                public void onFailure(Call<List<Album>> call, Throwable t) {
+                    checkCompletion.run();
+                }
             });
         }
 
         if (searchPlaylists) {
             searchApiService.searchPlaylists(ftsQuery).enqueue(new Callback<List<Playlist>>() {
-                @Override public void onResponse(Call<List<Playlist>> call, retrofit2.Response<List<Playlist>> response) {
+                @Override
+                public void onResponse(Call<List<Playlist>> call, retrofit2.Response<List<Playlist>> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        for (Playlist playlist : response.body()) syncResults.add(new SearchResultItem(Constants.FILTER_PLAYLIST, playlist.id, playlist.name, "Playlist", playlist.coverRes));
+                        for (Playlist playlist : response.body())
+                            syncResults.add(new SearchResultItem(Constants.FILTER_PLAYLIST, playlist.id, playlist.name, "Playlist", playlist.coverRes));
                     }
                     checkCompletion.run();
                 }
-                @Override public void onFailure(Call<List<Playlist>> call, Throwable t) { checkCompletion.run(); }
+
+                @Override
+                public void onFailure(Call<List<Playlist>> call, Throwable t) {
+                    checkCompletion.run();
+                }
             });
         }
     }
 
     public interface ArtistCallback {
         void onSuccess(Artist artist);
+
         void onError(String message);
     }
 
@@ -284,6 +313,7 @@ public class AppRepository {
                     callback.onError("Không tìm thấy dữ liệu Nghệ sĩ!");
                 }
             }
+
             @Override
             public void onFailure(Call<List<Artist>> call, Throwable t) {
                 callback.onError("Lỗi kết nối mạng: " + t.getMessage());
@@ -293,16 +323,19 @@ public class AppRepository {
 
     public interface SearchCallback {
         void onSuccess(ArrayList<SearchResultItem> results);
+
         void onError(String message);
     }
 
     public interface AlbumCallback {
         void onSuccess(Album album);
+
         void onError(String message);
     }
 
     public interface ArtistStatsCallback {
         void onSuccess(ArtistStats stats);
+
         void onError(String message);
     }
 
@@ -335,41 +368,61 @@ public class AppRepository {
 
     public interface AlbumListCallback {
         void onSuccess(ArrayList<Album> albums);
+
         void onError(String message);
     }
 
     public interface ArtistListCallback {
         void onSuccess(ArrayList<Artist> artists);
+
         void onError(String message);
     }
 
     public void getSongsByArtist(String artistId, SongListCallback callback) {
         artistApiService.getSongsByArtistId("eq." + artistId).enqueue(new Callback<List<Song>>() {
-            @Override public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
-                if (response.isSuccessful() && response.body() != null) callback.onSuccess(new ArrayList<>(response.body()));
+            @Override
+            public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
+                if (response.isSuccessful() && response.body() != null)
+                    callback.onSuccess(new ArrayList<>(response.body()));
                 else callback.onError("Lỗi tải bài hát (Code: " + response.code() + ")");
             }
-            @Override public void onFailure(Call<List<Song>> call, Throwable t) { callback.onError("Lỗi mạng"); }
+
+            @Override
+            public void onFailure(Call<List<Song>> call, Throwable t) {
+                callback.onError("Lỗi mạng");
+            }
         });
     }
 
     public void getAlbumsByArtist(String artistId, AlbumListCallback callback) {
         artistApiService.getAlbumsForPublic("eq." + artistId).enqueue(new Callback<List<Album>>() {
-            @Override public void onResponse(Call<List<Album>> call, Response<List<Album>> response) {
-                if (response.isSuccessful() && response.body() != null) callback.onSuccess(new ArrayList<>(response.body()));
+            @Override
+            public void onResponse(Call<List<Album>> call, Response<List<Album>> response) {
+                if (response.isSuccessful() && response.body() != null)
+                    callback.onSuccess(new ArrayList<>(response.body()));
                 else callback.onError("Lỗi tải Album");
             }
-            @Override public void onFailure(Call<List<Album>> call, Throwable t) { callback.onError("Lỗi mạng"); }
+
+            @Override
+            public void onFailure(Call<List<Album>> call, Throwable t) {
+                callback.onError("Lỗi mạng");
+            }
         });
     }
 
     public void getRelatedArtists(String currentArtistId, ArtistListCallback callback) {
         artistApiService.getRelatedArtists("neq." + currentArtistId, 5).enqueue(new Callback<List<Artist>>() {
-            @Override public void onResponse(Call<List<Artist>> call, Response<List<Artist>> response) {
-                if (response.isSuccessful() && response.body() != null) callback.onSuccess(new ArrayList<>(response.body()));
+            @Override
+            public void onResponse(Call<List<Artist>> call, Response<List<Artist>> response) {
+                if (response.isSuccessful() && response.body() != null)
+                    callback.onSuccess(new ArrayList<>(response.body()));
                 else callback.onError("Lỗi tải Nghệ sĩ liên quan");
             }
-            @Override public void onFailure(Call<List<Artist>> call, Throwable t) { callback.onError("Lỗi mạng"); }
+
+            @Override
+            public void onFailure(Call<List<Artist>> call, Throwable t) {
+                callback.onError("Lỗi mạng");
+            }
         });
     }
 
@@ -428,6 +481,7 @@ public class AppRepository {
                     callback.onError("Không tìm thấy bài hát trên hệ thống!");
                 }
             }
+
             @Override
             public void onFailure(Call<List<Song>> call, Throwable t) {
                 callback.onError("Lỗi mạng: " + t.getMessage());
@@ -441,7 +495,8 @@ public class AppRepository {
 
     public ArrayList<String> getDownloadedSongIds() {
         String json = prefs.getString(KEY_DOWNLOADED_SONGS, "[]");
-        java.lang.reflect.Type type = new TypeToken<ArrayList<String>>(){}.getType();
+        java.lang.reflect.Type type = new TypeToken<ArrayList<String>>() {
+        }.getType();
         return gson.fromJson(json, type);
     }
 
@@ -496,48 +551,52 @@ public class AppRepository {
         void onSuccess(int count);
     }
 
-    // Lấy số Follower
-//    public void getFollowerCount(String artistId, CountCallback callback) {
-//        profileApiService.getFollowerCount("count=exact", "eq." + artistId).enqueue(new Callback<Void>() {
-//            @Override
-//            public void onResponse(Call<Void> call, Response<Void> response) {
-//                String range = response.headers().get("Content-Range");
-//                if (range != null && range.contains("/")) {
-//                    try {
-//                        int count = Integer.parseInt(range.split("/")[1]);
-//                        callback.onSuccess(count);
-//                        return;
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//                callback.onSuccess(0);
-//            }
-//            @Override
-//            public void onFailure(Call<Void> call, Throwable t) {
-//                callback.onSuccess(0);
-//            }
-//        });
-//    }
+
+    public void getFollowerCount(String artistId, CountCallback callback) {
+        profileApiService.getFollowerCount("count=exact", "eq." + artistId).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                String range = response.headers().get("Content-Range");
+                if (range != null && range.contains("/")) {
+                    try {
+                        int count = Integer.parseInt(range.split("/")[1]);
+                        callback.onSuccess(count);
+                        return;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                callback.onSuccess(0);
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                callback.onSuccess(0);
+            }
+        });
+    }
 
     // Lấy số Following
-//    public void getFollowingCount(String userId, CountCallback callback) {
-//        profileApiService.getFollowingCount("count=exact", "eq." + userId).enqueue(new Callback<Void>() {
-//            @Override
-//            public void onResponse(Call<Void> call, Response<Void> response) {
-//                String range = response.headers().get("Content-Range");
-//                if (range != null && range.contains("/")) {
-//                    try {
-//                        callback.onSuccess(Integer.parseInt(range.split("/")[1]));
-//                        return;
-//                    } catch (Exception ignored) {}
-//                }
-//                callback.onSuccess(0);
-//            }
-//            @Override
-//            public void onFailure(Call<Void> call, Throwable t) {
-//                callback.onSuccess(0);
-//            }
-//        });
-//    }
+
+    public void getFollowingCount(String userId, CountCallback callback) {
+        profileApiService.getFollowingCount("count=exact", "eq." + userId).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                String range = response.headers().get("Content-Range");
+                if (range != null && range.contains("/")) {
+                    try {
+                        callback.onSuccess(Integer.parseInt(range.split("/")[1]));
+                        return;
+                    } catch (Exception ignored) {
+                    }
+                }
+                callback.onSuccess(0);
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                callback.onSuccess(0);
+            }
+        });
+    }
 }

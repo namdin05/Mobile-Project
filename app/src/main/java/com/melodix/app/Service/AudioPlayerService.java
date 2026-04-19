@@ -44,6 +44,9 @@ public class AudioPlayerService extends Service {
     public static final String ACTION_SET_SLEEP_TIMER = "com.melodix.app.action.SET_SLEEP_TIMER";
     public static final String ACTION_STATE_CHANGED = "com.melodix.app.action.STATE_CHANGED";
 
+    // Đây là chiêu thức mình dùng để ép dừng nhạc
+    public static final String ACTION_PAUSE = "com.melodix.app.ACTION_PAUSE";
+
     public static final String EXTRA_SONG_ID = "extra_song_id";
     public static final String EXTRA_SEEK = "extra_seek";
     public static final String EXTRA_SPEED = "extra_speed";
@@ -69,7 +72,7 @@ public class AudioPlayerService extends Service {
     public static boolean isLoopMode() { return isLoopingOne; }
 
     public static int getCurrentPosition() {
-        if (instance != null && instance.mediaPlayer != null) { // Thêm điều kiện isPlaying
+        if (instance != null && instance.mediaPlayer != null) {
             try { return instance.mediaPlayer.getCurrentPosition(); }
             catch (Exception ignored) {}
         }
@@ -77,7 +80,7 @@ public class AudioPlayerService extends Service {
     }
 
     public static int getDuration() {
-        if (instance != null && instance.mediaPlayer != null) { // Thêm điều kiện isPlaying
+        if (instance != null && instance.mediaPlayer != null) {
             try { return instance.mediaPlayer.getDuration(); }
             catch (Exception ignored) {}
         }
@@ -99,28 +102,28 @@ public class AudioPlayerService extends Service {
         mediaSession.setCallback(new android.support.v4.media.session.MediaSessionCompat.Callback() {
             @Override
             public void onPlay() {
-                togglePlayPause(); // Gọi hàm play/pause của bạn
+                togglePlayPause();
             }
 
             @Override
             public void onPause() {
-                togglePlayPause(); // Gọi hàm play/pause của bạn
+                togglePlayPause();
             }
 
             @Override
             public void onSkipToNext() {
-                playNext(); // Gọi hàm chuyển bài tới
+                playNext();
             }
 
             @Override
             public void onSkipToPrevious() {
-                playPrevious(); // Gọi hàm lùi bài
+                playPrevious();
             }
 
             @Override
             public void onSeekTo(long pos) {
                 if (mediaPlayer != null) {
-                    mediaPlayer.seekTo((int) pos); // Xử lý khi người dùng tua trên thanh thời gian
+                    mediaPlayer.seekTo((int) pos);
                     updateNotification(repository.getSongById(currentSongId), isPlaying);
                 }
             }
@@ -130,8 +133,6 @@ public class AudioPlayerService extends Service {
             @Override
             public void run() {
                 broadcastState();
-                // Tắt refresh liên tục vì Notification xịn không cần tự redraw mỗi giây,
-                // chỉ cần gọi khi đổi trạng thái Play/Pause hoặc chuyển bài.
                 handler.postDelayed(this, 1000);
             }
         };
@@ -185,6 +186,10 @@ public class AudioPlayerService extends Service {
                 stopForeground(true);
                 stopSelf();
                 break;
+            // 👇 THÊM NHÁNH XỬ LÝ LỆNH PAUSE Ở ĐÂY 👇
+            case ACTION_PAUSE:
+                pause();
+                break;
         }
         broadcastState();
         return START_STICKY;
@@ -196,6 +201,17 @@ public class AudioPlayerService extends Service {
         stopPlayback();
         stopForeground(true);
         stopSelf();
+    }
+
+    // 👇 THÊM HÀM THỰC THI VIỆC DỪNG NHẠC CHUẨN XÁC 👇
+    private void pause() {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+            isPlaying = false;
+            persistLastListen();
+            updateNotification(playbackRepo.getCurrentSong(), false);
+            broadcastState();
+        }
     }
 
     private void playSong(String songId) {
@@ -212,30 +228,24 @@ public class AudioPlayerService extends Service {
         try {
             mediaPlayer = new MediaPlayer();
 
-            // Khai báo cho Android biết đây là stream nhạc
             mediaPlayer.setAudioAttributes(new android.media.AudioAttributes.Builder()
                     .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
                     .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
                     .build());
 
-            // Truyền link URL từ API vào (ở đây bạn dùng thuộc tính audioRes để chứa URL)
             Log.d("TEST_MUSIC", "Đang tải link: " + song.getAudioUrl());
             mediaPlayer.setDataSource(song.getAudioUrl());
 
             mediaPlayer.setOnErrorListener((mp, what, extra) -> {
                 Log.e("TEST_MUSIC", "Lỗi phát nhạc! Mã lỗi: " + what + " - " + extra);
                 isPlaying = false;
-                broadcastState(); // Cập nhật giao diện thành Pause
-                return true; // QUAN TRỌNG: Trả về true để Android KHÔNG gọi OnCompletionListener nữa
+                broadcastState();
+                return true;
             });
 
-            // Quan trọng: Bắt sự kiện khi load mạng xong mới bắt đầu phát
             mediaPlayer.setOnPreparedListener(mp -> startPlayback());
-
-            // Dùng prepareAsync thay vì prepare để không làm đơ giao diện khi tải mạng
             mediaPlayer.prepareAsync();
 
-            // Code xử lý khi hát xong (Next/Loop) giữ nguyên
             mediaPlayer.setOnCompletionListener(mp -> {
                 int listenedSec = 0;
                 try {
@@ -255,7 +265,7 @@ public class AudioPlayerService extends Service {
                         broadcastState();
                     } catch (Exception e) {}
                 } else {
-                    playNext(); // Đây là thủ phạm gây nhảy bài liên tục nếu không bị chặn đúng cách
+                    playNext();
                 }
             });
 
@@ -271,7 +281,6 @@ public class AudioPlayerService extends Service {
         mediaPlayer.start();
         isPlaying = true;
 
-        // --- GỌI UPDATE NOTIFICATION KHI BẮT ĐẦU PHÁT ---
         updateNotification(playbackRepo.getCurrentSong(), true);
 
         broadcastState();
@@ -287,13 +296,11 @@ public class AudioPlayerService extends Service {
             mediaPlayer.pause();
             isPlaying = false;
             persistLastListen();
-            // --- GỌI UPDATE KHI TẠM DỪNG ---
             updateNotification(playbackRepo.getCurrentSong(), false);
         } else {
             mediaPlayer.start();
             applyPlaybackSpeed();
             isPlaying = true;
-            // --- GỌI UPDATE KHI PHÁT TIẾP ---
             updateNotification(playbackRepo.getCurrentSong(), true);
         }
     }
@@ -331,11 +338,9 @@ public class AudioPlayerService extends Service {
         }
     }
 
-    // huy phat nhac
     private void stopPlayback() {
         persistLastListen();
         releasePlayer();
-//        currentSongId = null;
         isPlaying = false;
         broadcastState();
     }
@@ -344,22 +349,18 @@ public class AudioPlayerService extends Service {
         if (sleepRunnable != null) handler.removeCallbacks(sleepRunnable);
         if (minutes <= 0) return;
         sleepRunnable = () -> {
-            // ĐÃ SỬA: Thay vì gọi stopPlayback() (giết chết player), ta chỉ TẠM DỪNG nó
             if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                 mediaPlayer.pause();
                 isPlaying = false;
                 persistLastListen();
-                updateNotification(playbackRepo.getCurrentSong(), false); // Cập nhật hình icon thành nút Play
-                broadcastState(); // Báo cho màn hình Player biết để dừng vạch thời gian
+                updateNotification(playbackRepo.getCurrentSong(), false);
+                broadcastState();
             }
-
-            // Tắt chế độ "chống trôi" của Service để người dùng có thể vuốt tắt thông báo nếu muốn
             stopForeground(false);
         };
         handler.postDelayed(sleepRunnable, minutes * 1000L);
     }
 
-    // luu lai luot nghe: dem so giay nghe bai hat nao, cong luot stream cho bai hat...
     private void persistLastListen() {
         if (mediaPlayer != null && currentSongId != null) {
             int listenedSec = mediaPlayer.getCurrentPosition() / 1000;
@@ -367,7 +368,6 @@ public class AudioPlayerService extends Service {
         }
     }
 
-    // --- HÀM TẠO NOTIFICATION KIỂU MỚI (MÀN HÌNH KHÓA XỊN SÒ) ---
     private void updateNotification(Song currentSong, boolean isPlaying) {
         if (currentSong == null) return;
 
@@ -375,7 +375,6 @@ public class AudioPlayerService extends Service {
         PendingIntent prevIntent = createActionIntent(ACTION_PREVIOUS, 100);
         PendingIntent nextIntent = createActionIntent(ACTION_NEXT, 102);
 
-        // Lấy thời lượng và vị trí hiện tại
         long duration = mediaPlayer != null ? mediaPlayer.getDuration() : 0;
         long position = mediaPlayer != null ? mediaPlayer.getCurrentPosition() : 0;
 
@@ -384,36 +383,32 @@ public class AudioPlayerService extends Service {
         PendingIntent contentIntent = PendingIntent.getActivity(this, 11, openIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        // 1. Lấy ảnh Cover
         Bitmap coverBitmap = null;
         int coverResId = ResourceUtils.anyDrawable(this, currentSong.getCoverUrl());
         if (coverResId != 0) {
             coverBitmap = BitmapFactory.decodeResource(getResources(), coverResId);
         }
 
-        // 2. Bơm trạng thái Play/Pause và VỊ TRÍ + QUYỀN TUA
         android.support.v4.media.session.PlaybackStateCompat.Builder stateBuilder = new android.support.v4.media.session.PlaybackStateCompat.Builder()
                 .setActions(android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY |
                         android.support.v4.media.session.PlaybackStateCompat.ACTION_PAUSE |
                         android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
                         android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
-                        android.support.v4.media.session.PlaybackStateCompat.ACTION_SEEK_TO) // Thêm quyền kéo tua
+                        android.support.v4.media.session.PlaybackStateCompat.ACTION_SEEK_TO)
                 .setState(isPlaying ? android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING : android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED,
-                        position, playbackSpeed); // Cập nhật vị trí và tốc độ thực tế
+                        position, playbackSpeed);
         mediaSession.setPlaybackState(stateBuilder.build());
 
-        // 3. Bơm thông tin bài hát và THỜI LƯỢNG (DURATION)
         android.support.v4.media.MediaMetadataCompat.Builder metadataBuilder = new android.support.v4.media.MediaMetadataCompat.Builder()
                 .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE, currentSong.getTitle())
                 .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST, currentSong.getArtistName())
-                .putLong(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION, duration); // Thêm tổng thời gian để vẽ thanh progress
+                .putLong(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION, duration);
 
         if (coverBitmap != null) {
             metadataBuilder.putBitmap(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ALBUM_ART, coverBitmap);
         }
         mediaSession.setMetadata(metadataBuilder.build());
 
-        // 4. Tạo Notification
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_logo)
                 .setContentTitle(currentSong.getTitle())
@@ -444,17 +439,16 @@ public class AudioPlayerService extends Service {
     }
 
     private void broadcastState() {
-        Intent stateIntent = new Intent(ACTION_STATE_CHANGED); // implicit intent, ai cung nhan duoc
-        stateIntent.setPackage(getPackageName()); // intent chi phat noi bo app
+        Intent stateIntent = new Intent(ACTION_STATE_CHANGED);
+        stateIntent.setPackage(getPackageName());
         stateIntent.putExtra(EXTRA_SONG_ID, currentSongId);
         stateIntent.putExtra("playing", isPlaying);
         stateIntent.putExtra("position", mediaPlayer != null ? mediaPlayer.getCurrentPosition() : 0);
         stateIntent.putExtra("duration", mediaPlayer != null ? mediaPlayer.getDuration() : 0);
         stateIntent.putExtra(EXTRA_SPEED, playbackSpeed);
-        sendBroadcast(stateIntent); // gui
+        sendBroadcast(stateIntent);
     }
 
-    // giai phong player
     private void releasePlayer() {
         if (mediaPlayer != null) {
             try { mediaPlayer.stop(); } catch (Exception ignored) {}

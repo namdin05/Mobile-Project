@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -56,7 +57,7 @@ public class CreateAlbumActivity extends AppCompatActivity {
 
     private Uri coverUri = null;
     private String artistId;
-
+    private TextView btnGoToUploadSong;
     private boolean isEditMode = false;
     private String editAlbumId = null;
     private String existingCoverUrl = null;
@@ -94,7 +95,11 @@ public class CreateAlbumActivity extends AppCompatActivity {
         imgCoverPreview = findViewById(R.id.img_cover_preview);
         btnCreate = findViewById(R.id.btn_create_album);
         rvAvailableSongs = findViewById(R.id.rv_available_songs);
-
+        btnGoToUploadSong = findViewById(R.id.btn_go_to_upload_song);
+        btnGoToUploadSong.setOnClickListener(v -> {
+            Intent intent = new Intent(CreateAlbumActivity.this, UploadSongActivity.class);
+            startActivity(intent);
+        });
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
         btnPickCover.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK);
@@ -130,7 +135,18 @@ public class CreateAlbumActivity extends AppCompatActivity {
         songSelectionAdapter = new com.melodix.app.View.adapters.SongSelectionAdapter(this, allMySongs, selectedSongIds);
         rvAvailableSongs.setAdapter(songSelectionAdapter);
     }
-
+    // ==========================================
+    // TỰ ĐỘNG LOAD LẠI BÀI HÁT KHI QUAY TRỞ VỀ TỪ TRANG UPLOAD
+    // ==========================================
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Mỗi lần màn hình này hiện lên (kể cả khi vừa tạo xong bài hát quay về),
+        // nó sẽ tự động chạy xuống Database kéo bài hát mới nhất lên.
+        if (artistId != null) {
+            fetchMySongs();
+        }
+    }
     private void fetchMySongs() {
         AppRepository.getInstance(this).getMyUploadSongs(artistId, new AppRepository.SongListCallback() {
             @Override
