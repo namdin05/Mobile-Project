@@ -186,10 +186,6 @@ public class AudioPlayerService extends Service {
                 stopForeground(true);
                 stopSelf();
                 break;
-            // 👇 THÊM NHÁNH XỬ LÝ LỆNH PAUSE Ở ĐÂY 👇
-            case ACTION_PAUSE:
-                pause();
-                break;
         }
         broadcastState();
         return START_STICKY;
@@ -201,17 +197,6 @@ public class AudioPlayerService extends Service {
         stopPlayback();
         stopForeground(true);
         stopSelf();
-    }
-
-    // 👇 THÊM HÀM THỰC THI VIỆC DỪNG NHẠC CHUẨN XÁC 👇
-    private void pause() {
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-            mediaPlayer.pause();
-            isPlaying = false;
-            persistLastListen();
-            updateNotification(playbackRepo.getCurrentSong(), false);
-            broadcastState();
-        }
     }
 
     private void playSong(String songId) {
