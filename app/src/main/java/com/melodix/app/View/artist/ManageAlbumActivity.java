@@ -8,11 +8,10 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,17 +23,13 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.melodix.app.Model.Album;
-import com.melodix.app.Model.Song;
 import com.melodix.app.R;
 import com.melodix.app.Service.ArtistAPIService;
-import com.melodix.app.Service.AlbumAPIService;
 import com.melodix.app.Service.RetrofitClient;
 import com.melodix.app.View.adapters.ManageAlbumAdapter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -47,7 +42,6 @@ public class ManageAlbumActivity extends AppCompatActivity {
     private List<Album> albumList;
     private SwipeRefreshLayout swipeRefresh;
     private ArtistAPIService artistApiService;
-    private AlbumAPIService albumApiService;
     private String myArtistId;
 
     @Override
@@ -55,16 +49,15 @@ public class ManageAlbumActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_album);
 
-        // Khởi tạo API
+        // Initialize API
         artistApiService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
-        albumApiService = RetrofitClient.getSupabaseClient().create(AlbumAPIService.class);
 
-        // ĐÃ SỬA: Lấy USER_ID từ SharedPreferences thay vì SessionManager
+        // Get USER_ID from SharedPreferences
         SharedPreferences prefs = getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
         myArtistId = prefs.getString("USER_ID", null);
 
         if (myArtistId == null) {
-            Toast.makeText(this, "Phiên đăng nhập hết hạn!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Session expired!", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -73,14 +66,27 @@ public class ManageAlbumActivity extends AppCompatActivity {
         swipeRefresh = findViewById(R.id.swipe_refresh);
 
         albumList = new ArrayList<>();
-        adapter = new ManageAlbumAdapter(this, albumList, album -> {
-            Intent intent = new Intent(ManageAlbumActivity.this, ManageAlbumDetailActivity.class);
-            intent.putExtra("ALBUM_ID", album.id);
-            intent.putExtra("ALBUM_TITLE", album.title);
-            intent.putExtra("ALBUM_COVER", album.coverRes);
-            intent.putExtra("ALBUM_STATUS", album.status);
-            startActivity(intent);
+
+        // 1. INITIALIZE UPGRADED ADAPTER
+        adapter = new ManageAlbumAdapter(this, albumList, new ManageAlbumAdapter.OnAlbumOptionClickListener() {
+            @Override
+            public void onAlbumClick(Album album) {
+                // Tap on album card -> Open album detail screen
+                Intent intent = new Intent(ManageAlbumActivity.this, ManageAlbumDetailActivity.class);
+                intent.putExtra("ALBUM_ID", album.id);
+                intent.putExtra("ALBUM_TITLE", album.title);
+                intent.putExtra("ALBUM_COVER", album.coverRes);
+                intent.putExtra("ALBUM_STATUS", album.status);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onOptionClick(Album album) {
+                // Tap the 3-dot menu -> Open options menu
+                showAlbumOptionsBottomSheet(album);
+            }
         });
+
         rvAlbums.setLayoutManager(new LinearLayoutManager(this));
         rvAlbums.setAdapter(adapter);
 
@@ -107,28 +113,27 @@ public class ManageAlbumActivity extends AppCompatActivity {
                     albumList.addAll(response.body());
                     adapter.notifyDataSetChanged();
                 } else {
-                    Toast.makeText(ManageAlbumActivity.this, "Không thể tải danh sách Album", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ManageAlbumActivity.this, "Unable to load album list", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<List<Album>> call, Throwable t) {
                 swipeRefresh.setRefreshing(false);
-                Toast.makeText(ManageAlbumActivity.this, "Lỗi kết nối", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ManageAlbumActivity.this, "Connection error", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // HIỂN THỊ BOTTOM SHEET DANH SÁCH BÀI HÁT
-    private void showAlbumDetailsBottomSheet(Album album) {
+    // ==========================================
+    // 2. BOTTOM SHEET MENU (EDIT & DELETE ALBUM)
+    // ==========================================
+    private void showAlbumOptionsBottomSheet(Album album) {
         BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.BottomSheetTheme);
 
-        ScrollView scrollView = new ScrollView(this);
         LinearLayout container = new LinearLayout(this);
         container.setOrientation(LinearLayout.VERTICAL);
         container.setPadding(0, 40, 0, 40);
-        scrollView.addView(container);
-        dialog.setContentView(scrollView);
 
         boolean isNightMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
         int bgColor = isNightMode ? Color.parseColor("#1E1E1E") : Color.WHITE;
@@ -137,131 +142,99 @@ public class ManageAlbumActivity extends AppCompatActivity {
         GradientDrawable bgShape = new GradientDrawable();
         bgShape.setColor(bgColor);
         bgShape.setCornerRadii(new float[]{60, 60, 60, 60, 0, 0, 0, 0});
-        ((View) scrollView.getParent()).setBackgroundColor(Color.TRANSPARENT);
         container.setBackground(bgShape);
 
-        // Header Title
+        // Header: Album title
         TextView title = new TextView(this);
-        title.setText("Tracklist: " + album.title);
-        title.setTextSize(20);
+        title.setText(album.title);
+        title.setTextSize(18);
         title.setTypeface(null, Typeface.BOLD);
         title.setTextColor(textColor);
         title.setPadding(60, 20, 60, 30);
         container.addView(title);
 
-        // Loading spinner
-        ProgressBar progressBar = new ProgressBar(this);
-        container.addView(progressBar);
+        // EDIT ALBUM BUTTON
+        container.addView(createOptionItem("✏️", "Edit Album Details", textColor, v -> {
+            dialog.dismiss();
+            Intent intent = new Intent(ManageAlbumActivity.this, CreateAlbumActivity.class);
+            intent.putExtra("IS_EDIT_MODE", true);
+            intent.putExtra("EDIT_ALBUM_ID", album.id);
+            intent.putExtra("EDIT_ALBUM_TITLE", album.title);
+            intent.putExtra("EDIT_ALBUM_COVER", album.coverRes);
+            startActivity(intent);
+        }));
 
-        // Gọi API lấy bài hát trong Album
-        albumApiService.getSongsByAlbumIdForArtist("eq." + album.id).enqueue(new Callback<List<Song>>() {
-            @Override
-            public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
-                progressBar.setVisibility(View.GONE);
-                if (response.isSuccessful() && response.body() != null) {
-                    List<Song> songs = response.body();
+        // DELETE ALBUM BUTTON
+        container.addView(createOptionItem("🗑️", "Delete Album Permanently", Color.parseColor("#FF453A"), v -> {
+            dialog.dismiss();
+            confirmDeleteAlbum(album);
+        }));
 
-                    if (songs.isEmpty()) {
-                        TextView tvEmpty = new TextView(ManageAlbumActivity.this);
-                        tvEmpty.setText("Album này chưa có bài hát nào.");
-                        tvEmpty.setPadding(60, 20, 60, 20);
-                        tvEmpty.setTextColor(Color.GRAY);
-                        container.addView(tvEmpty);
-                    } else {
-                        for (int i = 0; i < songs.size(); i++) {
-                            Song song = songs.get(i);
-                            container.addView(createSongItemView(song, i + 1, textColor, dialog, songs));
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Song>> call, Throwable t) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(ManageAlbumActivity.this, "Lỗi lấy danh sách bài hát", Toast.LENGTH_SHORT).show();
-            }
-        });
-
+        dialog.setContentView(container);
+        ((View) container.getParent()).setBackgroundColor(Color.TRANSPARENT);
         dialog.show();
     }
 
-    // TẠO GIAO DIỆN TỪNG DÒNG BÀI HÁT TRONG BOTTOM SHEET
-    private View createSongItemView(Song song, int index, int textColor, BottomSheetDialog parentDialog, List<Song> allSongs) {
+    private View createOptionItem(String icon, String text, int textColor, View.OnClickListener onClick) {
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.HORIZONTAL);
-        layout.setPadding(60, 30, 60, 30);
+        layout.setPadding(60, 45, 60, 45);
         layout.setGravity(Gravity.CENTER_VERTICAL);
 
-        // Số thứ tự track
-        TextView tvIndex = new TextView(this);
-        tvIndex.setText(String.valueOf(index));
-        tvIndex.setTextColor(Color.GRAY);
-        tvIndex.setTextSize(16);
-        tvIndex.setPadding(0, 0, 40, 0);
-        layout.addView(tvIndex);
-
-        // Tên bài hát
-        TextView tvTitle = new TextView(this);
-        tvTitle.setText(song.getTitle());
-        tvTitle.setTextColor(textColor);
-        tvTitle.setTextSize(16);
-        tvTitle.setTypeface(null, Typeface.BOLD);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
-        tvTitle.setLayoutParams(params);
-        layout.addView(tvTitle);
-
-        // Nút Gỡ
-        TextView btnRemove = new TextView(this);
-        btnRemove.setText("Gỡ");
-        btnRemove.setTextColor(Color.parseColor("#FF453A"));
-        btnRemove.setTextSize(14);
-        btnRemove.setTypeface(null, Typeface.BOLD);
-        btnRemove.setPadding(30, 10, 0, 10);
-
-        btnRemove.setOnClickListener(v -> {
-            new AlertDialog.Builder(ManageAlbumActivity.this)
-                    .setTitle("Gỡ khỏi Album")
-                    .setMessage("Bạn muốn đưa bài '" + song.getTitle() + "' ra khỏi album này (trở thành Single)?")
-                    .setPositiveButton("Gỡ", (dialog, which) -> {
-                        removeSongFromAlbum(song.getId(), parentDialog);
-                    })
-                    .setNegativeButton("Hủy", null)
-                    .show();
-        });
-
-        layout.addView(btnRemove);
-
-        android.util.TypedValue outValue = new android.util.TypedValue();
+        TypedValue outValue = new TypedValue();
         getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
         layout.setBackgroundResource(outValue.resourceId);
         layout.setClickable(true);
+        layout.setOnClickListener(onClick);
 
-        layout.setOnClickListener(v -> {
-            com.melodix.app.Utils.PlaybackUtils.playSong(ManageAlbumActivity.this, new ArrayList<>(allSongs), song.getId());
-        });
+        TextView tvIcon = new TextView(this);
+        tvIcon.setText(icon);
+        tvIcon.setTextSize(20);
+        tvIcon.setPadding(0, 0, 40, 0);
+        layout.addView(tvIcon);
+
+        TextView tvText = new TextView(this);
+        tvText.setText(text);
+        tvText.setTextColor(textColor);
+        tvText.setTextSize(16);
+        tvText.setTypeface(null, Typeface.BOLD);
+        layout.addView(tvText);
+
         return layout;
     }
 
-    private void removeSongFromAlbum(String songId, BottomSheetDialog parentDialog) {
-        Map<String, Object> updateData = new HashMap<>();
-        updateData.put("album_id", null);
+    // ==========================================
+    // 3. DELETE ALBUM LOGIC
+    // ==========================================
+    private void confirmDeleteAlbum(Album album) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Album Warning")
+                .setMessage("Are you sure you want to permanently delete the album '" + album.title + "'?\n\nNote: The songs inside this album will NOT be deleted. They will automatically become singles.")
+                .setPositiveButton("Delete Album", (dialog, which) -> {
 
-        artistApiService.updateSong("eq." + songId, updateData).enqueue(new Callback<okhttp3.ResponseBody>() {
-            @Override
-            public void onResponse(Call<okhttp3.ResponseBody> call, Response<okhttp3.ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(ManageAlbumActivity.this, "Đã gỡ bài hát khỏi Album", Toast.LENGTH_SHORT).show();
-                    parentDialog.dismiss();
-                } else {
-                    Toast.makeText(ManageAlbumActivity.this, "Lỗi khi gỡ bài hát", Toast.LENGTH_SHORT).show();
-                }
-            }
+                    swipeRefresh.setRefreshing(true);
 
-            @Override
-            public void onFailure(Call<okhttp3.ResponseBody> call, Throwable t) {
-                Toast.makeText(ManageAlbumActivity.this, "Lỗi mạng", Toast.LENGTH_SHORT).show();
-            }
-        });
+                    // Call delete API (Make sure Supabase uses ON DELETE SET NULL for the songs table)
+                    artistApiService.deleteAlbum("eq." + album.id).enqueue(new Callback<Void>() {
+                        @Override
+                        public void onResponse(Call<Void> call, Response<Void> response) {
+                            swipeRefresh.setRefreshing(false);
+                            if (response.isSuccessful()) {
+                                Toast.makeText(ManageAlbumActivity.this, "Album deleted successfully!", Toast.LENGTH_SHORT).show();
+                                loadMyAlbums();
+                            } else {
+                                Toast.makeText(ManageAlbumActivity.this, "Delete failed: " + response.code(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<Void> call, Throwable t) {
+                            swipeRefresh.setRefreshing(false);
+                            Toast.makeText(ManageAlbumActivity.this, "Network error!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 }

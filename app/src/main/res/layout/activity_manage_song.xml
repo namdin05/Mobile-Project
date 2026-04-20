@@ -4,21 +4,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/bg_screen">
+    android:background="@drawable/bg_screen"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="16dp">
+        android:paddingStart="16dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="6dp">
 
         <ImageView
             android:id="@+id/btn_back"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="6dp"
+            android:contentDescription="Back"
+            android:padding="8dp"
             android:src="@drawable/ic_back"
             app:tint="@color/mdx_text" />
 
@@ -26,89 +32,39 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="14dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="Artist Studio"
             android:textColor="@color/mdx_text"
-            android:textSize="22sp"
+            android:textSize="24sp"
             android:textStyle="bold" />
-    </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="20dp"
-        android:background="@drawable/bg_card"
-        android:orientation="vertical"
-        android:padding="20dp">
-
-        <TextView
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_upload_new"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="HIỆU SUẤT TOÀN THỜI GIAN"
-            android:textColor="@color/mdx_text_secondary"
-            android:textSize="12sp"
+            android:layout_height="40dp"
+            android:minWidth="0dp"
+            android:gravity="center"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="Upload"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:letterSpacing="0.05"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:baselineAligned="false"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="🎧 Lượt nghe"
-                    android:textColor="@color/mdx_text_secondary"
-                    android:textSize="13sp" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:id="@+id/tv_total_listens"
-                    android:textColor="@color/mdx_text"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="❤️ Người hâm mộ"
-                    android:textColor="@color/mdx_text_secondary"
-                    android:textSize="13sp" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:id="@+id/tv_total_fans"
-                    android:textColor="@color/mdx_text"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </LinearLayout>
+            app:backgroundTint="@color/mdx_primary"
+            app:cornerRadius="20dp" />
     </LinearLayout>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginBottom="10dp"
-        android:text="Tác phẩm của tôi"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="14dp"
+        android:text="My Tracks"
         android:textColor="@color/mdx_text"
         android:textSize="18sp"
         android:textStyle="bold" />
@@ -121,32 +77,36 @@
             android:id="@+id/layout_empty_state"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
             android:gravity="center"
-            android:visibility="gone"
-            android:paddingBottom="80dp">
+            android:orientation="vertical"
+            android:paddingStart="32dp"
+            android:paddingTop="24dp"
+            android:paddingEnd="32dp"
+            android:paddingBottom="40dp"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="🎙️"
-                android:textSize="60sp" />
+                android:textSize="64sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Chưa có tác phẩm nào"
+                android:layout_marginTop="18dp"
+                android:text="No tracks yet"
                 android:textColor="@color/mdx_text"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="250dp"
+                android:layout_width="280dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="10dp"
                 android:gravity="center"
-                android:text="Hãy phát hành single đầu tiên và để thế giới lắng nghe giai điệu của bạn."
+                android:lineSpacingExtra="2dp"
+                android:text="Release your first single and let the world hear your sound."
                 android:textColor="@color/mdx_text_secondary"
                 android:textSize="14sp" />
         </LinearLayout>
@@ -161,17 +121,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
-                android:paddingBottom="100dp" />
+                android:paddingStart="16dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="24dp" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-            android:id="@+id/btn_upload_new"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="24dp"
-            android:text="🎵 Đăng bài"
-            android:textColor="@android:color/white"
-            app:backgroundTint="@color/mdx_primary" />
     </FrameLayout>
 </LinearLayout>

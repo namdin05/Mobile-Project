@@ -145,7 +145,7 @@ public class AccountFragment extends Fragment {
             String myId = prefs.getString("USER_ID", null);
 
             name.setText(displayName);
-            headline.setText("Thành viên Melodix");
+            headline.setText("Melodix Member");
 
             if (!avatarUrl.isEmpty()) {
                 com.bumptech.glide.Glide.with(requireContext()).load(avatarUrl).circleCrop().into(avatar);

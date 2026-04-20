@@ -129,4 +129,8 @@
                 @retrofit2.http.Header("Authorization") String token,
                 @retrofit2.http.Path("file_name") String fileName
         );
+
+        // Gửi lệnh xóa Album
+        @retrofit2.http.DELETE("albums")
+        Call<Void> deleteAlbum(@retrofit2.http.Query("id") String operatorAndId);
     }

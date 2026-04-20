@@ -5,7 +5,8 @@
     android:id="@+id/root_upload_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
+    android:background="?android:attr/colorBackground"
+    android:fitsSystemWindows="true"
     tools:ignore="InvalidId">
 
     <ScrollView
@@ -13,7 +14,7 @@
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:fillViewport="true"
-        android:paddingBottom="100dp"
+        android:paddingBottom="112dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -21,55 +22,59 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:paddingStart="20dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="24dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:orientation="horizontal">
 
-                <ImageButton
+                <ImageView
                     android:id="@+id/btn_back"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:layout_marginEnd="8dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:src="@android:drawable/ic_menu_revert"
-                    app:tint="#FFFFFF" />
+                    android:contentDescription="Back"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_back"
+                    app:tint="@color/mdx_text" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="STUDIO"
                     android:textColor="#1DB954"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     android:textStyle="bold"
-                    android:letterSpacing="0.1" />
+                    android:letterSpacing="0.12" />
             </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
-                android:text="Phát hành mới"
-                android:textColor="#FFFFFF"
-                android:textSize="32sp"
+                android:layout_marginBottom="28dp"
+                android:text="New Release"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="30sp"
                 android:textStyle="bold" />
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/btn_pick_cover"
-                android:layout_width="180dp"
-                android:layout_height="180dp"
+                android:layout_width="192dp"
+                android:layout_height="192dp"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="32dp"
+                android:layout_marginBottom="28dp"
                 android:clickable="true"
                 android:focusable="true"
-                app:cardBackgroundColor="#1AFFFFFF"
-                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="?attr/colorSurface"
+                app:cardCornerRadius="20dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#4DFFFFFF"
+                app:strokeColor="?android:attr/textColorSecondary"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -77,20 +82,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
                     <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
                         android:layout_marginBottom="12dp"
+                        android:contentDescription="Upload cover"
                         android:src="@android:drawable/ic_menu_camera"
-                        app:tint="#B3FFFFFF" />
+                        app:tint="?android:attr/textColorSecondary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Tải ảnh bìa lên"
-                        android:textColor="#FFFFFF"
+                        android:text="Upload cover art"
+                        android:textColor="?android:attr/textColorPrimary"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -98,8 +105,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Tỉ lệ 1:1 • JPG, PNG"
-                        android:textColor="#888888"
+                        android:text="1:1 ratio • JPG, PNG"
+                        android:textColor="?android:attr/textColorSecondary"
                         android:textSize="12sp" />
                 </LinearLayout>
 
@@ -107,6 +114,7 @@
                     android:id="@+id/img_cover_preview"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:contentDescription="Cover preview"
                     android:scaleType="centerCrop"
                     android:visibility="gone" />
             </com.google.android.material.card.MaterialCardView>
@@ -115,8 +123,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:text="Tên bài hát"
-                android:textColor="#FFFFFF"
+                android:text="Track title"
+                android:textColor="?android:attr/textColorPrimary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -124,21 +132,21 @@
                 android:id="@+id/edt_song_title"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="22dp"
                 android:background="@drawable/bg_edittext_premium"
-                android:backgroundTint="#282828"
-                android:hint="Nhập tiêu đề tác phẩm..."
+                android:backgroundTint="?attr/colorSurface"
+                android:hint="Enter track title..."
                 android:paddingHorizontal="16dp"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#888888"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textColorHint="?android:attr/textColorSecondary"
                 android:textSize="16sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:text="Thuộc Album (Tùy chọn)"
-                android:textColor="#FFFFFF"
+                android:text="Album (Optional)"
+                android:textColor="?android:attr/textColorPrimary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -146,9 +154,9 @@
                 android:id="@+id/btn_select_album"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="22dp"
                 android:background="@drawable/bg_edittext_premium"
-                android:backgroundTint="#282828"
+                android:backgroundTint="?attr/colorSurface"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingHorizontal="16dp">
@@ -158,15 +166,16 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Single (Không thuộc album nào)"
-                    android:textColor="#888888"
+                    android:text="Single (No album)"
+                    android:textColor="?android:attr/textColorSecondary"
                     android:textSize="16sp" />
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
+                    android:contentDescription="Select album"
                     android:src="@drawable/ic_menu_for"
-                    app:tint="#888888" />
+                    app:tint="?android:attr/textColorSecondary" />
             </LinearLayout>
 
             <LinearLayout
@@ -180,17 +189,18 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Thể loại âm nhạc *"
-                    android:textColor="#FFFFFF"
+                    android:text="Music genres *"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <ImageButton
                     android:id="@+id/btn_add_genre"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:background="@drawable/bg_circle_button"
                     android:backgroundTint="#1DB954"
+                    android:contentDescription="Add genre"
                     android:src="@android:drawable/ic_input_add"
                     app:tint="#121212" />
             </LinearLayout>
@@ -199,7 +209,7 @@
                 android:id="@+id/chip_group_genre"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp" />
+                android:layout_marginBottom="22dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -212,17 +222,18 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Nghệ sĩ hợp tác (Feat.)"
-                    android:textColor="#FFFFFF"
+                    android:text="Featured artists"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <ImageButton
                     android:id="@+id/btn_add_collab"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:background="@drawable/bg_circle_button"
                     android:backgroundTint="#1DB954"
+                    android:contentDescription="Add featured artist"
                     android:src="@android:drawable/ic_input_add"
                     app:tint="#121212" />
             </LinearLayout>
@@ -231,14 +242,14 @@
                 android:id="@+id/chip_group_collab"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp" />
+                android:layout_marginBottom="22dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:text="File âm thanh *"
-                android:textColor="#FFFFFF"
+                android:text="Audio file *"
+                android:textColor="?android:attr/textColorPrimary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -248,10 +259,10 @@
                 android:layout_height="wrap_content"
                 android:clickable="true"
                 android:focusable="true"
-                app:cardBackgroundColor="#282828"
-                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="?attr/colorSurface"
+                app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#4DFFFFFF"
+                app:strokeColor="?android:attr/textColorSecondary"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -265,8 +276,9 @@
                         android:id="@+id/img_audio_icon"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
+                        android:contentDescription="Audio file"
                         android:src="@android:drawable/ic_media_play"
-                        app:tint="#888888" />
+                        app:tint="?android:attr/textColorSecondary" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -279,8 +291,8 @@
                             android:id="@+id/tv_audio_title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Chọn file tải lên"
-                            android:textColor="#FFFFFF"
+                            android:text="Choose an audio file"
+                            android:textColor="?android:attr/textColorPrimary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
 
@@ -290,7 +302,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="MP3, M4A, WAV"
-                            android:textColor="#888888"
+                            android:textColor="?android:attr/textColorSecondary"
                             android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -301,10 +313,11 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FA121212"
+        android:background="?attr/colorSurface"
         android:elevation="16dp"
-        android:paddingHorizontal="24dp"
-        android:paddingVertical="16dp"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="18dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <com.google.android.material.button.MaterialButton
@@ -312,7 +325,7 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:backgroundTint="#1DB954"
-            android:text="PHÁT HÀNH TÁC PHẨM"
+            android:text="RELEASE TRACK"
             android:textColor="#000000"
             android:textSize="16sp"
             android:textStyle="bold"

@@ -170,7 +170,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
 
                         trackAdapter.update(songs);
                         // Cập nhật số lượng bài hát lên tiêu đề
-                        tvTrackCount.setText("Danh sách bài hát (" + songs.size() + ")");
+                        tvTrackCount.setText("Track List (" + songs.size() + ")");
                     }
 
                     @Override

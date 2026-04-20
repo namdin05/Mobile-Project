@@ -184,7 +184,11 @@ public class SearchFragment extends Fragment {
 
         return view;
     }
-
+    @Override
+    public void onResume() {
+        super.onResume();
+        renderRecentSearches();
+    }
     // ==========================================
     // HIỂN THỊ BẢNG THẢ XUỐNG 10 LỊCH SỬ TÌM KIẾM
     // ==========================================
@@ -447,11 +451,25 @@ public class SearchFragment extends Fragment {
     }
 
     private void openResult(SearchResultItem item) {
-        String currentKeyword = etSearch.getText().toString().trim();
-        if (!TextUtils.isEmpty(currentKeyword)) {
-            repository.saveToRecentSearch(currentKeyword);
-            renderRecentSearches(); // Làm mới lại UI ngầm
+        String historyKeyword = null;
+
+        if (item != null && !TextUtils.isEmpty(item.title)) {
+            historyKeyword = item.title.trim();   // ưu tiên lưu đúng item vừa bấm
         }
+
+        if (TextUtils.isEmpty(historyKeyword)) {
+            historyKeyword = etSearch.getText().toString().trim(); // fallback
+        }
+
+        if (!TextUtils.isEmpty(historyKeyword)) {
+            repository.saveToRecentSearch(historyKeyword);
+            etSearch.setText(historyKeyword);
+            etSearch.setSelection(historyKeyword.length());
+            renderRecentSearches();
+        }
+
+        hideKeyboard();
+
         switch (item.type) {
             case Constants.FILTER_SONG:
                 Song clickedSong = repository.getSongById(item.targetId);
@@ -461,16 +479,19 @@ public class SearchFragment extends Fragment {
                     PlaybackUtils.playSong(requireContext(), playList, clickedSong.getId());
                 }
                 break;
+
             case Constants.FILTER_ARTIST:
                 Intent artistIntent = new Intent(requireContext(), ArtistDetailActivity.class);
                 artistIntent.putExtra(ArtistDetailActivity.EXTRA_ARTIST_ID, item.targetId);
                 startActivity(artistIntent);
                 break;
+
             case Constants.FILTER_ALBUM:
                 Intent albumIntent = new Intent(requireContext(), AlbumDetailActivity.class);
                 albumIntent.putExtra(AlbumDetailActivity.EXTRA_ALBUM_ID, item.targetId);
                 startActivity(albumIntent);
                 break;
+
             case Constants.FILTER_PLAYLIST:
                 Intent playlistIntent = new Intent(requireContext(), PlaylistDetailActivity.class);
                 playlistIntent.putExtra(PlaylistDetailActivity.EXTRA_PLAYLIST_ID, item.targetId);
@@ -478,7 +499,6 @@ public class SearchFragment extends Fragment {
                 break;
         }
     }
-
     // Hàm hỗ trợ hạ bàn phím và bỏ con trỏ nhấp nháy ở ô Search
     private void hideKeyboard() {
         View view = requireActivity().getCurrentFocus();

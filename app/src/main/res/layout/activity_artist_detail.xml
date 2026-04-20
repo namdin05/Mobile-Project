@@ -11,13 +11,17 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/mini_player_root"
+        android:clipToPadding="false"
         android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingStart="20dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="24dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -27,11 +31,12 @@
 
                 <ImageButton
                     android:id="@+id/btn_back"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:padding="12dp"
-                    android:scaleType="fitCenter"
+                    android:contentDescription="Back"
+                    android:padding="10dp"
+                    android:scaleType="centerInside"
                     android:src="@drawable/ic_back"
                     app:tint="@color/mdx_text" />
 
@@ -42,42 +47,45 @@
 
                 <ImageView
                     android:id="@+id/btn_share"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:padding="12dp"
-                    android:scaleType="fitCenter"
+                    android:contentDescription="Share"
+                    android:padding="10dp"
+                    android:scaleType="centerInside"
                     android:src="@drawable/ic_share"
                     app:tint="@color/mdx_text" />
             </LinearLayout>
 
             <ImageView
                 android:id="@+id/img_avatar"
-                android:layout_width="160dp"
-                android:layout_height="160dp"
+                android:layout_width="168dp"
+                android:layout_height="168dp"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="16dp" />
+                android:layout_marginTop="18dp"
+                android:contentDescription="Artist image" />
 
             <TextView
                 android:id="@+id/tv_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="18dp"
                 android:gravity="center"
                 android:textColor="@color/mdx_text"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+                android:textSize="28sp"
+                android:textStyle="bold"
+                tools:text="Artist Name" />
 
             <TextView
                 android:id="@+id/tv_follower_count"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:gravity="center"
-                android:textColor="#A0A0A0"
+                android:textColor="@color/mdx_text_secondary"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                tools:text="1.2K người theo dõi" />
+                tools:text="1.2K followers" />
 
             <TextView
                 android:id="@+id/tv_bio"
@@ -85,42 +93,52 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:gravity="center"
-                android:textColor="@android:color/darker_gray"
-                android:textSize="14sp" />
+                android:lineSpacingExtra="2dp"
+                android:textColor="@color/mdx_text_secondary"
+                android:textSize="14sp"
+                tools:text="Artist bio goes here." />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginTop="18dp"
+                android:layout_marginBottom="26dp"
                 android:gravity="center"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="24dp">
+                android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/btn_follow"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Theo dõi" />
+                    android:layout_height="44dp"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:text="Follow"
+                    android:textAllCaps="false"
+                    android:textStyle="bold" />
 
                 <ImageButton
                     android:id="@+id/btn_play_all"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="14dp"
+                    android:background="@drawable/bg_circle"
+                    android:contentDescription="Play all"
                     android:padding="14dp"
-                    android:src="@drawable/ic_play"
-                    android:scaleType="fitCenter"
-                    android:background="@drawable/bg_circle" />
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_play" />
             </LinearLayout>
 
-            <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
                 <TextView
                     android:id="@+id/tv_songs_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Bài hát nổi bật"
+                    android:text="Popular Tracks"
                     android:textColor="@color/mdx_text"
-                    android:textSize="18sp"
+                    android:textSize="19sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
 
@@ -130,8 +148,9 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
-                    android:text="Xem thêm >"
-                    android:textColor="@android:color/darker_gray"
+                    android:text="See all"
+                    android:textColor="@color/mdx_text_secondary"
+                    android:textStyle="bold"
                     android:visibility="gone" />
             </RelativeLayout>
 
@@ -140,17 +159,22 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
+                android:clipToPadding="false"
                 android:nestedScrollingEnabled="false"
                 android:visibility="gone" />
 
-            <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp">
+
                 <TextView
                     android:id="@+id/tv_albums_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Albums"
                     android:textColor="@color/mdx_text"
-                    android:textSize="18sp"
+                    android:textSize="19sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
 
@@ -160,8 +184,9 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
-                    android:text="Tất cả >"
-                    android:textColor="#A0A0A0"
+                    android:text="See all"
+                    android:textColor="@color/mdx_text_secondary"
+                    android:textStyle="bold"
                     android:visibility="gone" />
             </RelativeLayout>
 
@@ -176,10 +201,10 @@
                 android:id="@+id/tv_related_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Nghệ sĩ liên quan"
+                android:layout_marginTop="28dp"
+                android:text="Related Artists"
                 android:textColor="@color/mdx_text"
-                android:textSize="18sp"
+                android:textSize="19sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
 

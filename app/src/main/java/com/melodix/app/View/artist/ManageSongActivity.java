@@ -12,7 +12,6 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -22,19 +21,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.melodix.app.Model.ArtistStats;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
-import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Service.ArtistAPIService;
 import com.melodix.app.Service.RetrofitClient;
-import com.melodix.app.View.adapters.ManageSongAdapter;
 import com.melodix.app.Utils.PlaybackUtils;
+import com.melodix.app.View.adapters.ManageSongAdapter;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -46,12 +41,8 @@ public class ManageSongActivity extends AppCompatActivity {
     private ManageSongAdapter adapter;
     private List<Song> songList;
     private ArtistAPIService apiService;
-    private TextView tvTotalListens;
-    private TextView tvTotalFans;
     private SwipeRefreshLayout swipeRefresh;
     private View layoutEmptyState;
-
-    private final NumberFormat numberFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,8 +52,7 @@ public class ManageSongActivity extends AppCompatActivity {
         apiService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
         rvSongs = findViewById(R.id.rv_manage_songs);
         rvSongs.setLayoutManager(new LinearLayoutManager(this));
-        tvTotalListens = findViewById(R.id.tv_total_listens);
-        tvTotalFans = findViewById(R.id.tv_total_fans);
+
         swipeRefresh = findViewById(R.id.swipe_refresh);
         layoutEmptyState = findViewById(R.id.layout_empty_state);
 
@@ -96,12 +86,11 @@ public class ManageSongActivity extends AppCompatActivity {
     }
 
     private void loadMySongsAndStats() {
-        // ĐÃ SỬA: Lấy USER_ID từ SharedPreferences thay vì SessionManager
         SharedPreferences prefs = getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
         String myArtistId = prefs.getString("USER_ID", null);
 
         if (myArtistId == null) {
-            Toast.makeText(this, "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Session expired. Please sign in again!", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -125,27 +114,15 @@ public class ManageSongActivity extends AppCompatActivity {
                         rvSongs.setVisibility(View.VISIBLE);
                     }
                 } else {
-                    Toast.makeText(ManageSongActivity.this, "Không thể tải danh sách tác phẩm", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ManageSongActivity.this, "Unable to load your tracks", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<List<Song>> call, Throwable t) {
                 swipeRefresh.setRefreshing(false);
-                Toast.makeText(ManageSongActivity.this, "Lỗi mạng: Vui lòng kiểm tra kết nối", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ManageSongActivity.this, "Network error. Please check your connection.", Toast.LENGTH_SHORT).show();
             }
-        });
-
-        AppRepository.getInstance(this).getArtistStats(myArtistId, new AppRepository.ArtistStatsCallback() {
-            @Override
-            public void onSuccess(ArtistStats stats) {
-                if (isFinishing() || isDestroyed()) return;
-                tvTotalListens.setText(numberFormat.format(stats.totalStreams));
-                tvTotalFans.setText(numberFormat.format(stats.totalListeners));
-            }
-
-            @Override
-            public void onError(String message) { }
         });
     }
 
@@ -165,7 +142,7 @@ public class ManageSongActivity extends AppCompatActivity {
         bgShape.setCornerRadii(new float[]{60, 60, 60, 60, 0, 0, 0, 0});
         container.setBackground(bgShape);
 
-        TextView title = new TextView(this);
+        android.widget.TextView title = new android.widget.TextView(this);
         title.setText(song.getTitle());
         title.setTextSize(18);
         title.setTypeface(null, Typeface.BOLD);
@@ -173,12 +150,12 @@ public class ManageSongActivity extends AppCompatActivity {
         title.setPadding(60, 20, 60, 30);
         container.addView(title);
 
-        container.addView(createDynamicOptionItem("▶️", "Nghe thử bài hát", textColor, v -> {
+        container.addView(createDynamicOptionItem("▶️", "Preview Track", textColor, v -> {
             dialog.dismiss();
             PlaybackUtils.playSong(ManageSongActivity.this, new ArrayList<>(songList), song.getId());
         }));
 
-        container.addView(createDynamicOptionItem("✏️", "Chỉnh sửa thông tin", textColor, v -> {
+        container.addView(createDynamicOptionItem("✏️", "Edit Track Details", textColor, v -> {
             dialog.dismiss();
             Intent intent = new Intent(ManageSongActivity.this, UploadSongActivity.class);
             intent.putExtra("IS_EDIT_MODE", true);
@@ -188,12 +165,7 @@ public class ManageSongActivity extends AppCompatActivity {
             startActivity(intent);
         }));
 
-        container.addView(createDynamicOptionItem("🔗", "Chia sẻ bài hát", textColor, v -> {
-            dialog.dismiss();
-            com.melodix.app.Utils.ShareUtils.shareContent(ManageSongActivity.this, "song", song.getId(), song.getTitle());
-        }));
-
-        container.addView(createDynamicOptionItem("🗑️", "Xóa tác phẩm", Color.parseColor("#FF453A"), v -> {
+        container.addView(createDynamicOptionItem("🗑️", "Delete Track", Color.parseColor("#FF453A"), v -> {
             dialog.dismiss();
             confirmDeleteSong(song);
         }));
@@ -215,12 +187,12 @@ public class ManageSongActivity extends AppCompatActivity {
         layout.setClickable(true);
         layout.setOnClickListener(onClick);
 
-        TextView tvIcon = new TextView(this);
+        android.widget.TextView tvIcon = new android.widget.TextView(this);
         tvIcon.setText(icon);
         tvIcon.setTextSize(20);
         tvIcon.setPadding(0, 0, 40, 0);
 
-        TextView tvText = new TextView(this);
+        android.widget.TextView tvText = new android.widget.TextView(this);
         tvText.setText(text);
         tvText.setTextColor(textColor);
         tvText.setTextSize(16);
@@ -233,52 +205,54 @@ public class ManageSongActivity extends AppCompatActivity {
 
     private void confirmDeleteSong(Song song) {
         new AlertDialog.Builder(this)
-                .setTitle("Cảnh báo xóa")
-                .setMessage("Bạn có chắc chắn muốn xóa vĩnh viễn bài hát '" + song.getTitle() + "'? Tác phẩm và file âm thanh sẽ bị xóa hoàn toàn khỏi hệ thống.")
-                .setPositiveButton("Xóa vĩnh viễn", (dialog, which) -> {
+                .setTitle("Delete Warning")
+                .setMessage("Are you sure you want to permanently delete the track '" + song.getTitle() + "'? The track and audio file will be completely removed from the system.")
+                .setPositiveButton("Delete Permanently", (dialog, which) -> {
 
-                    // 1. CHUẨN BỊ ĐỒ NGHỀ (Lấy Token và tách tên file từ URL)
                     SharedPreferences prefs = getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
-                    String token = prefs.getString("ACCESS_TOKEN", ""); // Đảm bảo sếp có lưu Token lúc login nhé
-                    String apiKey = com.melodix.app.BuildConfig.SERVICE_KEY; // Hoặc Constants.API_KEY của sếp
+                    String token = prefs.getString("ACCESS_TOKEN", "");
+                    String apiKey = com.melodix.app.BuildConfig.SERVICE_KEY;
 
                     String audioFileName = extractFileNameFromUrl(song.getAudioUrl());
                     String coverFileName = extractFileNameFromUrl(song.getCoverUrl());
 
-                    // 2. GỬI LỆNH XÓA FILE TRÊN STORAGE (Bắn xong không cần chờ kết quả, kệ nó)
                     if (audioFileName != null) {
                         apiService.deleteAudioFile(apiKey, "Bearer " + token, audioFileName)
-                                .enqueue(new Callback<Void>() { @Override public void onResponse(Call<Void> c, Response<Void> r){} @Override public void onFailure(Call<Void> c, Throwable t){} });
-                    }
-                    if (coverFileName != null && !song.getCoverUrl().contains("default")) {
-                        // Thêm check default để tránh lỡ tay xóa mất cái ảnh bìa mặc định của hệ thống
-                        apiService.deleteCoverFile(apiKey, "Bearer " + token, coverFileName)
-                                .enqueue(new Callback<Void>() { @Override public void onResponse(Call<Void> c, Response<Void> r){} @Override public void onFailure(Call<Void> c, Throwable t){} });
+                                .enqueue(new Callback<Void>() {
+                                    @Override public void onResponse(Call<Void> c, Response<Void> r) {}
+                                    @Override public void onFailure(Call<Void> c, Throwable t) {}
+                                });
                     }
 
-                    // 3. XÓA LUÔN DỮ LIỆU TRÊN DATABASE (Như code cũ của sếp)
+                    if (coverFileName != null && !song.getCoverUrl().contains("default")) {
+                        apiService.deleteCoverFile(apiKey, "Bearer " + token, coverFileName)
+                                .enqueue(new Callback<Void>() {
+                                    @Override public void onResponse(Call<Void> c, Response<Void> r) {}
+                                    @Override public void onFailure(Call<Void> c, Throwable t) {}
+                                });
+                    }
+
                     apiService.deleteSong("eq." + song.getId()).enqueue(new Callback<Void>() {
                         @Override
                         public void onResponse(Call<Void> call, Response<Void> response) {
                             if (response.isSuccessful()) {
-                                Toast.makeText(ManageSongActivity.this, "Đã dọn dẹp sạch sẽ tác phẩm và file!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(ManageSongActivity.this, "Track and files deleted successfully!", Toast.LENGTH_SHORT).show();
                                 loadMySongsAndStats();
                             } else {
-                                Toast.makeText(ManageSongActivity.this, "Lỗi xóa dữ liệu Database: " + response.code(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(ManageSongActivity.this, "Database delete failed: " + response.code(), Toast.LENGTH_SHORT).show();
                             }
                         }
 
                         @Override
                         public void onFailure(Call<Void> call, Throwable t) {
-                            Toast.makeText(ManageSongActivity.this, "Lỗi kết nối. Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ManageSongActivity.this, "Connection error. Please try again!", Toast.LENGTH_SHORT).show();
                         }
                     });
                 })
-                .setNegativeButton("Hủy", null)
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 
-    // Hàm phụ trợ: Chặt cái đuôi URL ra để lấy đúng cái tên file (ví dụ: bài_hát_123.mp3)
     private String extractFileNameFromUrl(String url) {
         if (url == null || url.isEmpty()) return null;
         return url.substring(url.lastIndexOf('/') + 1);

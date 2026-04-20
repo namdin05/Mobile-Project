@@ -4,18 +4,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/swipe_refresh"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/bg_screen">
+        android:background="@drawable/bg_screen"
+        android:clipToPadding="false"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:paddingStart="20dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="28dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -27,9 +33,9 @@
 
                 <ImageView
                     android:id="@+id/img_avatar"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:contentDescription="avatar"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:contentDescription="Avatar"
                     android:scaleType="centerCrop" />
 
                 <LinearLayout
@@ -52,8 +58,11 @@
                         android:id="@+id/tv_headline"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
                         android:text="Good evening"
-                        android:textColor="@color/mdx_primary" />
+                        android:textColor="@color/mdx_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <ImageButton
@@ -62,19 +71,22 @@
                     android:layout_height="42dp"
                     android:layout_marginEnd="8dp"
                     android:background="@drawable/bg_circle_surface"
-                    android:src="@drawable/ic_share"
+                    android:contentDescription="Share profile"
                     android:padding="10dp"
                     android:scaleType="centerInside"
-                    app:tint="@android:color/black" />
+                    android:src="@drawable/ic_share"
+                    app:tint="@color/mdx_text" />
 
                 <ImageButton
                     android:id="@+id/btn_edit_profile"
                     android:layout_width="42dp"
                     android:layout_height="42dp"
                     android:background="@drawable/bg_circle_surface"
-                    app:srcCompat="@drawable/ic_edit"
+                    android:contentDescription="Edit profile"
                     android:padding="10dp"
-                    android:scaleType="centerInside" />
+                    android:scaleType="centerInside"
+                    app:srcCompat="@drawable/ic_edit"
+                    app:tint="@color/mdx_text" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -91,10 +103,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:layout_marginTop="16dp"
-                android:text="Trở thành Nghệ sĩ 🌟"
-                app:backgroundTint="#1DB954"
+                android:text="Become an Artist 🌟"
                 android:textColor="@android:color/white"
-                android:visibility="gone" />
+                android:visibility="gone"
+                app:backgroundTint="#1DB954" />
 
             <LinearLayout
                 android:id="@+id/card_artist_center"
@@ -109,49 +121,50 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp"
                     android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
                         android:text="✨"
-                        android:textSize="18sp"
-                        android:layout_marginEnd="8dp"/>
+                        android:textSize="18sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="DÀNH CHO NGHỆ SĨ"
+                        android:letterSpacing="0.05"
+                        android:text="FOR ARTISTS"
                         android:textColor="@color/mdx_primary"
                         android:textSize="15sp"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.05" />
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/btn_artist_upload"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingVertical="10dp"
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="10dp">
 
                     <FrameLayout
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:background="@drawable/bg_circle_surface"
-                        android:layout_marginEnd="16dp">
+                        android:layout_marginEnd="16dp"
+                        android:background="@drawable/bg_circle_surface">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
                             android:text="🎵"
-                            android:textSize="20sp"/>
+                            android:textSize="20sp" />
                     </FrameLayout>
 
                     <LinearLayout
@@ -159,58 +172,62 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Phát hành tác phẩm"
+                            android:text="Release Music"
                             android:textColor="@color/mdx_text"
                             android:textSize="16sp"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold" />
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tải lên single hoặc bài hát mới"
+                            android:layout_marginTop="2dp"
+                            android:text="Upload a new single or track"
                             android:textColor="@color/mdx_text_secondary"
-                            android:textSize="13sp"
-                            android:layout_marginTop="2dp"/>
+                            android:textSize="13sp" />
                     </LinearLayout>
 
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
+                        android:contentDescription="Go"
                         android:src="@drawable/ic_menu_for"
-                        app:tint="@color/mdx_text_secondary"/>
+                        app:tint="@color/mdx_text_secondary" />
                 </LinearLayout>
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#1AFFFFFF"
                     android:layout_marginStart="64dp"
-                    android:layout_marginVertical="4dp"/>
+                    android:layout_marginVertical="4dp"
+                    android:background="#1AFFFFFF" />
 
                 <LinearLayout
                     android:id="@+id/btn_artist_albums"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingVertical="10dp"
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="10dp">
 
                     <FrameLayout
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:background="@drawable/bg_circle_surface"
-                        android:layout_marginEnd="16dp">
+                        android:layout_marginEnd="16dp"
+                        android:background="@drawable/bg_circle_surface">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
                             android:text="💽"
-                            android:textSize="20sp"/>
+                            android:textSize="20sp" />
                     </FrameLayout>
 
                     <LinearLayout
@@ -218,58 +235,62 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Quản lý Album"
+                            android:text="Manage Albums"
                             android:textColor="@color/mdx_text"
                             android:textSize="16sp"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold" />
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tạo và chỉnh sửa bộ sưu tập"
+                            android:layout_marginTop="2dp"
+                            android:text="Create and edit your releases"
                             android:textColor="@color/mdx_text_secondary"
-                            android:textSize="13sp"
-                            android:layout_marginTop="2dp"/>
+                            android:textSize="13sp" />
                     </LinearLayout>
 
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
+                        android:contentDescription="Go"
                         android:src="@drawable/ic_menu_for"
-                        app:tint="@color/mdx_text_secondary"/>
+                        app:tint="@color/mdx_text_secondary" />
                 </LinearLayout>
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#1AFFFFFF"
                     android:layout_marginStart="64dp"
-                    android:layout_marginVertical="4dp"/>
+                    android:layout_marginVertical="4dp"
+                    android:background="#1AFFFFFF" />
 
                 <LinearLayout
                     android:id="@+id/btn_artist_stats"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingVertical="10dp"
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="10dp">
 
                     <FrameLayout
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:background="@drawable/bg_circle_surface"
-                        android:layout_marginEnd="16dp">
+                        android:layout_marginEnd="16dp"
+                        android:background="@drawable/bg_circle_surface">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
                             android:text="📊"
-                            android:textSize="20sp"/>
+                            android:textSize="20sp" />
                     </FrameLayout>
 
                     <LinearLayout
@@ -277,30 +298,33 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Music Insights"
                             android:textColor="@color/mdx_text"
                             android:textSize="16sp"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold" />
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Xem thống kê lượt nghe &amp; fan"
+                            android:layout_marginTop="2dp"
+                            android:text="View streams, likes, and fan stats"
                             android:textColor="@color/mdx_text_secondary"
-                            android:textSize="13sp"
-                            android:layout_marginTop="2dp"/>
+                            android:textSize="13sp" />
                     </LinearLayout>
 
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
+                        android:contentDescription="Go"
                         android:src="@drawable/ic_menu_for"
-                        app:tint="@color/mdx_text_secondary"/>
+                        app:tint="@color/mdx_text_secondary" />
                 </LinearLayout>
-
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -380,7 +404,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"
-                android:text="Following artists"
+                android:text="Following Artists"
                 android:textColor="@color/mdx_text"
                 android:textSize="22sp"
                 android:textStyle="bold" />

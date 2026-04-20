@@ -3,19 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_screen">
+    android:background="@drawable/bg_screen"
+    android:fitsSystemWindows="true">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/mini_player_root"
+        android:clipToPadding="false"
         android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:paddingStart="20dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="24dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -24,40 +29,48 @@
 
                 <ImageView
                     android:id="@+id/btn_back"
-                    android:layout_width="42dp"
-                    android:layout_height="42dp"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
                     android:background="@drawable/bg_circle_surface"
-                    android:src="@drawable/ic_prev"
+                    android:contentDescription="Back"
+                    android:padding="10dp"
                     android:scaleType="centerInside"
-                    app:tint="@color/mdx_text"/>
+                    android:src="@drawable/ic_back"
+                    app:tint="@color/mdx_text" />
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="12dp"
                     android:layout_weight="1"
+                    android:ellipsize="end"
                     android:gravity="center"
+                    android:maxLines="1"
                     android:text="Album"
                     android:textColor="@color/mdx_text"
-                    android:textSize="20sp"
+                    android:textSize="22sp"
                     android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/btn_share"
-                    android:layout_width="42dp"
-                    android:layout_height="42dp"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
                     android:background="@drawable/bg_circle_surface"
-                    android:src="@drawable/ic_share"
+                    android:contentDescription="Share"
+                    android:padding="10dp"
                     android:scaleType="centerInside"
-                    app:tint="@color/mdx_text"/>
+                    android:src="@drawable/ic_share"
+                    app:tint="@color/mdx_text" />
             </LinearLayout>
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/img_cover"
-                android:layout_width="240dp"
-                android:layout_height="240dp"
+                android:layout_width="248dp"
+                android:layout_height="248dp"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="24dp"
-                android:contentDescription="cover"
+                android:layout_marginTop="26dp"
+                android:contentDescription="Album cover"
                 android:scaleType="centerCrop"
                 app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Melodix.Cover.Large" />
 
@@ -67,9 +80,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:gravity="center"
-                android:text="Đang tải..."
+                android:text="Loading..."
                 android:textColor="@color/mdx_text"
-                android:textSize="28sp"
+                android:textSize="30sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -78,9 +91,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:text="Xin chờ một chút"
+                android:text="Please wait a moment"
                 android:textColor="@color/mdx_primary"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tv_description"
@@ -88,9 +102,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:background="@drawable/bg_card"
-                android:padding="16dp"
                 android:lineSpacingExtra="4dp"
+                android:padding="16dp"
                 android:textColor="@color/mdx_text_secondary"
+                android:textSize="14sp"
                 android:visibility="gone" />
 
             <LinearLayout
@@ -105,7 +120,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Danh sách bài hát"
+                    android:text="Track List"
                     android:textColor="@color/mdx_text"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -115,26 +130,29 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_circle_surface"
-                    android:gravity="center"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
-                    android:orientation="horizontal"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingTop="9dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="9dp">
 
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
+                        android:contentDescription="Play all"
                         android:src="@drawable/ic_play"
-                        app:tint="@color/mdx_primary"/>
+                        app:tint="@color/mdx_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:text="Play all"
+                        android:text="Play All"
                         android:textColor="@color/mdx_primary"
-                        android:textStyle="bold"/>
+                        android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -143,7 +161,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:nestedScrollingEnabled="false" />
+                android:clipToPadding="false"
+                android:nestedScrollingEnabled="false"
+                android:paddingBottom="12dp" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
