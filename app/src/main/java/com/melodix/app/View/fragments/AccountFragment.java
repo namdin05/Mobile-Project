@@ -251,11 +251,19 @@ public class AccountFragment extends Fragment {
 
     private void updateRequestUI() {
         if (isRequestPending) {
-            btnRequestArtist.setText("Hủy yêu cầu chờ duyệt ⏳");
-            btnRequestArtist.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#FF9800"))); // Màu cam
+            btnRequestArtist.setText("Cancel Pending Request ⏳");
+            btnRequestArtist.setBackgroundTintList(
+                    android.content.res.ColorStateList.valueOf(
+                            android.graphics.Color.parseColor("#FF9800")
+                    )
+            ); // Orange
         } else {
-            btnRequestArtist.setText("Trở thành Nghệ sĩ 🌟");
-            btnRequestArtist.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1DB954"))); // Màu xanh Spotify
+            btnRequestArtist.setText("Become an Artist 🌟");
+            btnRequestArtist.setBackgroundTintList(
+                    android.content.res.ColorStateList.valueOf(
+                            android.graphics.Color.parseColor("#1DB954")
+                    )
+            ); // Spotify green
         }
     }
 

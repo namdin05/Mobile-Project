@@ -519,7 +519,7 @@ public class UploadSongActivity extends AppCompatActivity {
         container.setBackground(bgShape);
 
         EditText edtSearch = new EditText(this);
-        edtSearch.setHint("🔍 Nhập tên nghệ sĩ...");
+        edtSearch.setHint("🔍 Enter artist name...");
         edtSearch.setTextColor(android.graphics.Color.BLACK);
         edtSearch.setHintTextColor(android.graphics.Color.parseColor("#8E8E93"));
         edtSearch.setPadding(50, 40, 50, 40);
