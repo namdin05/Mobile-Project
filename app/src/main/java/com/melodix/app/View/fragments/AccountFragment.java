@@ -93,8 +93,8 @@ public class AccountFragment extends Fragment {
         view.findViewById(R.id.btn_speed).setOnClickListener(v -> AppUiUtils.showSpeedDialog(requireContext()));
         view.findViewById(R.id.btn_sleep_timer).setOnClickListener(v -> AppUiUtils.showSleepTimerDialog(requireContext()));
         btnArtistUpload.setOnClickListener(v -> startActivity(new Intent(getContext(), ManageSongActivity.class)));
-        btnArtistAlbums.setOnClickListener(v -> startActivity(new Intent(requireContext(), com.melodix.app.View.artist.CreateAlbumActivity.class)));
-
+// 👇 Sếp copy dòng này dán đè lên dòng cũ ở dòng 91 nhé:
+        btnArtistAlbums.setOnClickListener(v -> startActivity(new Intent(requireContext(), com.melodix.app.View.artist.ManageAlbumActivity.class)));
         btnArtistStats.setOnClickListener(v -> {
             String userId = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE).getString("USER_ID", null);
             if (userId != null) {

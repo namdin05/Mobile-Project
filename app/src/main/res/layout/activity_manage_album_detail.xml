@@ -37,7 +37,7 @@
             android:id="@+id/btn_edit_album"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:src="@android:drawable/ic_menu_edit"
+            android:src="@drawable/ic_edit"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"

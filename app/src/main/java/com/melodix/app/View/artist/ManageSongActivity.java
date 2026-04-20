@@ -234,16 +234,37 @@ public class ManageSongActivity extends AppCompatActivity {
     private void confirmDeleteSong(Song song) {
         new AlertDialog.Builder(this)
                 .setTitle("Cảnh báo xóa")
-                .setMessage("Bạn có chắc chắn muốn xóa vĩnh viễn bài hát '" + song.getTitle() + "'? Hành động này sẽ xóa toàn bộ lượt nghe và không thể khôi phục.")
+                .setMessage("Bạn có chắc chắn muốn xóa vĩnh viễn bài hát '" + song.getTitle() + "'? Tác phẩm và file âm thanh sẽ bị xóa hoàn toàn khỏi hệ thống.")
                 .setPositiveButton("Xóa vĩnh viễn", (dialog, which) -> {
+
+                    // 1. CHUẨN BỊ ĐỒ NGHỀ (Lấy Token và tách tên file từ URL)
+                    SharedPreferences prefs = getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+                    String token = prefs.getString("ACCESS_TOKEN", ""); // Đảm bảo sếp có lưu Token lúc login nhé
+                    String apiKey = com.melodix.app.BuildConfig.SERVICE_KEY; // Hoặc Constants.API_KEY của sếp
+
+                    String audioFileName = extractFileNameFromUrl(song.getAudioUrl());
+                    String coverFileName = extractFileNameFromUrl(song.getCoverUrl());
+
+                    // 2. GỬI LỆNH XÓA FILE TRÊN STORAGE (Bắn xong không cần chờ kết quả, kệ nó)
+                    if (audioFileName != null) {
+                        apiService.deleteAudioFile(apiKey, "Bearer " + token, audioFileName)
+                                .enqueue(new Callback<Void>() { @Override public void onResponse(Call<Void> c, Response<Void> r){} @Override public void onFailure(Call<Void> c, Throwable t){} });
+                    }
+                    if (coverFileName != null && !song.getCoverUrl().contains("default")) {
+                        // Thêm check default để tránh lỡ tay xóa mất cái ảnh bìa mặc định của hệ thống
+                        apiService.deleteCoverFile(apiKey, "Bearer " + token, coverFileName)
+                                .enqueue(new Callback<Void>() { @Override public void onResponse(Call<Void> c, Response<Void> r){} @Override public void onFailure(Call<Void> c, Throwable t){} });
+                    }
+
+                    // 3. XÓA LUÔN DỮ LIỆU TRÊN DATABASE (Như code cũ của sếp)
                     apiService.deleteSong("eq." + song.getId()).enqueue(new Callback<Void>() {
                         @Override
                         public void onResponse(Call<Void> call, Response<Void> response) {
                             if (response.isSuccessful()) {
-                                Toast.makeText(ManageSongActivity.this, "Đã xóa tác phẩm thành công!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(ManageSongActivity.this, "Đã dọn dẹp sạch sẽ tác phẩm và file!", Toast.LENGTH_SHORT).show();
                                 loadMySongsAndStats();
                             } else {
-                                Toast.makeText(ManageSongActivity.this, "Không thể xóa tác phẩm: " + response.code(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(ManageSongActivity.this, "Lỗi xóa dữ liệu Database: " + response.code(), Toast.LENGTH_SHORT).show();
                             }
                         }
 
@@ -255,5 +276,11 @@ public class ManageSongActivity extends AppCompatActivity {
                 })
                 .setNegativeButton("Hủy", null)
                 .show();
+    }
+
+    // Hàm phụ trợ: Chặt cái đuôi URL ra để lấy đúng cái tên file (ví dụ: bài_hát_123.mp3)
+    private String extractFileNameFromUrl(String url) {
+        if (url == null || url.isEmpty()) return null;
+        return url.substring(url.lastIndexOf('/') + 1);
     }
 }
