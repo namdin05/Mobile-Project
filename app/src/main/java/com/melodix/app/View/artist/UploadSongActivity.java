@@ -473,7 +473,7 @@ public class UploadSongActivity extends AppCompatActivity {
         container.setBackground(bgShape);
 
         TextView title = new TextView(this);
-        title.setText("Thể loại âm nhạc");
+        title.setText("Music genre");
         title.setTextSize(20);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         title.setTextColor(android.graphics.Color.BLACK);
