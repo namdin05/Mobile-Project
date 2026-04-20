@@ -24,16 +24,12 @@ import retrofit2.Response;
 public class PlaylistRepository {
 
     private final PlaylistAPIService apiService;
-    private final String apiKey;
-    private final String token;  // Dùng API Key cố định
     private final Context context;
 
     public PlaylistRepository(Context context) {
         this.context = context;
-        apiService = RetrofitClient.getClient().create(PlaylistAPIService.class);
-        apiKey = BuildConfig.API_KEY;
-        // Dùng API Key thay vì User Token
-        token = "Bearer " + BuildConfig.API_KEY;
+        apiService = RetrofitClient.getClient(context).create(PlaylistAPIService.class);
+
     }
 
     private String getAuthToken() {
@@ -63,8 +59,6 @@ public class PlaylistRepository {
 
         // Vì RLS của playlists đang tắt → dùng API Key cố định
         apiService.createPlaylist(
-                apiKey,
-                "Bearer " + apiKey,
                 "return=representation",
                 data
         ).enqueue(callback);
@@ -83,7 +77,7 @@ public class PlaylistRepository {
 
         android.util.Log.d("CREATE_PLAYLIST", "Đang query lại playlist với filter: " + filter);
 
-        apiService.getUserPlaylists(apiKey, token, filter)
+        apiService.getUserPlaylists(filter)
                 .enqueue(new Callback<List<Playlist>>() {
                     @Override
                     public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
@@ -128,7 +122,7 @@ public class PlaylistRepository {
         Log.d("REPO_DEBUG", "User ID: " + userId);
         Log.d("REPO_DEBUG", "Filter gửi đi: user_id=" + filter);
 
-        apiService.getUserPlaylists(apiKey, "Bearer " + apiKey, filter)
+        apiService.getUserPlaylists(filter)
                 .enqueue(new Callback<List<Playlist>>() {
                     @Override
                     public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
@@ -158,11 +152,11 @@ public class PlaylistRepository {
         if (name != null) data.put("name", name);
         if (coverUrl != null) data.put("cover_url", coverUrl);
 
-        apiService.updatePlaylist(apiKey, token, "eq." + playlistId, data).enqueue(callback);
+        apiService.updatePlaylist("eq." + playlistId, data).enqueue(callback);
     }
 
     public void deletePlaylist(String playlistId, Callback<ResponseBody> callback) {
-        apiService.deletePlaylist(apiKey, token, "eq." + playlistId).enqueue(callback);
+        apiService.deletePlaylist("eq." + playlistId).enqueue(callback);
     }
 
     // ==================== PLAYLIST_SONGS ====================
@@ -173,11 +167,11 @@ public class PlaylistRepository {
         data.put("song_id", songId);
         data.put("order_index", orderIndex);
 
-        apiService.addSongToPlaylist(apiKey, token, data).enqueue(callback);
+        apiService.addSongToPlaylist(data).enqueue(callback);
     }
 
     public void removeSongFromPlaylist(String playlistId, String songId, Callback<ResponseBody> callback) {
-        apiService.removeSongFromPlaylist(apiKey, token,
+        apiService.removeSongFromPlaylist(
                 "eq." + playlistId,
                 "eq." + songId).enqueue(callback);
     }
@@ -190,7 +184,7 @@ public class PlaylistRepository {
 
         android.util.Log.d("PLAYLIST_DEBUG", "Gọi View với playlist_id = " + filter);
 
-        apiService.getPlaylistSongsFromView(apiKey, token, filter)
+        apiService.getPlaylistSongsFromView(filter)
                 .enqueue(new Callback<List<PlaylistSong>>() {
                     @Override
                     public void onResponse(Call<List<PlaylistSong>> call, Response<List<PlaylistSong>> response) {
@@ -231,8 +225,6 @@ public class PlaylistRepository {
         data.put("order_index", newOrderIndex);
 
         apiService.updatePlaylistSongOrder(
-                apiKey,
-                token,
                 "eq." + playlistId,
                 "eq." + songId,
                 data
@@ -251,8 +243,6 @@ public class PlaylistRepository {
             data.put("order_index", i);
 
             apiService.updatePlaylistSongOrder(
-                    apiKey,
-                    token,
                     "eq." + playlistId,
                     "eq." + song.getId(),
                     data
@@ -276,6 +266,6 @@ public class PlaylistRepository {
 
     public void getPlaylistById(String playlistId, Callback<List<Playlist>> callback) {
         String filter = "eq." + playlistId;
-        apiService.getPlaylistById(apiKey, token, filter).enqueue(callback);
+        apiService.getPlaylistById(filter).enqueue(callback);
     }
 }

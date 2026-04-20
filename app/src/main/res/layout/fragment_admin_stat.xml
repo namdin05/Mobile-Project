@@ -4,13 +4,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/melodix_accent_green_dark"
     android:fillViewport="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="24dp">
+        android:paddingBottom="40dp">
 
         <TextView
             android:id="@+id/tvLastSync"
@@ -19,12 +18,11 @@
             android:layout_marginStart="20dp"
             android:layout_marginTop="30dp"
             android:text="Lastest update: Just now"
-            android:textColor="@color/melodix_text_primary"
+            android:textColor="@color/black"
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardUsersBanner"
@@ -54,7 +52,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_person"
-                        app:tint="@color/melodix_accent_green" />
+                        app:tint="@color/mdx_main_color" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -62,7 +60,7 @@
                         android:layout_marginStart="6dp"
                         android:layout_toEndOf="@id/iconBannerUser"
                         android:text="Total Network Users"
-                        android:textColor="@color/melodix_text_secondary"
+                        android:textColor="@color/white"
                         android:textSize="14sp" />
 
                     <ImageView
@@ -70,7 +68,7 @@
                         android:layout_height="16dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                        android:src="@drawable/ic_chevron_right"
+                        android:src="@drawable/ic_right"
                         app:tint="@color/melodix_text_secondary" />
                     <TextView
                         android:id="@+id/tvTotalUsers"
@@ -78,7 +76,7 @@
                         android:layout_height="wrap_content"
                         android:layout_below="@id/iconBannerUser"
                         android:layout_marginTop="8dp"
-                        android:text="1,550"
+                        android:text="..."
                         android:textColor="@color/melodix_text_primary"
                         android:textSize="32sp"
                         android:textStyle="bold" />
@@ -106,7 +104,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Listeners"
-                            android:textColor="@color/melodix_text_secondary"
+                            android:textColor="@color/white"
                             android:textSize="12sp" />
                         <TextView
                             android:id="@+id/tvTotalListeners"
@@ -129,7 +127,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Artists"
-                            android:textColor="@color/melodix_text_secondary"
+                            android:textColor="@color/white"
                             android:textSize="12sp" />
                         <TextView
                             android:id="@+id/tvTotalArtists"
@@ -152,7 +150,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Admins"
-                            android:textColor="@color/melodix_text_secondary"
+                            android:textColor="@color/white"
                             android:textSize="12sp" />
                         <TextView
                             android:id="@+id/tvTotalAdmins"
@@ -175,7 +173,7 @@
             android:layout_marginStart="20dp"
             android:layout_marginTop="24dp"
             android:text="Content Overview"
-            android:textColor="@color/melodix_text_primary"
+            android:textColor="@color/black"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
@@ -198,7 +196,7 @@
                     <ImageView android:id="@+id/iconSongs" style="@style/MelodixDashIcon" android:src="@drawable/ic_music" />
                     <TextView style="@style/MelodixDashLabel" android:layout_toEndOf="@id/iconSongs" android:text="Songs" />
                     <ImageView style="@style/MelodixDashArrow" />
-                    <TextView android:id="@+id/tvTotalSongs" style="@style/MelodixDashValue" android:layout_below="@id/iconSongs" android:text="8,930" />
+                    <TextView android:id="@+id/tvTotalSongs" style="@style/MelodixDashValue" android:layout_below="@id/iconSongs" android:text="..." />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -206,10 +204,10 @@
                 android:id="@+id/cardAlbums"
                 style="@style/MelodixDashCard">
                 <RelativeLayout style="@style/MelodixDashContent">
-                    <ImageView android:id="@+id/iconAlbums" style="@style/MelodixDashIcon" android:src="@drawable/ic_dashboard" />
+                    <ImageView android:id="@+id/iconAlbums" style="@style/MelodixDashIcon" android:src="@drawable/ic_album" />
                     <TextView style="@style/MelodixDashLabel" android:layout_toEndOf="@id/iconAlbums" android:text="Albums" />
                     <ImageView style="@style/MelodixDashArrow" />
-                    <TextView android:id="@+id/tvTotalAlbums" style="@style/MelodixDashValue" android:layout_below="@id/iconAlbums" android:text="1,245" />
+                    <TextView android:id="@+id/tvTotalAlbums" style="@style/MelodixDashValue" android:layout_below="@id/iconAlbums" android:text="..." />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -217,10 +215,10 @@
                 android:id="@+id/cardGenres"
                 style="@style/MelodixDashCard">
                 <RelativeLayout style="@style/MelodixDashContent">
-                    <ImageView android:id="@+id/iconGenres" style="@style/MelodixDashIcon" android:src="@drawable/ic_menu" />
+                    <ImageView android:id="@+id/iconGenres" style="@style/MelodixDashIcon" android:src="@drawable/ic_genre" />
                     <TextView style="@style/MelodixDashLabel" android:layout_toEndOf="@id/iconGenres" android:text="Genres" />
                     <ImageView style="@style/MelodixDashArrow" />
-                    <TextView android:id="@+id/tvTotalGenres" style="@style/MelodixDashValue" android:layout_below="@id/iconGenres" android:text="24" />
+                    <TextView android:id="@+id/tvTotalGenres" style="@style/MelodixDashValue" android:layout_below="@id/iconGenres" android:text="..." />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -228,55 +226,113 @@
                 android:id="@+id/cardPlaylists"
                 style="@style/MelodixDashCard">
                 <RelativeLayout style="@style/MelodixDashContent">
-                    <ImageView android:id="@+id/iconPlaylists" style="@style/MelodixDashIcon" android:src="@drawable/ic_menu" />
+                    <ImageView android:id="@+id/iconPlaylists" style="@style/MelodixDashIcon" android:src="@drawable/ic_playlist" />
                     <TextView style="@style/MelodixDashLabel" android:layout_toEndOf="@id/iconPlaylists" android:text="Playlists" />
                     <ImageView style="@style/MelodixDashArrow" />
-                    <TextView android:id="@+id/tvTotalPlaylists" style="@style/MelodixDashValue" android:layout_below="@id/iconPlaylists" android:text="512" />
+                    <TextView android:id="@+id/tvTotalPlaylists" style="@style/MelodixDashValue" android:layout_below="@id/iconPlaylists" android:text="..." />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
         </GridLayout>
 
+        <TextView
+            android:id="@+id/tvActionTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="24dp"
+            android:text="Pending Actions"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/glContent" />
+
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardArtistRequests"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
             app:cardBackgroundColor="@color/melodix_card_bg"
             app:cardCornerRadius="16dp"
             app:strokeWidth="0dp"
-            app:layout_constraintTop_toBottomOf="@id/glContent">
+            app:layout_constraintTop_toBottomOf="@id/tvActionTitle">
 
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:padding="20dp">
 
-                <TextView
+                <ImageView
+                    android:id="@+id/iconArtistReq"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_person"
+                    app:tint="@color/mdx_main_color" />
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="System Insights"
-                    android:textColor="@color/melodix_accent_green"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="16dp"
+                    android:layout_toStartOf="@id/badgeArtistReqs"
+                    android:layout_toEndOf="@id/iconArtistReq"
+                    android:orientation="vertical">
 
-                <View
-                    android:layout_width="40dp"
-                    android:layout_height="2dp"
-                    android:layout_marginTop="4dp"
-                    android:background="@color/melodix_accent_green" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Artist Requests"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/tvAppStats"
-                    android:layout_width="match_parent"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Review account upgrades"
+                        android:textColor="@color/melodix_text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/badgeArtistReqs"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:lineSpacingExtra="6dp"
-                    android:text="• Supabase Edge Functions: Active\n• Semantic Kernel Agent: Idle\n• Core API (Node.js): Operational\n• Active Realtime Triggers: 3"
-                    android:textColor="@color/melodix_text_secondary"
-                    android:textSize="14sp" />
-            </LinearLayout>
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="12dp"
+                    android:layout_toStartOf="@id/iconArrowReq"
+                    app:cardBackgroundColor="#E53935"
+                    app:cardCornerRadius="10dp"
+                    app:strokeWidth="0dp">
+
+                    <TextView
+                        android:id="@+id/tvPendingArtistReqs"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="3dp"
+                        android:text="3 New"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <ImageView
+                    android:id="@+id/iconArrowReq"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_right"
+                    app:tint="@color/melodix_text_secondary" />
+            </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

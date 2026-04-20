@@ -1,5 +1,8 @@
 package com.melodix.app.Service;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import com.melodix.app.BuildConfig;
 
 import java.io.IOException;
@@ -13,49 +16,90 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
 
-    // 1. Máy chủ gốc (Dành cho Upload Storage, RPC, Auth...)
-    private static Retrofit baseRetrofit = null;
+    private static OkHttpClient sharedHttpClient = null;
 
-    // 2. Máy chủ Database (Dành riêng cho truy vấn bảng, view có sẵn rest/v1/)
-    private static Retrofit supabaseDatabaseRetrofit = null;
-
-    // =========================================================================
-    // HÀM 1: LẤY CLIENT GỐC (Thay thế cho RetrofitClient.getClient() cũ)
-    // =========================================================================
-    public static Retrofit getClient() {
-        if (baseRetrofit == null) {
-            baseRetrofit = new Retrofit.Builder()
-                    .baseUrl(BuildConfig.BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
-        }
-        return baseRetrofit;
-    }
+    private static Retrofit databaseRetrofit = null;
+    private static Retrofit storageRetrofit = null;
+    private static Retrofit authRetrofit = null;
 
     // =========================================================================
-    // HÀM 2: LẤY CLIENT DATABASE (Thay thế cho SupabaseClient.getClient() cũ)
+    // HÀM CHUNG: SETUP OKHTTP CLIENT (Gắn Chìa Khóa + Token)
     // =========================================================================
-    public static Retrofit getSupabaseClient() {
-        if (supabaseDatabaseRetrofit == null) {
+    private static OkHttpClient getSharedHttpClient(Context context) {
+        if (sharedHttpClient == null) {
+            final Context safeContext = context.getApplicationContext();
 
-            // Bộ đánh chặn tự động gắn Header
-            OkHttpClient client = new OkHttpClient.Builder().addInterceptor(new Interceptor() {
+            sharedHttpClient = new OkHttpClient.Builder().addInterceptor(new Interceptor() {
                 @Override
                 public Response intercept(Chain chain) throws IOException {
+                    SharedPreferences prefs = safeContext.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+
+                    String role = prefs.getString("USER_ROLE", "user");
+
+                    String apikey;
+                    String authBearer;
+
+                    if ("admin".equals(role)) {
+                        // NẾU LÀ ADMIN: Dùng SERVICE_KEY cho cả 2 để bypass RLS (bỏ qua quyền truy cập)
+                        apikey = BuildConfig.SERVICE_KEY;
+                        authBearer = BuildConfig.SERVICE_KEY;
+                    } else {
+                        // NẾU LÀ USER BÌNH THƯỜNG: Dùng API_KEY và Token của User
+                        apikey = BuildConfig.API_KEY;
+                        authBearer = prefs.getString("ACCESS_TOKEN", BuildConfig.API_KEY);
+                    }
+
                     Request newRequest = chain.request().newBuilder()
-                            .addHeader("apikey", BuildConfig.API_KEY)
-                            .addHeader("Authorization", "Bearer " + BuildConfig.API_KEY)
+                            .addHeader("apikey", apikey)
+                            .addHeader("Authorization", "Bearer " + authBearer)
                             .build();
+
                     return chain.proceed(newRequest);
                 }
             }).build();
+        }
+        return sharedHttpClient;
+    }
 
-            supabaseDatabaseRetrofit = new Retrofit.Builder()
-                    .baseUrl(BuildConfig.BASE_URL + "rest/v1/")
-                    .client(client)
+    // =========================================================================
+    // NHÁNH 1: DATABASE (rest/v1/)
+    // =========================================================================
+    public static Retrofit getClient(Context context) {
+        if (databaseRetrofit == null) {
+            databaseRetrofit = new Retrofit.Builder()
+                    .baseUrl(BuildConfig.BASE_URL + "rest/v1/") // Đuôi rest
+                    .client(getSharedHttpClient(context))       // Nhét bộ gắn Key chung vào
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
-        return supabaseDatabaseRetrofit;
+        return databaseRetrofit;
+    }
+
+    // =========================================================================
+    // NHÁNH 2: STORAGE (storage/v1/)
+    // =========================================================================
+    public static Retrofit getStorage(Context context) {
+        if (storageRetrofit == null) {
+            storageRetrofit = new Retrofit.Builder()
+                    .baseUrl(BuildConfig.BASE_URL + "storage/v1/object/") // Đuôi storage
+                    .client(getSharedHttpClient(context))          // Nhét bộ gắn Key chung vào
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+        return storageRetrofit;
+    }
+
+    // =========================================================================
+    // NHÁNH 3: AUTH (auth/v1/)
+    // =========================================================================
+    public static Retrofit getAuth(Context context) {
+        if (authRetrofit == null) {
+            authRetrofit = new Retrofit.Builder()
+                    .baseUrl(BuildConfig.BASE_URL + "auth/v1/") // Đuôi auth
+                    .client(getSharedHttpClient(context))       // Nhét bộ gắn Key chung vào
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+        return authRetrofit;
     }
 }

@@ -18,6 +18,9 @@ import com.melodix.app.Constants;
 import com.melodix.app.Model.Playlist;
 import com.melodix.app.R;
 import com.melodix.app.Repository.PlaylistRepository;
+import com.melodix.app.Service.ProfileAPIService;
+import com.melodix.app.Service.RetrofitClient;
+import com.melodix.app.Service.StorageAPIService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -140,17 +143,13 @@ public class EditPlaylistDialog {
 
             String fileName = "playlist_" + UUID.randomUUID() + ".jpg";
 
-            com.melodix.app.Service.ProfileAPIService storageService =
-                    com.melodix.app.Service.RetrofitClient.getClient()
-                            .create(com.melodix.app.Service.ProfileAPIService.class);
+            StorageAPIService storageService = RetrofitClient.getStorage(context.getApplicationContext()).create(StorageAPIService.class);
 
             RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpeg"), imageBytes);
 
             String bucketName = "playlist_cover";
 
             storageService.uploadFileToStorage(
-                    BuildConfig.API_KEY,
-                    "Bearer " + BuildConfig.API_KEY,
                     "image/jpeg",
                     "true",
                     bucketName,

@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -29,6 +30,7 @@ public class SongManagementFragment extends Fragment {
 
     private List<Song> fullSongList = new ArrayList<>(); // Chứa toàn bộ bài hát từ API
     private List<Song> currentDisplayList = new ArrayList<>(); // Chứa danh sách ĐANG hiển thị trên màn hình
+    private SongViewModel viewModel;
 
     @Nullable
     @Override
@@ -49,13 +51,17 @@ public class SongManagementFragment extends Fragment {
         // 2. Thiết lập Dropdown
         setupStatusFilter();
 
-        // 3. Quan sát ViewModel
-        SongViewModel viewModel = new ViewModelProvider(this).get(SongViewModel.class);
+        // 3. Khởi tạo ViewModel và Quan sát (Observe)
+        viewModel = new ViewModelProvider(this).get(SongViewModel.class);
+
         viewModel.getAllSong().observe(getViewLifecycleOwner(), songs -> {
             if (songs != null) {
                 this.fullSongList = songs;
-                this.currentDisplayList = new ArrayList<>(songs); // Mặc định ban đầu hiển thị tất cả
-                songAdapter.update(new ArrayList<>(currentDisplayList));
+                this.currentDisplayList = new ArrayList<>(songs);
+
+                // Xử lý bộ lọc ngầm: Khi có data mới, phải lọc lại theo Dropdown hiện tại
+                String currentFilter = actvStatus.getText().toString();
+                filterSongsByStatus(currentFilter); // Thay bằng hàm lọc của bạn nếu tên khác
             }
         });
     }
@@ -63,14 +69,27 @@ public class SongManagementFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Giữ nguyên đoạn code nạp lại Dropdown của bạn vì nó đã hoạt động rất tốt
-        String[] statuses = {"All", "Pending", "Approved", "Reject"};
+
+        // Giữ nguyên thiết lập Dropdown
+        String[] statuses = {"All", "Pending", "Approved", "Rejected"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 requireContext(),
                 R.layout.dropdown_item,
                 statuses
         );
         actvStatus.setAdapter(adapter);
+
+        // =================================================================
+        // GỌI HÀM FETCH API TRONG VIEWMODEL ĐỂ LẤY DATA MỚI NHẤT TỪ SUPABASE
+        // =================================================================
+        if (!fullSongList.isEmpty()) {
+            String currentFilter = actvStatus.getText().toString();
+            if (currentFilter.isEmpty()) currentFilter = "All";
+
+            // Hàm filter này sẽ tự động quét lại fullSongList.
+            // Nếu bài đó đã bị bạn setStatus thành "Approved" thì nó sẽ tự rớt khỏi list "Pending"
+            filterSongsByStatus(currentFilter);
+        }
     }
 
     private void setupRecyclerView() {
@@ -80,13 +99,11 @@ public class SongManagementFragment extends Fragment {
             public void onSongClick(Song song, int position) {
                 // Truyền currentDisplayList để PlaybackUtils lấy đúng danh sách đang lọc làm Queue
                 SongActionHelper.playSongAndSetQueue(requireContext(), song, currentDisplayList);
-
             }
 
             @Override
             public void onMenuClick(Song song, int position, String action) {
                 SongActionHelper.handleMenuClick(requireContext(), song, action, currentDisplayList);
-
             }
         });
 
@@ -95,6 +112,7 @@ public class SongManagementFragment extends Fragment {
     }
 
     private void setupStatusFilter() {
+
         actvStatus.setOnItemClickListener((parent, view, position, id) -> {
             String selectedStatus = parent.getItemAtPosition(position).toString();
             filterSongsByStatus(selectedStatus);

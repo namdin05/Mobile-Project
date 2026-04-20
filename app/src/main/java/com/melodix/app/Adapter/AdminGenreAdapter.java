@@ -20,16 +20,22 @@ public class AdminGenreAdapter extends RecyclerView.Adapter<AdminGenreAdapter.Ge
 
     private Context context;
     private List<Genre> genreList;
+    private OnGenreClickListener listener;
 
-    public AdminGenreAdapter(Context context, List<Genre> genreList) {
+    public interface OnGenreClickListener {
+        void onGenreClick(Genre genre);
+    }
+
+    public AdminGenreAdapter(Context context, List<Genre> genreList, OnGenreClickListener listener) {
         this.context = context;
         this.genreList = genreList;
+        this.listener = listener;
     }
 
     @NonNull
     @Override
     public GenreViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_admin_genre, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_genre, parent, false);
         return new GenreViewHolder(view);
     }
 
@@ -47,6 +53,19 @@ public class AdminGenreAdapter extends RecyclerView.Adapter<AdminGenreAdapter.Ge
                     .placeholder(R.drawable.ic_person)
                     .into(holder.imgGenreCover);
         }
+
+        // 4. Bắt sự kiện Click vào toàn bộ Item và báo về cho Fragment
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onGenreClick(genre);
+            }
+        });
+
+        if (!genre.isVisible()) {
+            holder.itemView.setAlpha(0.4f); // Làm mờ 60% nếu bị xóa mềm
+        } else {
+            holder.itemView.setAlpha(1.0f); // Sáng rõ nếu bình thường
+        }
     }
 
     @Override
@@ -60,8 +79,8 @@ public class AdminGenreAdapter extends RecyclerView.Adapter<AdminGenreAdapter.Ge
 
         public GenreViewHolder(@NonNull View itemView) {
             super(itemView);
-            imgGenreCover = itemView.findViewById(R.id.imgGenreCover);
-            tvGenreName = itemView.findViewById(R.id.tvGenreName);
+            imgGenreCover = itemView.findViewById(R.id.img_genre);
+            tvGenreName = itemView.findViewById(R.id.tv_name);
         }
     }
 }

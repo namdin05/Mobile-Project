@@ -6,24 +6,32 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="false"
     tools:context=".View.admin.AdminActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/melodix_bg_dark">
+        android:layout_height="match_parent">
+
+        <View
+            android:id="@+id/header_bg"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="@color/black" app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@+id/imgProfile"
+            android:layout_marginBottom="-12dp" />
 
         <ImageButton
             android:id="@+id/btnMenu"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginStart="12dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="30dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_sort_by_size"
+            android:src="@drawable/ic_menu"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/melodix_accent_green" />
+            app:tint="@color/mdx_main_color" />
 
         <TextView
             android:id="@+id/tvAppTitle"
@@ -31,7 +39,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:text="MELODIX"
-            android:textColor="@color/melodix_accent_green"
+            android:textColor="@color/mdx_main_color"
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="@+id/btnMenu"
@@ -46,11 +54,13 @@
             android:padding="2dp"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_person"
+            android:background="@color/mdx_main_color"
             app:layout_constraintBottom_toBottomOf="@+id/tvAppTitle"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/tvAppTitle"
             app:shapeAppearanceOverlay="@style/CircleAppearance"
-            app:strokeColor="@color/melodix_accent_green"
+            app:strokeColor="@color/white"
+
             app:strokeWidth="1dp" />
 
         <LinearLayout
@@ -69,7 +79,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Xin chào Admin,"
-                android:textColor="@color/melodix_text_secondary"
+                android:textColor="@color/white"
                 android:textSize="11sp" />
 
             <TextView
@@ -89,8 +99,10 @@
             android:layout_marginTop="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnMenu" />
+            app:layout_constraintTop_toBottomOf="@+id/btnMenu"
+            app:layout_constraintVertical_bias="0.0" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -102,6 +114,9 @@
         android:background="@color/melodix_card_bg"
         app:itemIconTint="@color/melodix_accent_green"
         app:itemTextColor="@android:color/white"
+
+        android:fitsSystemWindows="true"
+
         app:menu="@menu/admin_menu"
         app:headerLayout="@layout/admin_nav_header"/>
 

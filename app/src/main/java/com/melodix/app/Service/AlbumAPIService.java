@@ -10,15 +10,17 @@ import retrofit2.http.Query;
 
 public interface AlbumAPIService {
 
-    @GET("rest/v1/album_details_view")
-    Call<List<Album>> getAllAlbums(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token
-    );
+    @GET("album_details_view")
+    Call<List<Album>> getAllAlbums();
 
     @GET("album_details_view?select=*")
     Call<List<Album>> getAlbumById(@Query("id") String idQuery);
 
     @GET("song_details_view?select=*&status=eq.approved")
     Call<List<Song>> getSongsByAlbumId(@Query("album_id") String albumIdQuery);
+
+    // DRY
+    @GET("song_details_view")
+    Call<List<Song>> getAlbumDetails(@Query("album_id") String albumIdQuery);
+
 }

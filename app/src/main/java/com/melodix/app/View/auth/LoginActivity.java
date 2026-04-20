@@ -73,7 +73,7 @@ public class LoginActivity extends AppCompatActivity {
                
                 btnLoginEmail.setEnabled(false); // khoa de ko bi spam, tao nhieu luong
                 // GỌI VIEW MODEL VÀ QUAN SÁT KẾT QUẢ (LIVEDATA)
-                authViewModel.login(email, pass, this).observe(LoginActivity.this, loginResult -> {
+                authViewModel.login(email, pass).observe(LoginActivity.this, loginResult -> {
                     if (loginResult.isSuccess()) {
                         String role = loginResult.getRole();
                         Log.d("ROLE", role);
@@ -84,6 +84,9 @@ public class LoginActivity extends AppCompatActivity {
                         editor.putString("USER_ROLE", role);
                         editor.putString("USER_ID", loginResult.getUserId());
                         editor.apply();
+
+
+
 
                         if ("admin".equals(role)) {
                             // 1. ADMIN -> Mở màn hình duyệt nhạc
@@ -158,7 +161,7 @@ public class LoginActivity extends AppCompatActivity {
                                 editor.putBoolean("IS_LOGGED_IN", true);
                                 editor.putString("USER_ROLE", role);
                                 editor.putString("USER_ID", uid);
-                                editor.putString("AUTH_TOKEN", accessToken);
+                                editor.putString("ACCESS_TOKEN", accessToken);
                                 editor.apply();
 
                                 if ("admin".equals(role)) {

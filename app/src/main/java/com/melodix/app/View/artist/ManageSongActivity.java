@@ -60,7 +60,7 @@ public class ManageSongActivity extends AppCompatActivity {
         setContentView(R.layout.activity_manage_song);
 
         // 1. Ánh xạ View
-        apiService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
+        apiService = RetrofitClient.getClient(getApplicationContext()).create(ArtistAPIService.class);
         rvSongs = findViewById(R.id.rv_manage_songs);
         rvSongs.setLayoutManager(new LinearLayoutManager(this));
         tvTotalListens = findViewById(R.id.tv_total_listens);

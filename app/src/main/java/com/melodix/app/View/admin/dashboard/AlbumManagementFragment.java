@@ -12,6 +12,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -21,6 +23,7 @@ import com.melodix.app.Model.Album;
 import com.melodix.app.R;
 import com.melodix.app.Service.AlbumAPIService;
 import com.melodix.app.Service.RetrofitClient;
+import com.melodix.app.ViewModel.AlbumViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,55 +37,54 @@ public class AlbumManagementFragment extends Fragment {
     private AlbumAdapter adapter;
     private List<Album> albumList;
 
+    private AlbumViewModel viewModel;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_admin_album, container, false);
+        return inflater.inflate(R.layout.fragment_admin_album, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         rvAlbums = view.findViewById(R.id.rvAlbums);
-        rvAlbums.setLayoutManager(new androidx.recyclerview.widget.GridLayoutManager(requireContext(), 2));
+
 
         albumList = new ArrayList<>();
 
-        // Setup Adapter và bắt sự kiện Click
+
+        setupRecyclerView();
+
+        viewModel = new ViewModelProvider(this).get(AlbumViewModel.class);
+        viewModel.getAllAlbums().observe(getViewLifecycleOwner(), albums -> {
+            if (albums != null) {
+                albumList.clear();
+                albumList.addAll(albums);
+                adapter.notifyDataSetChanged();
+            }
+
+            if(albumList.isEmpty()){
+                Toast.makeText(getContext(), "Chưa có dữ liệu album nào", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+    }
+
+    private void setupRecyclerView() {
         adapter = new AlbumAdapter(requireContext(), albumList, new AlbumAdapter.OnAlbumClickListener() {
             @Override
             public void onAlbumClick(Album album) {
-                // CHUYỂN SANG FRAGMENT DANH SÁCH BÀI HÁT
                 openAlbumSongsFragment(album.getId(), album.getTitle());
             }
         });
 
+        rvAlbums.setLayoutManager(new GridLayoutManager(requireContext(), 3));
         rvAlbums.setAdapter(adapter);
-
-        fetchAlbums();
-
-        return view;
     }
 
-    private void fetchAlbums() {
-        AlbumAPIService apiService = RetrofitClient.getClient().create(AlbumAPIService.class);
-        String apiKey = BuildConfig.SERVICE_KEY;
-        String authHeader = "Bearer " + BuildConfig.SERVICE_KEY;
-
-        apiService.getAllAlbums(apiKey, authHeader).enqueue(new Callback<List<Album>>() {
-            @Override
-            public void onResponse(Call<List<Album>> call, Response<List<Album>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    albumList.clear();
-                    albumList.addAll(response.body());
-                    adapter.notifyDataSetChanged();
-                } else {
-                    Log.e("AdminAlbum", "Lỗi tải album: " + response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Album>> call, Throwable t) {
-                Log.e("AdminAlbum", "Lỗi mạng: " + t.getMessage());
-            }
-        });
-    }
 
     // Hàm điều hướng
     private void openAlbumSongsFragment(String albumId, String albumTitle) {

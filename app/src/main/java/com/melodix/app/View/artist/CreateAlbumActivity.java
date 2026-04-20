@@ -22,6 +22,7 @@ import com.melodix.app.R;
 import com.melodix.app.Service.ArtistAPIService;
 import com.melodix.app.Service.ProfileAPIService;
 import com.melodix.app.Service.RetrofitClient;
+import com.melodix.app.Service.StorageAPIService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -118,12 +119,10 @@ public class CreateAlbumActivity extends AppCompatActivity {
             RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpeg"), imageBytes);
             String fileName = "album_" + System.currentTimeMillis() + ".jpg";
 
-            ProfileAPIService storageService = RetrofitClient.getClient().create(ProfileAPIService.class);
-            String apiKey = BuildConfig.API_KEY;
-            String token = "Bearer " + BuildConfig.API_KEY;
+            StorageAPIService storageService = RetrofitClient.getStorage(getApplicationContext()).create(StorageAPIService.class);
 
             storageService.uploadFileToStorage(
-                    apiKey, token, "image/jpeg", "true",
+                    "image/jpeg", "true",
                     Constants.ALBUM_COVER_BUCKET.replace("/", ""),
                     fileName, requestBody
             ).enqueue(new Callback<ResponseBody>() {
@@ -162,8 +161,8 @@ public class CreateAlbumActivity extends AppCompatActivity {
             albumData.put("cover_url", coverUrl);
         }
 
-        ArtistAPIService apiService = RetrofitClient.getClient().create(ArtistAPIService.class);
-        apiService.createAlbum(BuildConfig.API_KEY, "Bearer " + BuildConfig.API_KEY, albumData)
+        ArtistAPIService apiService = RetrofitClient.getClient(getApplicationContext()).create(ArtistAPIService.class);
+        apiService.createAlbum(albumData)
                 .enqueue(new Callback<ResponseBody>() {
                     @Override
                     public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {

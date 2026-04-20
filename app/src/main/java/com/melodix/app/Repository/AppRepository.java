@@ -63,9 +63,9 @@ public class AppRepository {
         load();
 
         // Vẫn giữ nguyên SupabaseClient như bạn yêu cầu, chỉ đổi Class truyền vào
-        this.searchApiService = RetrofitClient.getSupabaseClient().create(SearchAPIService.class);
-        this.albumApiService = RetrofitClient.getSupabaseClient().create(AlbumAPIService.class);
-        this.artistApiService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
+        this.searchApiService = RetrofitClient.getClient(appContext).create(SearchAPIService.class);
+        this.albumApiService = RetrofitClient.getClient(appContext).create(AlbumAPIService.class);
+        this.artistApiService = RetrofitClient.getClient(appContext).create(ArtistAPIService.class);
     }
 
     public static synchronized AppRepository getInstance(Context context) {

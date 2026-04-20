@@ -3,6 +3,7 @@ package com.melodix.app.Repository;
 import static com.melodix.app.BuildConfig.API_KEY;
 import static com.melodix.app.BuildConfig.BASE_URL;
 
+import android.content.Context;
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
@@ -10,6 +11,8 @@ import androidx.lifecycle.MutableLiveData;
 import com.melodix.app.Model.Banner;
 import com.melodix.app.Service.AuthAPIService;
 import com.melodix.app.Service.BannerAPIService;
+import com.melodix.app.Service.RetrofitClient;
+import com.melodix.app.Service.SongAPIService;
 
 import java.util.List;
 
@@ -21,18 +24,14 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class BannerRepository {
     private BannerAPIService bannerAPIService;
-    public BannerRepository() {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        bannerAPIService = retrofit.create(BannerAPIService.class);
+    public BannerRepository(Context context) {
+        bannerAPIService = RetrofitClient.getClient(context).create(BannerAPIService.class);
     }
 
     public MutableLiveData<List<Banner>> fetchBanners(){
         MutableLiveData<List<Banner>> banners = new MutableLiveData<>();
 
-        bannerAPIService.getBanners(API_KEY).enqueue(new Callback<List<Banner>>() {
+        bannerAPIService.getBanners().enqueue(new Callback<List<Banner>>() {
             @Override
             public void onResponse(Call<List<Banner>> call, Response<List<Banner>> response) {
                 if(response.isSuccessful() && response.body() != null){

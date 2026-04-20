@@ -1,33 +1,38 @@
 package com.melodix.app.ViewModel;
 
-import android.content.Context;
+import android.app.Application;
 
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.ViewModel;
 
 import com.melodix.app.Model.LoginResult;
 import com.melodix.app.Repository.auth.AuthRepository;
 
-public class AuthViewModel extends ViewModel {
+import org.jetbrains.annotations.NotNull;
 
-    private AuthRepository authRepository;
+public class AuthViewModel extends AndroidViewModel {
 
-    public AuthViewModel() {
-        authRepository = new AuthRepository();
+    private AuthRepository repository;
+
+    public AuthViewModel(@NotNull Application application) {
+        super(application);
+        // Khởi tạo Repo với Application Context an toàn
+        repository = new AuthRepository(application);
     }
 
-    // Hàm này được View gọi khi người dùng nhấn nút Đăng nhập
-    public LiveData<LoginResult> login(String email, String password, Context context) {
-        return authRepository.signIn(email, password, context);
+    // ĐÃ SỬA: Xóa tham số Context ở đây đi.
+    // Dùng trực tiếp getApplication() có sẵn của AndroidViewModel để truyền xuống Repo
+    public LiveData<LoginResult> login(String email, String password) {
+        return repository.signIn(email, password, getApplication());
     }
 
     public LiveData<String> register(String email, String password, String fullName) {
-        return authRepository.signUp(email, password, fullName);
+        return repository.signUp(email, password, fullName);
     }
 
     // Hàm này xử lý Token nhận được từ Google/Facebook
     public LiveData<LoginResult> handleSocialLoginToken(String token) {
-        // Trả thẳng LiveData từ Repository lên cho Activity quan sát
-        return authRepository.handleSocialLogin(token);
+        // ĐÃ SỬA: Truyền getApplication() xuống để Repo có môi trường gọi SharedPreferences
+        return repository.handleSocialLogin(token, getApplication());
     }
 }

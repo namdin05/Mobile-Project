@@ -12,6 +12,7 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,6 +22,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.melodix.app.Service.ProfileAPIService;
 import com.melodix.app.Service.RetrofitClient;
+import com.melodix.app.Service.StorageAPIService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -50,6 +52,8 @@ public class AdminProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_admin_profile);
 
         // Ánh xạ View
@@ -140,14 +144,12 @@ public class AdminProfileActivity extends AppCompatActivity {
             // Tạo tên file an toàn (Kèm thời gian để chống lỗi Cache)
             String fileName = adminUid + "_" + System.currentTimeMillis() + ".jpg";
 
-            ProfileAPIService apiService = RetrofitClient.getClient().create(ProfileAPIService.class);
+            StorageAPIService apiService = RetrofitClient.getStorage(getApplicationContext()).create(StorageAPIService.class);
             String apiKey = BuildConfig.SERVICE_KEY;
             String token = "Bearer " + BuildConfig.SERVICE_KEY;
 
             // Gọi API ném ảnh lên Supabase
             apiService.uploadFileToStorage(
-                            apiKey,
-                            token,
                             "image/jpeg",
                             "true",
                             Constants.AVATAR_BUCKET.replace("/", ""),
@@ -186,9 +188,7 @@ public class AdminProfileActivity extends AppCompatActivity {
     // 3. LOGIC CẬP NHẬT TÊN VÀ LINK VÀO DATABASE
     // ==========================================
     private void updateDatabaseOnly(String newName, String newAvatarUrl) {
-        ProfileAPIService apiService = RetrofitClient.getClient().create(ProfileAPIService.class);
-        String apiKey = BuildConfig.SERVICE_KEY;
-        String token = "Bearer " + BuildConfig.SERVICE_KEY;
+        ProfileAPIService apiService = RetrofitClient.getClient(getApplicationContext()).create(ProfileAPIService.class);
         String idFilter = "eq." + adminUid;
 
         // Chuẩn bị dữ liệu cập nhật
@@ -198,7 +198,7 @@ public class AdminProfileActivity extends AppCompatActivity {
             updateData.put("avatar_url", newAvatarUrl);
         }
 
-        apiService.updateProfile(apiKey, token, idFilter, updateData).enqueue(new Callback<ResponseBody>() {
+        apiService.updateProfile(idFilter, updateData).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {

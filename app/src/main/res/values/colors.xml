@@ -23,4 +23,7 @@
     <color name="mdx_line">#D1DED9</color>
     <color name="mdx_card">#FFFFFF</color>
     <color name="mdx_card_alt">#F2F6F5</color>
+
+
+    <color name="mdx_main_color">#1DB954</color>
 </resources>

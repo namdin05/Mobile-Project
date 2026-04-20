@@ -22,6 +22,7 @@ import com.melodix.app.R;
 import com.melodix.app.Repository.PlaylistRepository;
 import com.melodix.app.Service.ProfileAPIService;
 import com.melodix.app.Service.RetrofitClient;
+import com.melodix.app.Service.StorageAPIService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -130,7 +131,7 @@ public class CreatePlaylistDialog {
 
             String fileName = "playlist_" + UUID.randomUUID() + ".jpg";
 
-            ProfileAPIService storageService = RetrofitClient.getClient().create(ProfileAPIService.class);
+            StorageAPIService storageService = RetrofitClient.getStorage(context.getApplicationContext()).create(StorageAPIService.class);
 
             RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpeg"), imageBytes);
 
@@ -142,8 +143,6 @@ public class CreatePlaylistDialog {
             android.util.Log.d("UPLOAD_DEBUG", "Using API KEY (no user token)");
 
             storageService.uploadFileToStorage(
-                    BuildConfig.API_KEY,
-                    "Bearer " + BuildConfig.API_KEY,
                     "image/jpeg",
                     "true",
                     bucketName,

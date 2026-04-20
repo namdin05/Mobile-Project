@@ -1,12 +1,15 @@
 package com.melodix.app.Service;
 
 import com.melodix.app.Model.AppMetric;
+import com.melodix.app.Model.ArtistRequest;
+import com.melodix.app.Model.AuditLog;
 import com.melodix.app.Model.Genre;
 import com.melodix.app.Model.Profile;
 import com.melodix.app.Model.Song;
 import com.melodix.app.Model.StatusUpdateRequest;
 
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -18,61 +21,26 @@ import retrofit2.http.POST;
 import retrofit2.http.Query;
 
 public interface AdminAPIService {
-    @GET("rest/v1/songs?status=eq.pending")
-    Call<List<Song>> getPendingRequests(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token
-    );
+    @GET("app_metrics?select=*")
+    Call<List<AppMetric>> getAppMetrics();
 
-    @PATCH("rest/v1/songs")
-    Call<Void> updateRequestStatus(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
+    @GET("audit_logs?select=*&order=changed_at.desc")
+    Call<List<AuditLog>> getAuditLogs();
+
+    @GET("user_request_to_artist?select=*,profiles(*)&status=eq.pending")
+    Call<List<ArtistRequest>> getPendingArtistRequests();
+
+    // Cập nhật trạng thái duyệt/từ chối
+    @PATCH("user_request_to_artist")
+    Call<ResponseBody> updateArtistRequestStatus(
             @Query("id") String idFilter,
-            @Body StatusUpdateRequest body
+            @Body Map<String, Object> body
     );
 
-    @GET("rest/v1/songs?select=*,profiles!song_artists(display_name)")
-    Call<List<Song>> getAllSongs(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token
-    );
-
-    // Lấy tất cả User
-    @GET("rest/v1/profiles?select=*")
-    Call<List<Profile>> getAllUsers(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token
-    );
-
-
-    @GET("rest/v1/genres?select=*")
-    Call<List<Genre>> getAllGenres(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token
-
-    );
-
-    @POST("rest/v1/genres")
-    Call<ResponseBody> createGenre(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
-            @Body java.util.Map<String, Object> genreData
-    );
-
-    // UPDATE & SOFT DELETE (Cập nhật tên, hình ảnh, hoặc ẩn đi)
-    @PATCH("rest/v1/genres")
-    Call<ResponseBody> updateGenre(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
-            @Query("id") String idFilter, // eq.xxx
-            @Body java.util.Map<String, Object> genreData
-    );
-
-
-    @GET("rest/v1/app_metrics?select=*")
-    Call<List<AppMetric>> getAppMetrics(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token
+    // Nâng cấp quyền User lên Artist trong bảng profiles
+    @PATCH("profiles")
+    Call<ResponseBody> updateUserRole(
+            @Query("id") String userIdFilter,
+            @Body Map<String, Object> body
     );
 }
