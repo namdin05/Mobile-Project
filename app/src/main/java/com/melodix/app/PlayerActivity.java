@@ -393,33 +393,67 @@ public class PlayerActivity extends AppCompatActivity {
     // HÀM CHUYÊN DÙNG CHO DEEP LINK (LINK CHIA SẺ)
     // =========================================================
     private void fetchSongFromDbAndPlay(String songId) {
-        AppRepository.getInstance(this).getSongByIdAsync(songId, new AppRepository.SingleSongCallback() {
+        repository.getSongByIdAsync(songId, new AppRepository.SingleSongCallback() {
             @Override
-            public void onSuccess(Song song) {
-                if (isFinishing() || isDestroyed()) return;
+            public void onSuccess(Song sharedSong) {
+                // 1. Lấy ID nghệ sĩ từ bài hát vừa tải
+                String artistId = sharedSong.getArtistId();
 
-                // ĐÃ FIX LỖI SHARE: Tự động tạo 1 danh sách chờ (Queue) mới gồm 1 bài hát này
-                // Để PlaybackRepository và Service đồng bộ với nhau, không bị phát nhầm bài cũ
-                ArrayList<Song> deepLinkQueue = new ArrayList<>();
-                deepLinkQueue.add(song);
-                PlaybackRepository.getInstance().setQueue(deepLinkQueue, song.getId());
+                if (artistId != null && !artistId.isEmpty()) {
+                    // 2. Gọi hàm lấy các bài cùng nghệ sĩ
+                    repository.getSongsByArtist(artistId, new AppRepository.SongListCallback() {
+                        @Override
+                        public void onSuccess(ArrayList<Song> artistSongs) {
+                            ArrayList<Song> finalQueue = new ArrayList<>();
+                            finalQueue.add(sharedSong); // Bài được share luôn nằm đầu
 
-                // Ra lệnh cho Service phát nhạc
-                Intent serviceIntent = new Intent(PlayerActivity.this, AudioPlayerService.class);
-                serviceIntent.setAction(AudioPlayerService.ACTION_PLAY_SONG);
-                serviceIntent.putExtra(AudioPlayerService.EXTRA_SONG_ID, song.getId());
-                androidx.core.content.ContextCompat.startForegroundService(PlayerActivity.this, serviceIntent);
+                            for (Song s : artistSongs) {
+                                // Lọc bỏ chính nó để danh sách không bị lặp lại bài đang nghe
+                                if (!s.getId().equals(sharedSong.getId())) {
+                                    finalQueue.add(s);
+                                }
+                            }
 
-                // Cập nhật giao diện
-                loadSong(song.getId());
-                setupUIEvents();
+                            // 3. Cài đặt hàng đợi và phát nhạc
+                            PlaybackRepository.getInstance().setQueue(finalQueue, sharedSong.getId());
+                            startServiceAndLoadUI(sharedSong.getId());
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            // Nếu lỗi lấy list liên quan thì vẫn phải cho người ta nghe bài gốc chứ!
+                            playSoloSong(sharedSong);
+                        }
+                    });
+                } else {
+                    playSoloSong(sharedSong);
+                }
             }
 
             @Override
             public void onError(String message) {
-                Toast.makeText(PlayerActivity.this, "Lỗi tải bài hát: " + message, Toast.LENGTH_SHORT).show();
-                finish();
+                android.widget.Toast.makeText(PlayerActivity.this, "Lỗi: " + message, android.widget.Toast.LENGTH_SHORT).show();
+                finish(); // Không tải được bài gốc thì đóng Activity luôn cho rảnh nợ sếp ạ
             }
         });
+    }
+
+// --- Các hàm phụ trợ giúp code sạch đẹp hơn ---
+
+    private void playSoloSong(Song song) {
+        ArrayList<Song> soloQueue = new ArrayList<>();
+        soloQueue.add(song);
+        PlaybackRepository.getInstance().setQueue(soloQueue, song.getId());
+        startServiceAndLoadUI(song.getId());
+    }
+
+    private void startServiceAndLoadUI(String songId) {
+        Intent serviceIntent = new Intent(PlayerActivity.this, AudioPlayerService.class);
+        serviceIntent.setAction(AudioPlayerService.ACTION_PLAY_SONG);
+        serviceIntent.putExtra(AudioPlayerService.EXTRA_SONG_ID, songId);
+        androidx.core.content.ContextCompat.startForegroundService(PlayerActivity.this, serviceIntent);
+
+        loadSong(songId);
+        setupUIEvents();
     }
 }

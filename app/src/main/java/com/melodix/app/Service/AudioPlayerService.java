@@ -272,13 +272,19 @@ public class AudioPlayerService extends Service {
         }
     }
 
+    // Trong AudioPlayerService.java
     private void playNext() {
         Song next = playbackRepo.moveNext();
-        if (next == null || next.getId().equals(currentSongId)) {
-            stopPlayback();
-            stopForeground(true);
-        } else {
-            playSong(next.getId());
+        if (next != null) {
+            // Nếu bài tiếp theo khác bài hiện tại -> Phát bài mới
+            if (!next.getId().equals(currentSongId)) {
+                playSong(next.getId());
+            } else {
+                // Nếu chỉ có 1 bài (ID trùng nhau) thì lặp lại bài đó
+                mediaPlayer.seekTo(0);
+                mediaPlayer.start();
+                broadcastState();
+            }
         }
     }
 
