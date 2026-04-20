@@ -272,13 +272,36 @@ public class AudioPlayerService extends Service {
         }
     }
 
+    // Trong AudioPlayerService.java
     private void playNext() {
+        android.util.Log.e("TEST_ACTION_NEXT", "▶️ 1. SERVICE ĐÃ NHẬN LỆNH NEXT TỪ NÚT BẤM!");
+
         Song next = playbackRepo.moveNext();
-        if (next == null || next.getId().equals(currentSongId)) {
+
+        if (next == null) {
+            android.util.Log.e("TEST_ACTION_NEXT", "❌ 2. BÀI TIẾP THEO BỊ NULL (Hàng đợi đang trống không!)");
             stopPlayback();
             stopForeground(true);
-        } else {
+            return;
+        }
+
+        android.util.Log.e("TEST_ACTION_NEXT", "✅ 3. TÌM THẤY BÀI TIẾP THEO: " + next.getTitle() + " | ID: " + next.getId());
+
+        if (!next.getId().equals(currentSongId)) {
+            android.util.Log.e("TEST_ACTION_NEXT", "👉 4. BÀI MỚI! Đang load nhạc để phát...");
             playSong(next.getId());
+        } else {
+            android.util.Log.e("TEST_ACTION_NEXT", "🔁 4. TRÙNG ID (Danh sách chỉ có 1 bài)! Đang cho phát lại từ đầu...");
+            if (mediaPlayer != null) {
+                mediaPlayer.seekTo(0);
+                mediaPlayer.start();
+                isPlaying = true;
+                broadcastState();
+
+                // Bắn Toast lên màn hình để sếp dễ thấy
+                android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+                handler.post(() -> android.widget.Toast.makeText(getApplicationContext(), "Hàng đợi chỉ có 1 bài, đang phát lại!", android.widget.Toast.LENGTH_SHORT).show());
+            }
         }
     }
 

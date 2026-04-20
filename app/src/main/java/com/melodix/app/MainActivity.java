@@ -314,47 +314,67 @@ public class MainActivity extends AppCompatActivity {
 
     // Hàm Lễ tân phân loại link
 // Lễ tân phân loại link
+// ==========================================
+    // LỄ TÂN PHÂN LOẠI LINK
+    // ==========================================
     private void handleDeepLink(android.content.Intent intent) {
         if (intent != null && android.content.Intent.ACTION_VIEW.equals(intent.getAction())) {
             android.net.Uri data = intent.getData();
 
-            // 👇 SỬA ĐÚNG DÒNG NÀY ĐỂ BẮT CẢ 2 ĐƯỜNG 👇
-            if (data != null && ("giabaocode.github.io".equals(data.getHost()) || "redirect".equals(data.getHost()))) {
+            // 📸 X-QUANG 1: Xem Android giao cái Link gì cho app?
+            android.util.Log.e("TEST_MAIN_LINK", "🚪 1. LỄ TÂN NHẬN ĐƯỢC LINK TỪ HỆ ĐIỀU HÀNH: [" + data + "]");
 
-                String type = data.getQueryParameter("type");
-                String id = data.getQueryParameter("id");
+            if (data != null) {
+                String host = data.getHost();
+                android.util.Log.e("TEST_MAIN_LINK", "🔍 2. KIỂM TRA HOST CỦA LINK: [" + host + "]");
 
-                if (type != null && id != null) {
-                    android.content.Intent nextIntent = null;
+                // 👇 Mình nới lỏng điều kiện ra một chút để bắt chính xác hơn
+                if (host != null && (host.contains("giabaocode.github.io") || host.contains("redirect"))) {
 
-                    switch (type) {
-                        case "user":
-                            nextIntent = new android.content.Intent(this, com.melodix.app.View.profile.UserProfileActivity.class);
-                            nextIntent.putExtra(com.melodix.app.View.profile.UserProfileActivity.EXTRA_USER_ID, id);
-                            break;
-                        case "playlist":
-                            nextIntent = new android.content.Intent(this, com.melodix.app.View.PlaylistDetailActivity.class);
-                            nextIntent.putExtra(com.melodix.app.View.PlaylistDetailActivity.EXTRA_PLAYLIST_ID, id);
-                            break;
-                        case "album":
-                            nextIntent = new android.content.Intent(this, com.melodix.app.View.AlbumDetailActivity.class);
-                            nextIntent.putExtra(com.melodix.app.View.AlbumDetailActivity.EXTRA_ALBUM_ID, id);
-                            break;
-                        case "profile": // Dành cho Nghệ sĩ
-                            nextIntent = new android.content.Intent(this, com.melodix.app.View.ArtistDetailActivity.class);
-                            nextIntent.putExtra(com.melodix.app.View.ArtistDetailActivity.EXTRA_ARTIST_ID, id);
-                            break;
-                        case "song":
-                            nextIntent = new android.content.Intent(this, com.melodix.app.PlayerActivity.class);
-                            nextIntent.putExtra(com.melodix.app.PlayerActivity.EXTRA_SONG_ID, id);
-                            // Có thể cần thêm cờ để tự động Play luôn
-                            nextIntent.putExtra("start_playback", true);
-                            break;
+                    String type = data.getQueryParameter("type");
+                    String id = data.getQueryParameter("id");
+
+                    android.util.Log.e("TEST_MAIN_LINK", "🏷️ 3. BÓC TÁCH THÀNH CÔNG -> TYPE: [" + type + "] | ID: [" + id + "]");
+
+                    if (type != null && id != null) {
+                        android.content.Intent nextIntent = null;
+
+                        switch (type) {
+                            case "user":
+                                nextIntent = new android.content.Intent(this, com.melodix.app.View.profile.UserProfileActivity.class);
+                                nextIntent.putExtra(com.melodix.app.View.profile.UserProfileActivity.EXTRA_USER_ID, id);
+                                break;
+                            case "playlist":
+                                nextIntent = new android.content.Intent(this, com.melodix.app.View.PlaylistDetailActivity.class);
+                                nextIntent.putExtra(com.melodix.app.View.PlaylistDetailActivity.EXTRA_PLAYLIST_ID, id);
+                                break;
+                            case "album":
+                                nextIntent = new android.content.Intent(this, com.melodix.app.View.AlbumDetailActivity.class);
+                                nextIntent.putExtra(com.melodix.app.View.AlbumDetailActivity.EXTRA_ALBUM_ID, id);
+                                break;
+                            case "profile":
+                                nextIntent = new android.content.Intent(this, com.melodix.app.View.ArtistDetailActivity.class);
+                                nextIntent.putExtra(com.melodix.app.View.ArtistDetailActivity.EXTRA_ARTIST_ID, id);
+                                break;
+                            case "song":
+                                android.util.Log.e("TEST_MAIN_LINK", "✅ 4. CHUẨN BÀI HÁT! Đang bắn ID sang cho PlayerActivity...");
+                                nextIntent = new android.content.Intent(this, com.melodix.app.PlayerActivity.class);
+                                nextIntent.putExtra(com.melodix.app.PlayerActivity.EXTRA_SONG_ID, id);
+                                nextIntent.putExtra("start_playback", true);
+                                break;
+                            default:
+                                android.util.Log.e("TEST_MAIN_LINK", "❌ 4. Type không hợp lệ: " + type);
+                                break;
+                        }
+
+                        if (nextIntent != null) {
+                            startActivity(nextIntent);
+                        }
+                    } else {
+                        android.util.Log.e("TEST_MAIN_LINK", "❌ 3. THIẾU THÔNG TIN TYPE HOẶC ID TỪ LINK!");
                     }
-
-                    if (nextIntent != null) {
-                        startActivity(nextIntent);
-                    }
+                } else {
+                    android.util.Log.e("TEST_MAIN_LINK", "❌ 2. HOST KHÔNG KHỚP! Lễ tân đã ném link vào sọt rác.");
                 }
             }
         }
