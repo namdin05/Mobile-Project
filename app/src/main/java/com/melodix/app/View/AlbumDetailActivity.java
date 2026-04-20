@@ -29,6 +29,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
     private RecyclerView rvTracks;
     private SongAdapter trackAdapter;
     private TextView tvTrackCount;
+    private com.melodix.app.Model.MiniPlayerController miniPlayerController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,6 +117,20 @@ public class AlbumDetailActivity extends AppCompatActivity {
         });
         rvTracks.setAdapter(trackAdapter);
 
+        // XỬ LÝ SỰ KIỆN NÚT PHÁT TẤT CẢ
+        View btnPlayAll = findViewById(R.id.btn_play_all);
+        btnPlayAll.setOnClickListener(v -> {
+            if (trackAdapter != null && trackAdapter.getSongs() != null && !trackAdapter.getSongs().isEmpty()) {
+                // Lấy toàn bộ danh sách bài hát trong Album
+                ArrayList<Song> allSongs = new ArrayList<>(trackAdapter.getSongs());
+
+                // Gọi hàm PlaybackUtils, truyền list vào và bắt đầu phát từ bài đầu tiên (index 0)
+                PlaybackUtils.playSong(AlbumDetailActivity.this, allSongs, allSongs.get(0).getId());
+            } else {
+                Toast.makeText(AlbumDetailActivity.this, "Album chưa có bài hát nào để phát", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         // 2. GỌI API LẤY CHI TIẾT ALBUM
         repository.getAlbumById(albumId, new AppRepository.AlbumCallback() {
             @Override
@@ -175,5 +190,22 @@ public class AlbumDetailActivity extends AppCompatActivity {
             }
 
         });
+        miniPlayerController = new com.melodix.app.Model.MiniPlayerController(this);
+    }
+    // THÊM 2 HÀM NÀY VÀO TRONG CLASS AlbumDetailActivity
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (miniPlayerController != null) {
+            miniPlayerController.onResume();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (miniPlayerController != null) {
+            miniPlayerController.onPause();
+        }
     }
 }

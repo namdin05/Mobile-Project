@@ -50,8 +50,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
     private String playlistId;
     private Playlist currentPlaylist;
-
-    // ĐÃ SỬA: Biến lưu ID người dùng hiện tại lấy từ SharedPreferences
     private String currentUserId = "";
 
     private TextView tvMeta;
@@ -61,12 +59,14 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     private EditPlaylistDialog currentEditDialog;
     private ActivityResultLauncher<String> editImagePickerLauncher;
 
+    // THÊM: Biến quản lý Mini Player
+    private com.melodix.app.Model.MiniPlayerController miniPlayerController;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playlist_detail);
 
-        // ĐÃ SỬA: Lấy USER_ID một lần duy nhất lúc mở màn hình
         SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
         currentUserId = prefs.getString("USER_ID", "");
 
@@ -79,7 +79,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             return;
         }
 
-        // Khởi tạo launcher chọn ảnh cho Edit Dialog
         editImagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
@@ -91,6 +90,9 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         initViews();
         loadPlaylistData();
         setupMoreMenu();
+
+        // THÊM: Khởi tạo MiniPlayer Controller
+        miniPlayerController = new com.melodix.app.Model.MiniPlayerController(this);
     }
 
     private void initViews() {
@@ -122,6 +124,17 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         if(btnAddSong != null){
             btnAddSong.setVisibility(View.GONE);
         }
+
+        // THÊM: Bắt sự kiện Click cho nút Phát tất cả
+        View btnPlayAll = findViewById(R.id.btn_play_all);
+        btnPlayAll.setOnClickListener(v -> {
+            if (songListForPlayback != null && !songListForPlayback.isEmpty()) {
+                // Đẩy toàn bộ danh sách vào Player và bắt đầu từ bài đầu tiên (index 0)
+                PlaybackUtils.playSong(PlaylistDetailActivity.this, new ArrayList<>(songListForPlayback), songListForPlayback.get(0).getId());
+            } else {
+                Toast.makeText(PlaylistDetailActivity.this, "Playlist chưa có bài hát nào", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void setupMoreMenu() {
@@ -133,11 +146,9 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(this, findViewById(R.id.btn_more));
         popup.getMenuInflater().inflate(R.menu.menu_playlist_options, popup.getMenu());
 
-        // ĐÃ SỬA: Kiểm tra chủ sở hữu qua SharedPreferences ID
         boolean isOwner = currentPlaylist != null && currentUserId.equals(currentPlaylist.ownerUserId);
 
         if (!isOwner) {
-            // Nếu là khách -> Xóa tính năng sửa/xóa, chỉ để lại Chia sẻ
             popup.getMenu().removeItem(R.id.action_edit);
             popup.getMenu().removeItem(R.id.action_delete);
         }
@@ -165,12 +176,11 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     private void loadPlaylistData() {
         tvMeta.setText("Đang tải...");
 
-        // Tải thông tin playlist
         playlistRepository.getPlaylistById(playlistId, new Callback<List<Playlist>>() {
             @Override
             public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    currentPlaylist = response.body().get(0);   // ← Lưu playlist hiện tại
+                    currentPlaylist = response.body().get(0);
 
                     runOnUiThread(() -> {
                         tvTitle.setText(currentPlaylist.name != null ? currentPlaylist.name : "Playlist");
@@ -181,10 +191,8 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                                     .into(imgCover);
                         }
 
-                        // Kích hoạt kéo thả SAU KHI đã biết ai là chủ playlist
                         setupDragAndDrop();
 
-                        // ĐÃ SỬA: Kiểm tra chủ sở hữu qua SharedPreferences ID
                         boolean isOwner = currentPlaylist != null && currentUserId.equals(currentPlaylist.ownerUserId);
                         View btnAddSong = findViewById(R.id.btn_add_song);
                         if(btnAddSong != null && isOwner){
@@ -200,7 +208,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             }
         });
 
-        // Tải danh sách bài hát
         playlistRepository.getPlaylistSongs(playlistId, new Callback<List<PlaylistSong>>() {
             @Override
             public void onResponse(Call<List<PlaylistSong>> call, Response<List<PlaylistSong>> response) {
@@ -213,7 +220,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
                     for (PlaylistSong ps : loaded) {
                         if (ps != null && ps.song != null) {
-                            ps.song.artistName = ps.artistname; // Đắp thêm tên nghệ sĩ để fix lỗi null trên Player
+                            ps.song.artistName = ps.artistname;
                             playlistSongList.add(ps);
                             songListForPlayback.add(ps.song);
                         }
@@ -255,9 +262,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         PlaybackUtils.playSong(this, new ArrayList<>(songListForPlayback), playlistSong.song.getId());
     }
 
-    // Drag and drop song in playlist
     private void setupDragAndDrop() {
-        // ĐÃ SỬA: Kiểm tra quyền kéo thả qua SharedPreferences ID
         if (currentUserId.isEmpty() || currentPlaylist == null || !currentUserId.equals(currentPlaylist.ownerUserId)) {
             return;
         }
@@ -278,7 +283,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                     return false;
                 }
 
-                // Hoán đổi vị trí
                 PlaylistSong moved = playlistSongList.remove(fromPos);
                 playlistSongList.add(toPos, moved);
 
@@ -292,7 +296,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             @Override
             public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
                 super.clearView(recyclerView, viewHolder);
-                // Khi thả tay → lưu thứ tự mới
                 saveNewOrderToDatabase();
             }
 
@@ -304,11 +307,8 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         new ItemTouchHelper(callback).attachToRecyclerView(rvSongs);
     }
 
-    // Lưu thứ tự mới vào database
     private void saveNewOrderToDatabase() {
         if (playlistSongList == null || playlistSongList.isEmpty()) return;
-
-        Log.d("DRAG_DROP", "Đang lưu thứ tự mới cho " + playlistSongList.size() + " bài hát");
 
         for (int i = 0; i < playlistSongList.size(); i++) {
             PlaylistSong ps = playlistSongList.get(i);
@@ -323,13 +323,8 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                     new Callback<ResponseBody>() {
                         @Override
                         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                            if (response.isSuccessful()) {
-                                Log.d("DRAG_DROP", "Cập nhật order_index thành công tại vị trí " + newOrder);
-                            } else {
-                                Log.e("DRAG_DROP", "Cập nhật order thất bại: " + response.code());
-                            }
+                            // Cập nhật thành công
                         }
-
                         @Override
                         public void onFailure(Call<ResponseBody> call, Throwable t) {
                             Log.e("DRAG_DROP", "Lỗi mạng khi cập nhật order: " + t.getMessage());
@@ -338,7 +333,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         }
     }
 
-    // Hiển thị menu song trong playlist
     private void showSongMenu(PlaylistSong playlistSong, int position) {
         if (playlistSong == null || playlistSong.song == null) return;
 
@@ -362,7 +356,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         });
 
         bottomSheetView.findViewById(R.id.menu_add_playlist).setOnClickListener(v -> {
-            // Thêm vào playlist khác
             com.melodix.app.View.dialogs.PlaylistSelectionDialog dialog =
                     com.melodix.app.View.dialogs.PlaylistSelectionDialog.newInstance(playlistSong.song.getId());
             dialog.show(getSupportFragmentManager(), "playlist_selection");
@@ -370,16 +363,13 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         });
 
         bottomSheetView.findViewById(R.id.menu_share).setOnClickListener(v -> {
-            // Share bài hát
             if (playlistSong != null && playlistSong.song != null && playlistSong.song.getId() != null) {
                 com.melodix.app.Utils.ShareUtils.shareContent(
                         PlaylistDetailActivity.this,
-                        "song",                     // Type là bài hát
-                        playlistSong.song.getId(),  // Lấy ID bài hát
-                        playlistSong.song.getTitle()// Lấy Tên bài hát
+                        "song",
+                        playlistSong.song.getId(),
+                        playlistSong.song.getTitle()
                 );
-            } else {
-                Toast.makeText(PlaylistDetailActivity.this, "Lỗi dữ liệu bài hát", Toast.LENGTH_SHORT).show();
             }
             bottomSheet.dismiss();
         });
@@ -389,18 +379,17 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             bottomSheet.dismiss();
         });
 
-        // ĐÃ SỬA: Kiểm tra quyền xóa bài hát (Chỉ chủ sở hữu Playlist mới được xóa)
         TextView menuRemove = bottomSheetView.findViewById(R.id.menu_remove_playlist);
         boolean isOwner = currentPlaylist != null && currentUserId.equals(currentPlaylist.ownerUserId);
 
         if (isOwner) {
-            menuRemove.setVisibility(View.VISIBLE); // Chỉ chủ mới thấy nút Xóa bài
+            menuRemove.setVisibility(View.VISIBLE);
             menuRemove.setOnClickListener(v -> {
                 removeSongFromCurrentPlaylist(playlistSong, position);
                 bottomSheet.dismiss();
             });
         } else {
-            menuRemove.setVisibility(View.GONE); // Khách thì ẩn đi
+            menuRemove.setVisibility(View.GONE);
         }
 
         bottomSheet.show();
@@ -414,17 +403,12 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                         if (response.isSuccessful()) {
-                            Toast.makeText(PlaylistDetailActivity.this, "Đã xóa bài hát khỏi playlist", Toast.LENGTH_SHORT).show();
-
-                            // Xóa khỏi danh sách hiển thị
+                            Toast.makeText(PlaylistDetailActivity.this, "Đã xóa bài hát", Toast.LENGTH_SHORT).show();
                             playlistSongList.remove(position);
                             songListForPlayback.remove(position);
                             songAdapter.notifyItemRemoved(position);
                             songAdapter.notifyItemRangeChanged(position, playlistSongList.size());
-
                             tvMeta.setText(playlistSongList.size() + " bài hát");
-                        } else {
-                            Toast.makeText(PlaylistDetailActivity.this, "Xóa thất bại", Toast.LENGTH_SHORT).show();
                         }
                     }
 
@@ -435,18 +419,13 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                 });
     }
 
-    // Edit playlist
     private void showEditPlaylistDialog() {
-        if (currentPlaylist == null) {
-            Toast.makeText(this, "Chưa tải xong thông tin playlist", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (currentPlaylist == null) return;
 
         currentEditDialog = new EditPlaylistDialog(
                 this,
                 currentPlaylist,
                 updatedPlaylist -> {
-                    // Refresh UI sau khi chỉnh sửa thành công
                     tvTitle.setText(updatedPlaylist.name);
                     if (updatedPlaylist.coverRes != null && !updatedPlaylist.coverRes.isEmpty()) {
                         Glide.with(PlaylistDetailActivity.this)
@@ -454,15 +433,12 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                                 .placeholder(R.drawable.ic_music_placeholder)
                                 .into(imgCover);
                     }
-
                 },
                 editImagePickerLauncher
         );
-
         currentEditDialog.show();
     }
 
-    // Delete Playlist
     private void showDeleteConfirmationDialog() {
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Xóa playlist")
@@ -479,8 +455,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     Toast.makeText(PlaylistDetailActivity.this, "Đã xóa playlist", Toast.LENGTH_SHORT).show();
                     finish();
-                } else {
-                    Toast.makeText(PlaylistDetailActivity.this, "Xóa thất bại", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -489,5 +463,22 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                 Toast.makeText(PlaylistDetailActivity.this, "Lỗi: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    // THÊM: Quản lý vòng đời của Mini Player (Đánh thức và Ngủ đông)
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (miniPlayerController != null) {
+            miniPlayerController.onResume();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (miniPlayerController != null) {
+            miniPlayerController.onPause();
+        }
     }
 }
