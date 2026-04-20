@@ -4,6 +4,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -347,34 +348,9 @@ public class AudioPlayerService extends Service {
         PendingIntent contentIntent = PendingIntent.getActivity(this, 11, openIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        Bitmap coverBitmap = null;
-        int coverResId = ResourceUtils.anyDrawable(this, currentSong.getCoverUrl());
-        if (coverResId != 0) {
-            coverBitmap = BitmapFactory.decodeResource(getResources(), coverResId);
-        }
-
-        android.support.v4.media.session.PlaybackStateCompat.Builder stateBuilder = new android.support.v4.media.session.PlaybackStateCompat.Builder()
-                .setActions(android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY |
-                        android.support.v4.media.session.PlaybackStateCompat.ACTION_PAUSE |
-                        android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
-                        android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
-                        android.support.v4.media.session.PlaybackStateCompat.ACTION_SEEK_TO)
-                .setState(isPlaying ? android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING : android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED,
-                        position, playbackSpeed);
-        mediaSession.setPlaybackState(stateBuilder.build());
-
-        android.support.v4.media.MediaMetadataCompat.Builder metadataBuilder = new android.support.v4.media.MediaMetadataCompat.Builder()
-                .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE, currentSong.getTitle())
-                .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST, currentSong.getArtistName())
-                .putLong(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION, duration);
-
-        if (coverBitmap != null) {
-            metadataBuilder.putBitmap(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ALBUM_ART, coverBitmap);
-        }
-        mediaSession.setMetadata(metadataBuilder.build());
-
+        // 1. TẠO THÔNG BÁO CƠ BẢN VÀ HIỆN LÊN TRƯỚC (Để tránh lỗi Android ANR)
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_logo)
+                .setSmallIcon(R.drawable.ic_logo) // Bạn có thể thay bằng R.drawable.ic_music_note nếu muốn
                 .setContentTitle(currentSong.getTitle())
                 .setContentText(currentSong.getArtistName())
                 .setContentIntent(contentIntent)
@@ -388,11 +364,64 @@ public class AudioPlayerService extends Service {
                         .setShowActionsInCompactView(0, 1, 2)
                         .setMediaSession(mediaSession.getSessionToken()));
 
-        if (coverBitmap != null) {
-            builder.setLargeIcon(coverBitmap);
+        // Gắn luôn logo mặc định trong lúc chờ tải ảnh thật
+        Bitmap placeholder = BitmapFactory.decodeResource(getResources(), R.drawable.ic_logo);
+        if (placeholder != null) {
+            builder.setLargeIcon(placeholder);
         }
 
+        // Hiện thông báo lên liền
         startForeground(NOTIFICATION_ID, builder.build());
+
+        // Cập nhật trạng thái Play/Pause cho MediaSession
+        android.support.v4.media.session.PlaybackStateCompat.Builder stateBuilder = new android.support.v4.media.session.PlaybackStateCompat.Builder()
+                .setActions(android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY |
+                        android.support.v4.media.session.PlaybackStateCompat.ACTION_PAUSE |
+                        android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
+                        android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
+                        android.support.v4.media.session.PlaybackStateCompat.ACTION_SEEK_TO)
+                .setState(isPlaying ? android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING : android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED,
+                        position, playbackSpeed);
+        mediaSession.setPlaybackState(stateBuilder.build());
+
+        // 2. TẢI ẢNH QUA MẠNG BẰNG GLIDE VÀ CẬP NHẬT LẠI KHI TẢI XONG
+        if (currentSong.getCoverUrl() != null && !currentSong.getCoverUrl().isEmpty()) {
+            com.bumptech.glide.Glide.with(this)
+                    .asBitmap()
+                    .load(currentSong.getCoverUrl())
+                    .into(new com.bumptech.glide.request.target.CustomTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(@androidx.annotation.NonNull Bitmap resource, @androidx.annotation.Nullable com.bumptech.glide.request.transition.Transition<? super Bitmap> transition) {
+                            // Ảnh đã tải xong! Bơm ảnh vào Thông báo
+                            builder.setLargeIcon(resource);
+
+                            // Bơm ảnh vào màn hình khóa (Lockscreen)
+                            android.support.v4.media.MediaMetadataCompat.Builder metadataBuilder = new android.support.v4.media.MediaMetadataCompat.Builder()
+                                    .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE, currentSong.getTitle())
+                                    .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST, currentSong.getArtistName())
+                                    .putLong(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION, duration)
+                                    .putBitmap(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ALBUM_ART, resource); // Gắn ảnh bìa
+                            mediaSession.setMetadata(metadataBuilder.build());
+
+                            // Yêu cầu Android vẽ lại thông báo với ảnh mới
+                            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                            if (manager != null) {
+                                manager.notify(NOTIFICATION_ID, builder.build());
+                            }
+                        }
+
+                        @Override
+                        public void onLoadCleared(@androidx.annotation.Nullable android.graphics.drawable.Drawable placeholder) {
+                        }
+                    });
+        } else {
+            // Nếu bài hát không có link ảnh, chỉ update Text
+            android.support.v4.media.MediaMetadataCompat.Builder metadataBuilder = new android.support.v4.media.MediaMetadataCompat.Builder()
+                    .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE, currentSong.getTitle())
+                    .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST, currentSong.getArtistName())
+                    .putLong(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION, duration);
+            mediaSession.setMetadata(metadataBuilder.build());
+        }
     }
 
     private PendingIntent createActionIntent(String action, int requestCode) {
