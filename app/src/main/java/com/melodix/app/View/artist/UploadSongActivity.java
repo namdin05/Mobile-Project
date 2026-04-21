@@ -437,7 +437,7 @@ public class UploadSongActivity extends AppCompatActivity {
                         }
                         String displayTitle = album.title;
                         if (album.status != null && album.status.equalsIgnoreCase("pending")){
-                            displayTitle = album.title + "( Đang chờ duyệt )";
+                            displayTitle = album.title + "( Pending Review )";
                         }else{
                             displayTitle = album.title + "( " + album.year + " )";
                         }
