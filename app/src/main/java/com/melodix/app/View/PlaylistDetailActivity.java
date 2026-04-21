@@ -389,7 +389,12 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         });
 
         // Share - ĐÃ SỬA
+        // Share - ĐÃ SỬA VÀ DỌN DẸP SẠCH SẼ
         bottomSheetView.findViewById(R.id.menu_share).setOnClickListener(v -> {
+            // 1. Đóng cái menu 3 chấm lại trước cho mượt
+            bottomSheet.dismiss();
+
+            // 2. Gọi hàm Share 1 LẦN DUY NHẤT
             if (playlistSong != null && playlistSong.song != null && playlistSong.song.getId() != null) {
                 com.melodix.app.Utils.ShareUtils.shareContent(
                         PlaylistDetailActivity.this,
@@ -398,10 +403,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                         playlistSong.song.getTitle()
                 );
             }
-            bottomSheet.dismiss();
-            ShareUtils.shareSongToFriends(this, song);
         });
-
         // Download - ĐÃ SỬA
         bottomSheetView.findViewById(R.id.menu_download).setOnClickListener(v -> {
             bottomSheet.dismiss();

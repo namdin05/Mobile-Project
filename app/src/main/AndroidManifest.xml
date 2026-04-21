@@ -25,8 +25,18 @@
         <!-- ACTIVITY -->
         <activity
             android:name=".MainActivity"
-            android:exported="false"
+            android:exported="true"
+            android:launchMode="singleTask"
             tools:ignore="AppLinkUrlError">
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="melodix" android:host="redirect" />
+            </intent-filter>
+
         </activity>
 
         <activity
@@ -72,6 +82,10 @@
             <!-- ACTIVITY / View / artist -->
             <activity android:name=".View.artist.CreateAlbumActivity" />
             <activity android:name=".View.artist.ManageSongActivity" />
+            <activity android:name=".View.artist.ManageAlbumActivity" />
+            <activity android:name=".View.artist.ManageAlbumDetailActivity" />
+
+
             <activity android:name=".View.artist.ArtistAnalyticsActivity" />
             <activity android:name=".View.artist.UploadSongActivity" />
 
