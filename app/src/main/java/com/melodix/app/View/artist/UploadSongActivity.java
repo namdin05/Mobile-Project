@@ -1,6 +1,7 @@
 package com.melodix.app.View.artist;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -52,7 +53,6 @@ public class UploadSongActivity extends AppCompatActivity {
 
     private ArtistAPIService apiService;
     private StorageAPIService storageService; // THÊM STORAGE SERVICE
-    private SessionManager sessionManager;
     private com.google.android.material.chip.ChipGroup chipGroupCollab;
 
     private View btnSelectAlbum, btnAddGenre;
@@ -66,6 +66,7 @@ public class UploadSongActivity extends AppCompatActivity {
     private boolean isEditMode = false;
     private String editSongId = null;
     private String existingCoverUrl = null;
+
 
     private final ActivityResultLauncher<String> pickCoverLauncher = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
