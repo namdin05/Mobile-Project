@@ -21,7 +21,7 @@ public class MainViewModel extends AndroidViewModel {
     }
 
     public void refresh() {
-        currentUser.setValue(repository.getCurrentUser());
+//        currentUser.setValue(repository.getCurrentUser());
         // Thay vì gọi Top Trending, giờ ta gọi All Approved Songs
         trending.setValue(repository.getAllApprovedSongs());
     }

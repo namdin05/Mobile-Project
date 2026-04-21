@@ -21,13 +21,15 @@ public class ManageAlbumAdapter extends RecyclerView.Adapter<ManageAlbumAdapter.
 
     private final Context context;
     private final List<Album> albumList;
-    private final OnAlbumClickListener listener;
+    private final OnAlbumOptionClickListener listener;
 
-    public interface OnAlbumClickListener {
-        void onAlbumClick(Album album);
+    // Upgraded interface: now it has 2 clear responsibilities
+    public interface OnAlbumOptionClickListener {
+        void onAlbumClick(Album album);   // Tap the album card to view tracks
+        void onOptionClick(Album album);  // Tap the 3-dot button / trash button
     }
 
-    public ManageAlbumAdapter(Context context, List<Album> albumList, OnAlbumClickListener listener) {
+    public ManageAlbumAdapter(Context context, List<Album> albumList, OnAlbumOptionClickListener listener) {
         this.context = context;
         this.albumList = albumList;
         this.listener = listener;
@@ -36,7 +38,6 @@ public class ManageAlbumAdapter extends RecyclerView.Adapter<ManageAlbumAdapter.
     @NonNull
     @Override
     public AlbumViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Thay item_manage_album bằng tên file XML của bạn nếu khác
         View view = LayoutInflater.from(context).inflate(R.layout.item_manage_album, parent, false);
         return new AlbumViewHolder(view);
     }
@@ -46,32 +47,35 @@ public class ManageAlbumAdapter extends RecyclerView.Adapter<ManageAlbumAdapter.
         Album album = albumList.get(position);
 
         holder.tvTitle.setText(album.title);
-        holder.tvYear.setText("Năm phát hành: " + album.year);
+        holder.tvYear.setText("Release Year: " + album.year);
 
         if (album.coverRes != null && !album.coverRes.isEmpty()) {
             Glide.with(context).load(album.coverRes).into(holder.imgCover);
         } else {
-            holder.imgCover.setImageResource(R.drawable.ic_launcher_background); // Ảnh mặc định
+            holder.imgCover.setImageResource(R.drawable.ic_launcher_background);
         }
 
-        // Xử lý hiển thị trạng thái
         String status = album.status != null ? album.status.toLowerCase() : "pending";
         switch (status) {
             case "approved":
-                holder.tvStatus.setText("Đã duyệt");
-                holder.tvStatus.setTextColor(Color.parseColor("#1DB954")); // Xanh Spotify
+                holder.tvStatus.setText("Approved");
+                holder.tvStatus.setTextColor(Color.parseColor("#1DB954"));
                 break;
             case "rejected":
-                holder.tvStatus.setText("Bị từ chối");
-                holder.tvStatus.setTextColor(Color.parseColor("#FF453A")); // Đỏ
+                holder.tvStatus.setText("Rejected");
+                holder.tvStatus.setTextColor(Color.parseColor("#FF453A"));
                 break;
-            default: // pending
-                holder.tvStatus.setText("Đang chờ duyệt");
-                holder.tvStatus.setTextColor(Color.parseColor("#FF9F0A")); // Cam
+            default:
+                holder.tvStatus.setText("Pending Review");
+                holder.tvStatus.setTextColor(Color.parseColor("#FF9F0A"));
                 break;
         }
 
+        // Handle click on the whole album card
         holder.itemView.setOnClickListener(v -> listener.onAlbumClick(album));
+
+        // Handle click on the 3-dot / trash button
+        holder.btnOptions.setOnClickListener(v -> listener.onOptionClick(album));
     }
 
     @Override
@@ -80,16 +84,16 @@ public class ManageAlbumAdapter extends RecyclerView.Adapter<ManageAlbumAdapter.
     }
 
     public static class AlbumViewHolder extends RecyclerView.ViewHolder {
-        ImageView imgCover;
+        ImageView imgCover, btnOptions;
         TextView tvTitle, tvYear, tvStatus;
 
         public AlbumViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Nhớ khớp ID với file item_manage_album.xml của bạn nhé
             imgCover = itemView.findViewById(R.id.img_album_cover);
             tvTitle = itemView.findViewById(R.id.tv_album_title);
             tvYear = itemView.findViewById(R.id.tv_album_year);
             tvStatus = itemView.findViewById(R.id.tv_album_status);
+            btnOptions = itemView.findViewById(R.id.btn_album_options);
         }
     }
 }

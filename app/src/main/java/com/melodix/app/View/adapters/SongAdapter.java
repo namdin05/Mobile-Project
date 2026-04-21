@@ -68,38 +68,41 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
                 .into(holder.cover);
 
         holder.title.setText(song.getTitle());
-        String displayArtist = (song.getArtistName() != null && !song.getArtistName().trim().isEmpty() && !song.getArtistName().equalsIgnoreCase("null"))
+
+        String displayArtist = (song.getArtistName() != null
+                && !song.getArtistName().trim().isEmpty()
+                && !song.getArtistName().equalsIgnoreCase("null"))
                 ? song.getArtistName()
                 : "Unknown Artist";
 
-        if (song.getGenre() != null && !song.getGenre().trim().isEmpty() && !song.getGenre().equalsIgnoreCase("null")) {
-            holder.subtitle.setText(song.getArtistName() + " • " + song.getGenre());
-        } else {
-            holder.subtitle.setText(song.getArtistName()); // Nếu không có thể loại, chỉ hiện tên nghệ sĩ
-        }
+        String displayGenre = (song.getGenre() != null
+                && !song.getGenre().trim().isEmpty()
+                && !song.getGenre().equalsIgnoreCase("null"))
+                ? song.getGenre()
+                : null;
 
         holder.meta.setText(TimeUtils.formatDuration(song.getDurationSeconds()));
+
+        if (isAnalyticsMode) {
+            java.text.NumberFormat format = java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN"));
+            String stats = "🎧 " + format.format(song.getPlays()) + "   •   ❤️ " + format.format(song.getLikes());
+            holder.subtitle.setText(stats);
+            holder.subtitle.setTextColor(android.graphics.Color.parseColor("#1DB954"));
+        } else {
+            if (displayGenre != null) {
+                holder.subtitle.setText(displayArtist + " • " + displayGenre);
+            } else {
+                holder.subtitle.setText(displayArtist);
+            }
+            holder.subtitle.setTextColor(android.graphics.Color.parseColor("#AAAAAA"));
+        }
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onSongClick(song, position);
         });
 
         holder.more.setOnClickListener(v -> showMenu(v, song, position));
-
-        if (isAnalyticsMode) {
-            // NẾU BẬT CÔNG TẮC: Hiển thị 🎧 Lượt nghe và ❤️ Lượt thích
-            java.text.NumberFormat format = java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN"));
-            String stats = "🎧 " + format.format(song.getPlays()) + "   •   ❤️ " + format.format(song.getLikes());
-
-            holder.subtitle.setText(stats); // (Nhớ đổi tvArtistName thành tên biến TextView của bạn nếu khác nhé)
-            holder.subtitle.setTextColor(android.graphics.Color.parseColor("#1DB954")); // Đổi màu xanh lá cho nổi bật số liệu
-        } else {
-            // NẾU TẮT CÔNG TẮC: Trả về hiển thị tên nghệ sĩ như bình thường
-            holder.subtitle.setText(song.getArtistName());
-            holder.subtitle.setTextColor(android.graphics.Color.parseColor("#AAAAAA")); // Trả về màu xám mặc định
-        }
     }
-
     private void showMenu(View anchor, Song song, int position) {
         com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet =
                 new com.google.android.material.bottomsheet.BottomSheetDialog(context, R.style.BottomSheetTheme);

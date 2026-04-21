@@ -3,33 +3,23 @@ package com.melodix.app.Repository.auth;
 import static com.melodix.app.BuildConfig.API_KEY;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 
-import com.google.gson.Gson;
 import com.melodix.app.Model.AuthResponse;
-import com.melodix.app.Model.Banner;
-import com.melodix.app.Model.Genre;
-import com.melodix.app.Model.SessionManager;
 import com.melodix.app.Model.SignInRequest;
 import com.melodix.app.Model.SignUpRequest;
 import com.melodix.app.Model.LoginResult;
 import com.melodix.app.Model.Profile;
-import com.melodix.app.Model.SessionManager;
 
-import com.melodix.app.Service.AdminAPIService;
 import com.melodix.app.Service.AuthAPIService;
-import com.melodix.app.Service.BannerAPIService;
-import com.melodix.app.Service.GenreAPIService;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
-import com.melodix.app.BuildConfig;
 import com.melodix.app.Service.RetrofitClient;
 
 import java.util.List;
@@ -61,7 +51,6 @@ public class AuthRepository {
 
                     // Log.d("test_u", new Gson().toJson(response.body().getUser()));
 
-                    SessionManager.getInstance(context).saveLogInSession(response.body().getUser(), token);
                 } else {
                     result.setValue(new LoginResult(false, "Sai tài khoản hoặc mật khẩu", true));
                 }
@@ -130,10 +119,22 @@ public class AuthRepository {
         apiService.getProfile(API_KEY, modified_token, modified_user_id).enqueue(new Callback<List<Profile>>() {
             @Override
             public void onResponse(Call<List<Profile>> call, Response<List<Profile>> response) {
-                if(response.isSuccessful() && response.body() != null){
+                if(response.isSuccessful() && response.body() != null && !response.body().isEmpty()){
                     Profile profile = response.body().get(0);
                     current_user.setValue(profile);
-                    SessionManager.getInstance(context).saveLogInSession(profile, token);
+
+                    // ĐÃ SỬA: Thay thế SessionManager bằng SharedPreferences
+                    SharedPreferences.Editor editor = context.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE).edit();
+                    editor.putString("USER_ID", profile.getId());
+                    editor.putString("USER_ROLE", profile.getRole());
+                    editor.putString("AUTH_TOKEN", token);
+
+                    // Có thể lưu thêm các trường cơ bản của Profile nếu các màn hình khác cần xài nhanh
+                     editor.putString("USER_NAME", profile.getDisplayName());
+                     editor.putString("USER_AVATAR", profile.getAvatarUrl());
+
+                    editor.putBoolean("IS_LOGGED_IN", true);
+                    editor.apply();
                 } else {
                     current_user.setValue(null);
                 }

@@ -108,27 +108,22 @@ public class PlayerActivity extends AppCompatActivity {
         tvTotal = findViewById(R.id.tv_total);
         btnPlayPause = findViewById(R.id.btn_play_pause);
 
-        // ====================== 1. ƯU TIÊN CAO NHẤT: Mở từ File Manager (My Files) ======================
-        Uri fileUri = getIntent().getData();
-        if (fileUri != null && "content".equals(fileUri.getScheme())) {
-            Log.d("PlayerActivity", "Mở từ My Files - URI: " + fileUri);
-            handleOpenDownloadedFile(fileUri);
-            setupUIEvents();        // Quan trọng: vẫn cần khởi tạo nút bấm
+        // 1. ƯU TIÊN CAO NHẤT: Mở từ File Manager (My Files)
+        Uri data = getIntent().getData();
+        if (data != null && "content".equals(data.getScheme())) {
+            Log.d("PlayerActivity", "Mở từ My Files - URI: " + data);
+            handleOpenDownloadedFile(data);
+            setupUIEvents();
             return;
         }
 
-        // ====================== 2. Các trường hợp mở từ trong app ======================
-        String songId = getIntent().getStringExtra(EXTRA_SONG_ID);
-
-        // Kiểm tra offline song đang có trong repository (dùng cho trường hợp mở từ Mini Player, Library...)
+        // 2. Kiểm tra offline song đang có trong repository
         Song currentInRepo = PlaybackRepository.getInstance().getCurrentSong();
-
         if (currentInRepo != null && currentInRepo.getAudioUrl() != null &&
                 (currentInRepo.getAudioUrl().startsWith("/") ||
                         currentInRepo.getAudioUrl().startsWith("content://") ||
                         currentInRepo.getAudioUrl().startsWith("file://"))) {
 
-            // Đây là bài hát offline → không fetch từ database
             currentSong = currentInRepo;
             loadSong(currentSong.getId());
             setupUIEvents();
@@ -141,50 +136,44 @@ public class PlayerActivity extends AppCompatActivity {
             return;
         }
 
-        // === 3. Deep link từ browser ===
-        Uri data = getIntent().getData();
-        if (data != null && "melodix".equals(data.getScheme())) {
-            songId = data.getLastPathSegment();
-            fetchSongFromDbAndPlay(songId);
-            return;
-        }
+        // 3. LẤY ID BÀI HÁT TỪ INTENT HOẶC TỪ LINK TRÌNH DUYỆT
+        String intentSongId = getIntent().getStringExtra(EXTRA_SONG_ID);
+        String deepLinkSongId = (data != null && "melodix".equals(data.getScheme())) ? data.getLastPathSegment() : null;
 
-        // === 4. Intent từ MainActivity hoặc Mini Player ===
-        if (songId != null) {
-            String cachedSongId = AudioPlayerService.getCurrentSongId();
-            if (cachedSongId == null && repository.getCurrentQueueSong() != null) {
-                cachedSongId = repository.getCurrentQueueSong().getId();
-            }
+        String targetSongId = deepLinkSongId != null ? deepLinkSongId : intentSongId;
 
-            if (cachedSongId == null || !songId.equals(cachedSongId)) {
-                fetchSongFromDbAndPlay(songId);
+        if (targetSongId != null) {
+            Song currentRepoSong = PlaybackRepository.getInstance().getCurrentSong();
+
+            if (currentRepoSong == null || !targetSongId.equals(currentRepoSong.getId())) {
+                fetchSongFromDbAndPlay(targetSongId);
+                return;
+            } else {
+                boolean startPlayback = getIntent().getBooleanExtra("start_playback", false);
+                if (startPlayback) {
+                    Intent serviceIntent = new Intent(this, AudioPlayerService.class);
+                    serviceIntent.setAction(AudioPlayerService.ACTION_PLAY_SONG);
+                    serviceIntent.putExtra(AudioPlayerService.EXTRA_SONG_ID, targetSongId);
+                    androidx.core.content.ContextCompat.startForegroundService(this, serviceIntent);
+                }
+                loadSong(targetSongId);
+                setupUIEvents();
                 return;
             }
         }
 
-        // === 5. Mở lại bài đang nghe ===
-        if (songId == null) songId = AudioPlayerService.getCurrentSongId();
-        if (songId == null && repository.getCurrentQueueSong() != null) {
-            songId = repository.getCurrentQueueSong().getId();
+        // 4. MỞ TỪ THANH MINI PLAYER (Chỉ mở lại giao diện của bài đang nghe sẵn)
+        String currentId = AudioPlayerService.getCurrentSongId();
+        if (currentId == null && PlaybackRepository.getInstance().getCurrentSong() != null) {
+            currentId = PlaybackRepository.getInstance().getCurrentSong().getId();
         }
 
-        if (songId == null) {
+        if (currentId == null) {
             finish();
             return;
         }
 
-        // Khởi động service nếu cần
-        boolean startPlayback = getIntent().getBooleanExtra("start_playback", false);
-        if (isAutoPlay || startPlayback || AudioPlayerService.getCurrentSongId() == null ||
-                !songId.equals(AudioPlayerService.getCurrentSongId())) {
-
-            Intent serviceIntent = new Intent(this, AudioPlayerService.class);
-            serviceIntent.setAction(AudioPlayerService.ACTION_PLAY_SONG);
-            serviceIntent.putExtra(AudioPlayerService.EXTRA_SONG_ID, songId);
-            ContextCompat.startForegroundService(this, serviceIntent);
-        }
-
-        loadSong(songId);
+        loadSong(currentId);
         setupUIEvents();
     }
 
@@ -591,33 +580,71 @@ public class PlayerActivity extends AppCompatActivity {
     // =========================================================
     // LẤY DỮ LIỆU TỪ DATABASE KHI VÀO TỪ LINK CHIA SẺ
     // =========================================================
+    // =========================================================
+    // HÀM CHUYÊN DÙNG CHO DEEP LINK (LINK CHIA SẺ)
+    // =========================================================
     private void fetchSongFromDbAndPlay(String songId) {
-        AppRepository.getInstance(this).getSongByIdAsync(songId, new AppRepository.SingleSongCallback() {
+        repository.getSongByIdAsync(songId, new AppRepository.SingleSongCallback() {
             @Override
-            public void onSuccess(Song song) {
-                if (isFinishing() || isDestroyed()) return;
+            public void onSuccess(Song sharedSong) {
+                // 1. Lấy ID nghệ sĩ từ bài hát vừa tải
+                String artistId = sharedSong.getArtistId();
 
-                // 1. Nhét bài hát vừa lấy được vào kho lưu trữ cục bộ
-                PlaybackRepository.getInstance().setCurrentSong(song);
+                if (artistId != null && !artistId.isEmpty()) {
+                    // 2. Gọi hàm lấy các bài cùng nghệ sĩ
+                    repository.getSongsByArtist(artistId, new AppRepository.SongListCallback() {
+                        @Override
+                        public void onSuccess(ArrayList<Song> artistSongs) {
+                            ArrayList<Song> finalQueue = new ArrayList<>();
+                            finalQueue.add(sharedSong); // Bài được share luôn nằm đầu
 
-                // 2. Lúc này Data đã có đủ, ta tự tin ra lệnh cho Service phát nhạc
-                Intent serviceIntent = new Intent(PlayerActivity.this, AudioPlayerService.class);
-                serviceIntent.setAction(AudioPlayerService.ACTION_PLAY_SONG);
-                serviceIntent.putExtra(AudioPlayerService.EXTRA_SONG_ID, song.getId());
-                androidx.core.content.ContextCompat.startForegroundService(PlayerActivity.this, serviceIntent);
+                            for (Song s : artistSongs) {
+                                // Lọc bỏ chính nó để danh sách không bị lặp lại bài đang nghe
+                                if (!s.getId().equals(sharedSong.getId())) {
+                                    finalQueue.add(s);
+                                }
+                            }
 
-                // 3. Gọi hàm vẽ Giao diện (Tên bài, ảnh bìa...)
-                loadSong(song.getId());
+                            // 3. Cài đặt hàng đợi và phát nhạc
+                            PlaybackRepository.getInstance().setQueue(finalQueue, sharedSong.getId());
+                            startServiceAndLoadUI(sharedSong.getId());
+                        }
 
-                // 4. (Quan trọng) Gọi lại hàm cài đặt sự kiện để các nút không bị đơ
-                setupUIEvents();
+                        @Override
+                        public void onError(String message) {
+                            // Nếu lỗi lấy list liên quan thì vẫn phải cho người ta nghe bài gốc chứ!
+                            playSoloSong(sharedSong);
+                        }
+                    });
+                } else {
+                    playSoloSong(sharedSong);
+                }
             }
 
             @Override
             public void onError(String message) {
-                Toast.makeText(PlayerActivity.this, "Lỗi tải bài hát: " + message, Toast.LENGTH_SHORT).show();
-                finish(); // Lỗi thì đóng luôn màn hình
+                android.widget.Toast.makeText(PlayerActivity.this, "Lỗi: " + message, android.widget.Toast.LENGTH_SHORT).show();
+                finish(); // Không tải được bài gốc thì đóng Activity luôn cho rảnh nợ sếp ạ
             }
         });
+    }
+
+// --- Các hàm phụ trợ giúp code sạch đẹp hơn ---
+
+    private void playSoloSong(Song song) {
+        ArrayList<Song> soloQueue = new ArrayList<>();
+        soloQueue.add(song);
+        PlaybackRepository.getInstance().setQueue(soloQueue, song.getId());
+        startServiceAndLoadUI(song.getId());
+    }
+
+    private void startServiceAndLoadUI(String songId) {
+        Intent serviceIntent = new Intent(PlayerActivity.this, AudioPlayerService.class);
+        serviceIntent.setAction(AudioPlayerService.ACTION_PLAY_SONG);
+        serviceIntent.putExtra(AudioPlayerService.EXTRA_SONG_ID, songId);
+        androidx.core.content.ContextCompat.startForegroundService(PlayerActivity.this, serviceIntent);
+
+        loadSong(songId);
+        setupUIEvents();
     }
 }

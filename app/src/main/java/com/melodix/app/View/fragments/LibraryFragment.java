@@ -1,6 +1,8 @@
 package com.melodix.app.View.fragments;
 
 import android.content.Intent;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -303,6 +305,7 @@ public class LibraryFragment extends Fragment {
         startActivity(intent);
     }
 
+    // ĐÃ SỬA: Lấy USER_ID từ SharedPreferences thay vì SessionManager
     private String getCurrentUserId() {
         com.melodix.app.Model.SessionManager session = com.melodix.app.Model.SessionManager.getInstance(requireContext());
         return session.getCurrentUser() != null ? session.getCurrentUser().getId() : null;
