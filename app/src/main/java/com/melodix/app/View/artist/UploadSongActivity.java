@@ -67,6 +67,8 @@ public class UploadSongActivity extends AppCompatActivity {
     private String editSongId = null;
     private String existingCoverUrl = null;
 
+    // ĐÃ SỬA: Dùng String để lưu currentUserId lấy từ SharedPreferences
+    private String currentUserId;
 
     private final ActivityResultLauncher<String> pickCoverLauncher = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
@@ -104,13 +106,16 @@ public class UploadSongActivity extends AppCompatActivity {
         apiService = RetrofitClient.getClient(getApplicationContext()).create(ArtistAPIService.class);
         storageService = RetrofitClient.getStorage(getApplicationContext()).create(StorageAPIService.class);
 
-        sessionManager = SessionManager.getInstance(this);
+        // ĐÃ SỬA: Lấy USER_ID từ SharedPreferences thay vì SessionManager
+        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
+        currentUserId = prefs.getString("USER_ID", null);
 
         View btnBack = findViewById(R.id.btn_back);
         btnBack.setOnClickListener(v -> finish());
 
-        if (sessionManager.getCurrentUser() != null && sessionManager.getCurrentUser().getId() != null) {
-            selectedArtistIds.add(sessionManager.getCurrentUser().getId());
+        // ĐÃ SỬA: Dùng currentUserId
+        if (currentUserId != null) {
+            selectedArtistIds.add(currentUserId);
         }
 
         edtSongTitle = findViewById(R.id.edt_song_title);
@@ -225,7 +230,9 @@ public class UploadSongActivity extends AppCompatActivity {
         // BƯỚC 2: Xử lý File Nhạc
         if (audioUri != null) {
             btnSubmitUpload.setText("ĐANG TẢI NHẠC (2/3)...");
-            String audioFileName = "song_" + System.currentTimeMillis() + ".mp3";
+            String slugTitle = generateSlug(songTitle);
+            String audioFileName = slugTitle + ".mp3";
+            byte[] audioBytes = readBytesFromUri(audioUri);
 
             uploadFileToSupabase(audioUri, Constants.SONG_AUDIO_BUCKET, audioFileName, "audio/mpeg", new Callback<ResponseBody>() {
                 @Override
@@ -406,7 +413,9 @@ public class UploadSongActivity extends AppCompatActivity {
         container.addView(title);
 
         ArtistAPIService supabaseApi = RetrofitClient.getClient(getApplicationContext()).create(ArtistAPIService.class);
-        supabaseApi.getAlbumsByArtistId("eq." + sessionManager.getCurrentUser().getId()).enqueue(new Callback<java.util.List<com.melodix.app.Model.Album>>() {
+
+        // ĐÃ SỬA: Dùng biến currentUserId để truy vấn thay vì gọi sessionManager
+        supabaseApi.getAlbumsByArtistId("eq." + currentUserId).enqueue(new Callback<java.util.List<com.melodix.app.Model.Album>>() {
             @Override
             public void onResponse(Call<java.util.List<com.melodix.app.Model.Album>> call, Response<java.util.List<com.melodix.app.Model.Album>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -426,7 +435,17 @@ public class UploadSongActivity extends AppCompatActivity {
                     container.addView(divider);
 
                     for (com.melodix.app.Model.Album album : response.body()) {
-                        container.addView(createPremiumDialogItem("💽", album.title + " (" + album.year + ")", v -> {
+                        if(album.status != null && album.status.equalsIgnoreCase("rejected") ){
+                            continue;
+                        }
+                        String displayTitle = album.title;
+                        if (album.status != null && album.status.equalsIgnoreCase("pending")){
+                            displayTitle = album.title + "( Pending Review )";
+                        }else{
+                            displayTitle = album.title + "( " + album.year + " )";
+                        }
+
+                        container.addView(createPremiumDialogItem("💽", displayTitle, v -> {
                             selectedAlbumId = album.id;
                             tvSelectedAlbum.setText(album.title);
                             dialog.dismiss();
@@ -457,7 +476,7 @@ public class UploadSongActivity extends AppCompatActivity {
         container.setBackground(bgShape);
 
         TextView title = new TextView(this);
-        title.setText("Thể loại âm nhạc");
+        title.setText("Music genre");
         title.setTextSize(20);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         title.setTextColor(android.graphics.Color.BLACK);
@@ -502,7 +521,7 @@ public class UploadSongActivity extends AppCompatActivity {
         container.setBackground(bgShape);
 
         EditText edtSearch = new EditText(this);
-        edtSearch.setHint("🔍 Nhập tên nghệ sĩ...");
+        edtSearch.setHint("🔍 Enter artist name...");
         edtSearch.setTextColor(android.graphics.Color.BLACK);
         edtSearch.setHintTextColor(android.graphics.Color.parseColor("#8E8E93"));
         edtSearch.setPadding(50, 40, 50, 40);
@@ -631,7 +650,15 @@ public class UploadSongActivity extends AppCompatActivity {
         });
         dialog.show();
 
-        View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        // FIX LỖI R Ở ĐÂY: Sử dụng getResources().getIdentifier() để lấy ID an toàn
+        int bottomSheetId = getResources().getIdentifier("design_bottom_sheet", "id", getPackageName());
+        if (bottomSheetId == 0) {
+            // Nếu không tìm thấy bằng getPackageName (thường do là ID của thư viện), thử dùng package của material
+            bottomSheetId = getResources().getIdentifier("design_bottom_sheet", "id", "com.google.android.material");
+        }
+        
+        View bottomSheet = dialog.findViewById(bottomSheetId);
+        
         if (bottomSheet != null) {
             com.google.android.material.bottomsheet.BottomSheetBehavior<View> behavior =
                     com.google.android.material.bottomsheet.BottomSheetBehavior.from(bottomSheet);
@@ -776,8 +803,27 @@ public class UploadSongActivity extends AppCompatActivity {
         selectedArtistIds.clear();
         chipGroupCollab.removeAllViews();
 
-        if (sessionManager.getCurrentUser() != null && sessionManager.getCurrentUser().getId() != null) {
-            selectedArtistIds.add(sessionManager.getCurrentUser().getId());
+        // ĐÃ SỬA: Dùng currentUserId
+        if (currentUserId != null) {
+            selectedArtistIds.add(currentUserId);
         }
+    }
+    // ==========================================
+    // HÀM CHUYỂN TÊN CÓ DẤU THÀNH KHÔNG DẤU VIẾT LIỀN
+    // Vd: "Chắc Ai Đó Sẽ Về!" -> "chacaidoseve"
+    // ==========================================
+    private String generateSlug(String input) {
+        if (input == null || input.isEmpty()) return "unknown_song";
+
+        // 1. Tách dấu ra khỏi chữ cái
+        String normalized = java.text.Normalizer.normalize(input, java.text.Normalizer.Form.NFD);
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        String noAccents = pattern.matcher(normalized).replaceAll("");
+
+        // 2. Xử lý riêng chữ Đ (vì Normalizer không xử lý được chữ này)
+        noAccents = noAccents.replace("đ", "d").replace("Đ", "D");
+
+        // 3. Xóa BỎ TOÀN BỘ khoảng trắng và ký tự đặc biệt, sau đó chuyển thành chữ thường
+        return noAccents.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
     }
 }
