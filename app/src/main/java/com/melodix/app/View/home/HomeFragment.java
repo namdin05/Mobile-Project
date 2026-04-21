@@ -36,6 +36,7 @@ import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.PlayerActivity;
 import com.melodix.app.Utils.PlaybackUtils;
 import com.melodix.app.Utils.ShareUtils;
+import com.melodix.app.Utils.NetworkUtils;
 import com.melodix.app.View.adapters.BannerAdapter;
 import com.melodix.app.View.adapters.GenreAdapter;
 import com.melodix.app.View.adapters.SongCardAdapter;
@@ -56,6 +57,10 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        if (!NetworkUtils.isNetworkAvailable(requireContext())) {
+//            Toast.makeText(requireContext(), "Không có mạng. Vui lòng chuyển sang Library để nghe nhạc offline.", Toast.LENGTH_LONG).show();
+            return;
+        }
         // khai bao ViewModel
         HomeViewModel viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         // danh sach bai hat moi nhat

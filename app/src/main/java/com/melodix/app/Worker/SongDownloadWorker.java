@@ -238,9 +238,7 @@ public class SongDownloadWorker extends Worker {
         }
     }
 
-    /**
-     * Lưu file tương thích với Android 10 (API 29) và các phiên bản khác
-     */
+    //Lưu file tương thích
     private String saveFileForAndroidVersion(String title, String artist, long contentLength, InputStream is) throws Exception {
         // Android 10 trở lên (API 29+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -251,13 +249,10 @@ public class SongDownloadWorker extends Worker {
         }
     }
 
-    /**
-     * Lưu file bằng MediaStore (cho Android 10+)
-     */
+    //Lưu file bằng MediaStore
     private String saveUsingMediaStore(String title, String artist, long contentLength, InputStream is) throws Exception {
         ContentResolver resolver = getApplicationContext().getContentResolver();
 
-        // Làm sạch tên file, loại bỏ ký tự đặc biệt nhưng giữ tiếng Việt
         String fileName = sanitizeFileName(title) + ".mp3";
         if (title == null || title.isEmpty()) {
             fileName = "unknown_song.mp3";
@@ -303,12 +298,40 @@ public class SongDownloadWorker extends Worker {
             throw e;
         }
 
-        return uri.toString();
+        // Lấy đường dẫn thực từ URI
+        String realPath = getRealPathFromMediaStoreUri(uri);
+
+        if (realPath != null && !realPath.isEmpty()) {
+            Log.d(TAG, "Lưu thành công, đường dẫn thực: " + realPath);
+            return realPath;
+        } else {
+            // Fallback: vẫn trả về URI nếu không lấy được đường dẫn thực
+            Log.w(TAG, "Không lấy được đường dẫn thực, dùng URI: " + uri.toString());
+            return uri.toString();
+        }
     }
 
-    /**
-     * Lưu file bằng File System truyền thống (cho Android 9 trở xuống)
-     */
+    // Lấy đường dẫn thực từ MediaStore URI
+    private String getRealPathFromMediaStoreUri(Uri uri) {
+        if (uri == null) return null;
+
+        String[] projection = {MediaStore.MediaColumns.DATA};
+        try (android.database.Cursor cursor = getApplicationContext().getContentResolver()
+                .query(uri, projection, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+                String path = cursor.getString(columnIndex);
+                if (path != null && !path.isEmpty()) {
+                    return path;
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Lỗi lấy đường dẫn thực", e);
+        }
+        return null;
+    }
+
+    //Lưu file bằng FileSystem
     private String saveUsingFileSystem(String title, String artist, InputStream is) throws Exception {
         // Tạo thư mục Melodix trong Music
         File musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
@@ -356,9 +379,7 @@ public class SongDownloadWorker extends Worker {
         return outputFile.getAbsolutePath();
     }
 
-    /**
-     * Quét file vào MediaStore (cho Android 9 trở xuống)
-     */
+    // Quét file vào MediaStore
     private void scanFileToMediaStore(File file, String title, String artist) {
         ContentValues values = new ContentValues();
         values.put(MediaStore.MediaColumns.DATA, file.getAbsolutePath());
@@ -375,9 +396,7 @@ public class SongDownloadWorker extends Worker {
         );
     }
 
-    /**
-     * Làm sạch tên file, loại bỏ ký tự đặc biệt nhưng giữ tiếng Việt
-     */
+    //Loai bỏ kí tự đặc biệt trong tên file
     private String sanitizeFileName(String fileName) {
         if (fileName == null) return "unknown_song";
         // Chỉ thay thế các ký tự không hợp lệ trong tên file

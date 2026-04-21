@@ -219,8 +219,24 @@ public class AudioPlayerService extends Service {
                     .build());
 
             // Truyền link URL từ API vào (ở đây bạn dùng thuộc tính audioRes để chứa URL)
-            Log.d("TEST_MUSIC", "Đang tải link: " + song.getAudioUrl());
-            mediaPlayer.setDataSource(song.getAudioUrl());
+            String audioSource = song.getAudioUrl();
+
+            Log.d("TEST_MUSIC", "Đang phát từ: " + audioSource);
+
+            // === QUAN TRỌNG: PHÂN BIỆT LOCAL FILE VÀ URL MẠNG ===
+            if (audioSource != null &&
+                    (audioSource.startsWith("/") ||
+                            audioSource.startsWith("content://") ||
+                            audioSource.startsWith("file://"))) {
+
+                // Đây là file local (offline)
+                mediaPlayer.setDataSource(audioSource);
+                Log.d("TEST_MUSIC", "→ Phát từ file local");
+            } else {
+                // Đây là URL từ Supabase (online)
+                mediaPlayer.setDataSource(audioSource);
+                Log.d("TEST_MUSIC", "→ Phát từ URL mạng");
+            }
 
             mediaPlayer.setOnErrorListener((mp, what, extra) -> {
                 Log.e("TEST_MUSIC", "Lỗi phát nhạc! Mã lỗi: " + what + " - " + extra);

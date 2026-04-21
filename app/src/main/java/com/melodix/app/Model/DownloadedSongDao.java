@@ -23,9 +23,15 @@ public interface DownloadedSongDao {
     @Query("DELETE FROM downloaded_songs WHERE songId = :songId")
     void deleteById(String songId);
 
+    @Query("DELETE FROM downloaded_songs WHERE localAudioPath IS NULL OR localAudioPath = ''")
+    void deleteInvalidEntries();
+
     @Query("SELECT EXISTS(SELECT 1 FROM downloaded_songs WHERE songId = :songId)")
     boolean isDownloaded(String songId);
 
     @Query("SELECT * FROM downloaded_songs WHERE localAudioPath = :path LIMIT 1")
     DownloadedSong getByLocalPath(String path);
+
+    @Query("SELECT * FROM downloaded_songs")
+    List<DownloadedSong> getAllDownloadedSync();
 }

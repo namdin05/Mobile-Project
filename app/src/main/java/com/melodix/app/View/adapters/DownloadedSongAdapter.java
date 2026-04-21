@@ -35,7 +35,7 @@ public class DownloadedSongAdapter extends RecyclerView.Adapter<DownloadedSongAd
 
     public DownloadedSongAdapter(Context context) {
         this.context = context;
-        this.listener = null; // Nếu chưa cần listener thì để null
+        this.listener = null;
     }
 
     public DownloadedSongAdapter(Context context, OnDownloadedSongClickListener listener) {

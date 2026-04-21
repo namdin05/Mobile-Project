@@ -23,6 +23,7 @@ import com.melodix.app.Model.LyricLine;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
+import com.melodix.app.Repository.DownloadRepository;
 import com.melodix.app.Repository.PlaybackRepository;
 import com.melodix.app.Service.AudioPlayerService;
 import com.melodix.app.Utils.AppUiUtils;
@@ -37,6 +38,10 @@ import com.melodix.app.View.adapters.LyricAdapter;
 //import com.melodix.app.View.adapters.LyricAdapter;
 import com.melodix.app.Model.AppDatabase;
 import com.melodix.app.Model.DownloadedSong;
+import android.provider.MediaStore;
+import android.util.Log;
+import java.util.List;
+import android.database.Cursor;
 
 
 import java.util.ArrayList;
@@ -94,7 +99,6 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         repository = AppRepository.getInstance(this);
-//        ThemeUtils.applyNightMode(repository.getCurrentUser() == null || repository.getCurrentUser().darkMode);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
@@ -104,57 +108,80 @@ public class PlayerActivity extends AppCompatActivity {
         tvTotal = findViewById(R.id.tv_total);
         btnPlayPause = findViewById(R.id.btn_play_pause);
 
-        String songId = null;
+        // ====================== 1. ƯU TIÊN CAO NHẤT: Mở từ File Manager (My Files) ======================
+        Uri fileUri = getIntent().getData();
+        if (fileUri != null && "content".equals(fileUri.getScheme())) {
+            Log.d("PlayerActivity", "Mở từ My Files - URI: " + fileUri);
+            handleOpenDownloadedFile(fileUri);
+            setupUIEvents();        // Quan trọng: vẫn cần khởi tạo nút bấm
+            return;
+        }
 
-        // 1. KIỂM TRA DEEP LINK TRỰC TIẾP TỪ BROWSER
+        // ====================== 2. Các trường hợp mở từ trong app ======================
+        String songId = getIntent().getStringExtra(EXTRA_SONG_ID);
+
+        // Kiểm tra offline song đang có trong repository (dùng cho trường hợp mở từ Mini Player, Library...)
+        Song currentInRepo = PlaybackRepository.getInstance().getCurrentSong();
+
+        if (currentInRepo != null && currentInRepo.getAudioUrl() != null &&
+                (currentInRepo.getAudioUrl().startsWith("/") ||
+                        currentInRepo.getAudioUrl().startsWith("content://") ||
+                        currentInRepo.getAudioUrl().startsWith("file://"))) {
+
+            // Đây là bài hát offline → không fetch từ database
+            currentSong = currentInRepo;
+            loadSong(currentSong.getId());
+            setupUIEvents();
+
+            Intent serviceIntent = new Intent(this, AudioPlayerService.class);
+            serviceIntent.setAction(AudioPlayerService.ACTION_PLAY_SONG);
+            serviceIntent.putExtra(AudioPlayerService.EXTRA_SONG_ID, currentSong.getId());
+            ContextCompat.startForegroundService(this, serviceIntent);
+
+            return;
+        }
+
+        // === 3. Deep link từ browser ===
         Uri data = getIntent().getData();
         if (data != null && "melodix".equals(data.getScheme())) {
             songId = data.getLastPathSegment();
             fetchSongFromDbAndPlay(songId);
-            return; // Khóa màn hình tại đây đợi tải xong
+            return;
         }
 
-        // 2. KIỂM TRA INTENT DO MAINACTIVITY NÉM SANG (KHI MỞ QUA ĐA NHIỆM)
-        songId = getIntent().getStringExtra(EXTRA_SONG_ID);
+        // === 4. Intent từ MainActivity hoặc Mini Player ===
         if (songId != null) {
-            // Lấy ID bài hát máy đang nhớ (Bài A)
             String cachedSongId = AudioPlayerService.getCurrentSongId();
             if (cachedSongId == null && repository.getCurrentQueueSong() != null) {
                 cachedSongId = repository.getCurrentQueueSong().getId();
             }
 
-            // 👇 CHÌA KHÓA Ở ĐÂY: Nếu bấm link Bài B mà máy đang nhớ Bài A -> TẢI MỚI!
             if (cachedSongId == null || !songId.equals(cachedSongId)) {
                 fetchSongFromDbAndPlay(songId);
-                return; // Dừng vẽ giao diện, chờ tải Bài B xong mới hiện!
+                return;
             }
         }
 
-        // 2. NẾU MỞ TỪ TRONG APP THÌ CHẠY BÌNH THƯỜNG NHƯ CŨ
-        if (songId == null) songId = getIntent().getStringExtra(EXTRA_SONG_ID);
-
-        Uri fileUri = getIntent().getData();
-        if (fileUri != null && "content".equals(fileUri.getScheme()) && songId == null) {
-            handleOpenDownloadedFile(fileUri);
-            return;
-        }
-
-        // 3. NẾU MỞ APP BÌNH THƯỜNG (Bấm vào thanh Mini Player để mở lại bài đang nghe)
+        // === 5. Mở lại bài đang nghe ===
         if (songId == null) songId = AudioPlayerService.getCurrentSongId();
-        if (songId == null && repository.getCurrentQueueSong() != null) songId = repository.getCurrentQueueSong().getId();
+        if (songId == null && repository.getCurrentQueueSong() != null) {
+            songId = repository.getCurrentQueueSong().getId();
+        }
 
         if (songId == null) {
             finish();
             return;
         }
 
-        // Đoạn này chỉ chạy khi sếp muốn mở lại Bài A đang nghe dở
+        // Khởi động service nếu cần
         boolean startPlayback = getIntent().getBooleanExtra("start_playback", false);
-        if (isAutoPlay || startPlayback || AudioPlayerService.getCurrentSongId() == null || !songId.equals(AudioPlayerService.getCurrentSongId())) {
+        if (isAutoPlay || startPlayback || AudioPlayerService.getCurrentSongId() == null ||
+                !songId.equals(AudioPlayerService.getCurrentSongId())) {
+
             Intent serviceIntent = new Intent(this, AudioPlayerService.class);
             serviceIntent.setAction(AudioPlayerService.ACTION_PLAY_SONG);
             serviceIntent.putExtra(AudioPlayerService.EXTRA_SONG_ID, songId);
-            androidx.core.content.ContextCompat.startForegroundService(this, serviceIntent);
+            ContextCompat.startForegroundService(this, serviceIntent);
         }
 
         loadSong(songId);
@@ -194,8 +221,12 @@ public class PlayerActivity extends AppCompatActivity {
         findViewById(R.id.btn_timer).setOnClickListener(v -> AppUiUtils.showSleepTimerDialog(this));
         findViewById(R.id.btn_download).setOnClickListener(v -> {
             if (currentSong != null) {
-                boolean downloaded = repository.toggleDownloadSong(currentSong.getId());
-                AppUiUtils.toast(this, downloaded ? "Downloaded for offline" : "Removed offline file");
+                DownloadRepository downloadRepo = new DownloadRepository(this);
+                downloadRepo.enqueueDownload(currentSong);
+
+                Toast.makeText(this, "Đang tải: " + currentSong.getTitle(), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Không có bài hát để tải", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -377,49 +408,151 @@ public class PlayerActivity extends AppCompatActivity {
             return;
         }
 
+        String uriString = uri.toString();
+        Log.d("PlayerActivity", "Opening file with URI: " + uriString);
+
         new Thread(() -> {
-            DownloadedSong downloaded = AppDatabase.getInstance(this)
-                    .downloadedSongDao()
-                    .getByLocalPath(uri.toString());
+            DownloadedSong downloaded = null;
+
+            // Tìm theo tên file từ URI
+            String fileName = getFileNameFromUri(uri);
+            if (fileName != null && fileName.endsWith(".mp3")) {
+                String titleFromFile = fileName.replace(".mp3", "");
+                List<DownloadedSong> allSongs = AppDatabase.getInstance(this)
+                        .downloadedSongDao()
+                        .getAllDownloadedSync();
+
+                for (DownloadedSong song : allSongs) {
+                    if (song.title != null && song.title.equals(titleFromFile)) {
+                        downloaded = song;
+                        Log.d("PlayerActivity", "Found by title: " + song.title);
+                        break;
+                    }
+                }
+            }
+
+            // Nếu không tìm thấy, thử lấy đường dẫn thực từ URI
+            if (downloaded == null) {
+                String realPath = getRealPathFromUri(uri);
+                if (realPath != null) {
+                    downloaded = AppDatabase.getInstance(this)
+                            .downloadedSongDao()
+                            .getByLocalPath(realPath);
+                    if (downloaded != null) {
+                        Log.d("PlayerActivity", "Found by realPath: " + downloaded.title);
+                    }
+                }
+            }
 
             if (downloaded != null) {
+                final DownloadedSong finalSong = downloaded;
                 runOnUiThread(() -> {
-                    // Tạo Song offline bằng constructor
+                    // Tạo Song offline với đầy đủ thông tin
                     Song offlineSong = new Song(
-                            downloaded.songId,                    // id
-                            downloaded.title != null ? downloaded.title : "Unknown Title",  // title
-                            null,                                 // artistId (không có)
-                            downloaded.artistName != null ? downloaded.artistName : "Unknown Artist", // artistName
-                            null,                                 // albumId
-                            "Downloaded",                         // albumName
-                            downloaded.coverUrl,                  // coverRes
-                            downloaded.localAudioPath,            // audioRes ← Quan trọng nhất: dùng local path
-                            null,                                 // genre
-                            "Bài hát đã tải về",                  // description
-                            downloaded.durationSeconds,           // durationSec
-                            0,                                    // plays
-                            0                                     // likes
+                            finalSong.songId,
+                            finalSong.title != null ? finalSong.title : "Unknown Title",
+                            null,
+                            finalSong.artistName != null && !finalSong.artistName.isEmpty()
+                                    ? finalSong.artistName : "Unknown Artist",
+                            null, null,
+                            finalSong.coverUrl != null ? finalSong.coverUrl : "",
+                            finalSong.localAudioPath,
+                            null,
+                            "Bài hát đã tải về",
+                            finalSong.durationSeconds,
+                            0, 0
                     );
 
-                    // Lưu vào PlaybackRepository để Service sử dụng
+                    // *** QUAN TRỌNG: Cập nhật PlaybackRepository với bài hát mới ***
                     PlaybackRepository.getInstance().setCurrentSong(offlineSong);
 
-                    // Khởi động Service phát nhạc
+                    // Phát bài hát mới
                     Intent serviceIntent = new Intent(this, AudioPlayerService.class);
                     serviceIntent.setAction(AudioPlayerService.ACTION_PLAY_SONG);
-                    serviceIntent.putExtra(AudioPlayerService.EXTRA_SONG_ID, downloaded.songId);
-                    androidx.core.content.ContextCompat.startForegroundService(this, serviceIntent);
+                    serviceIntent.putExtra(AudioPlayerService.EXTRA_SONG_ID, finalSong.songId);
+                    ContextCompat.startForegroundService(this, serviceIntent);
 
-                    // Load giao diện Player
-                    loadSong(downloaded.songId);
+                    loadSong(finalSong.songId);
+                    setupUIEvents();
                 });
             } else {
                 runOnUiThread(() -> {
-                    Toast.makeText(this, "Không tìm thấy bài hát đã tải", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Không tìm thấy bài hát đã tải: " + fileName, Toast.LENGTH_LONG).show();
                     finish();
                 });
             }
         }).start();
+    }
+
+    // Helper: Trích xuất ID số từ URI content (ví dụ: content://.../1847 -> 1847)
+    private long extractMediaIdFromUri(Uri uri) {
+        if (uri == null) return -1;
+
+        String scheme = uri.getScheme();
+        if (!"content".equals(scheme)) return -1;
+
+        String path = uri.getPath();
+        if (path == null) return -1;
+
+        try {
+            // Lấy phần cuối của path (số ID)
+            String lastSegment = path.substring(path.lastIndexOf('/') + 1);
+            return Long.parseLong(lastSegment);
+        } catch (Exception e) {
+            Log.e("PlayerActivity", "Cannot extract media ID", e);
+            return -1;
+        }
+    }
+
+    // Helper method: Lấy đường dẫn thực từ URI (cho Android 9 trở xuống)
+    private String getRealPathFromUri(Uri uri) {
+        if (uri == null) return null;
+
+        String scheme = uri.getScheme();
+        if (scheme == null) return null;
+
+        if ("file".equals(scheme)) {
+            return uri.getPath();
+        }
+
+        if ("content".equals(scheme)) {
+            String[] projection = {MediaStore.MediaColumns.DATA};
+            try (Cursor cursor = getContentResolver().query(uri, projection, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+                    return cursor.getString(columnIndex);
+                }
+            } catch (Exception e) {
+                Log.e("PlayerActivity", "Error getting real path", e);
+            }
+        }
+        return null;
+    }
+
+    // Helper method: Lấy tên file từ URI
+    private String getFileNameFromUri(Uri uri) {
+        if (uri == null) return null;
+
+        String scheme = uri.getScheme();
+        if ("file".equals(scheme)) {
+            String path = uri.getPath();
+            if (path != null) {
+                return path.substring(path.lastIndexOf('/') + 1);
+            }
+        }
+
+        if ("content".equals(scheme)) {
+            String[] projection = {MediaStore.MediaColumns.DISPLAY_NAME};
+            try (Cursor cursor = getContentResolver().query(uri, projection, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);
+                    return cursor.getString(columnIndex);
+                }
+            } catch (Exception e) {
+                Log.e("PlayerActivity", "Error getting file name", e);
+            }
+        }
+        return null;
     }
 
     private void updateLoopButton() {

@@ -22,15 +22,15 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
 
     private final Context context;
     private final List<PlaylistSong> playlistSongs;
-    private final OnPlaylistSongActionListener listener;
+    private final OnSongActionListener listener;
 
-    public interface OnPlaylistSongActionListener {
+    public interface OnSongActionListener {
         void onSongClick(PlaylistSong playlistSong);
         void onMoreClick(PlaylistSong playlistSong, int position);
     }
 
 
-    public PlaylistSongAdapter(Context context, List<PlaylistSong> playlistSongs, OnPlaylistSongActionListener listener) {
+    public PlaylistSongAdapter(Context context, List<PlaylistSong> playlistSongs, OnSongActionListener listener) {
         this.context = context;
         this.playlistSongs = playlistSongs;
         this.listener = listener;
@@ -87,6 +87,16 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
     @Override
     public int getItemCount() {
         return playlistSongs != null ? playlistSongs.size() : 0;
+    }
+
+    public void moveItem(int fromPosition, int toPosition) {
+        if (fromPosition < 0 || toPosition < 0 ||
+                fromPosition >= playlistSongs.size() || toPosition >= playlistSongs.size()) {
+            return;
+        }
+        PlaylistSong item = playlistSongs.remove(fromPosition);
+        playlistSongs.add(toPosition, item);
+        notifyItemMoved(fromPosition, toPosition);
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
