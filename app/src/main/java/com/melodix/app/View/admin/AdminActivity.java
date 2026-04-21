@@ -2,6 +2,7 @@ package com.melodix.app.View.admin;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -65,18 +66,27 @@ public class AdminActivity extends AppCompatActivity {
                             .into(imgProfile);
                 } else {
                     imgProfile.setImageResource(R.drawable.ic_person);
+
+
                 }
             } else {
                 tvAdminName.setText("Chưa đăng nhập");
                 imgProfile.setImageResource(R.drawable.ic_person);
+                Log.e("ADMIN_ACTIVITY", "LỖI CMNR" );
             }
         });
 
-        // 3. Quan sát (Observe) trạng thái Logout
         viewModel.getLogoutStatus().observe(this, isLoggedOut -> {
             if (isLoggedOut != null && isLoggedOut) {
+                // 1. Tạo Intent về lại màn hình Login
                 Intent intent = new Intent(AdminActivity.this, LoginActivity.class);
+
+                // 2. CHỐT CHẶN BẢO MẬT: Xóa sạch lịch sử màn hình cũ
+                // Điều này giúp người dùng khi về Login mà bấm nút Back trên điện thoại
+                // thì app sẽ thoát ra ngoài Home chứ không bị chui ngược lại vào Admin.
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+                // 3. Chuyển màn hình
                 startActivity(intent);
                 finish();
             }
@@ -96,7 +106,9 @@ public class AdminActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         // Ra lệnh cho ViewModel đi lấy data
-        viewModel.loadProfileInfo();
+        if (viewModel != null) {
+            viewModel.loadProfileInfo();
+        }
     }
 
     private void initViews() {

@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Vòng tròn nền -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M24,24m-24,0a24,24 0,1 1,48 0a24,24 0,1 1,-48 0" />
+
+    <!-- Đầu -->
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M24,16 C19.58,16 16,19.58 16,24 C16,28.42 19.58,32 24,32 C28.42,32 32,28.42 32,24 C32,19.58 28.42,16 24,16 Z" />
+
+    <!-- Thân (nằm gọn trong vòng tròn, chỉ từ y=32 đến y=42) -->
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M24,33 C18,33 13,37 12,42 L36,42 C35,37 30,33 24,33 Z" />
+
+</vector>

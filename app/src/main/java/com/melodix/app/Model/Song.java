@@ -41,12 +41,12 @@ public class Song {
 
     // ĐÃ THÊM SERIALIZED NAME Ở ĐÂY ĐỂ NHẬN CHUỖI GỘP NHIỀU NGHỆ SĨ
     @SerializedName("artistName")
-    private String artistName;
+    public String artistName;
 
     // THÊM SERIALIZED NAME ĐỂ NHẬN SỐ LƯỢT THÍCH TỪ SUPABASE
     @SerializedName("like_count")
     private int likes;
-
+    @SerializedName("artist_id")
     private String artistId;
     private String albumName;
     private String genre;
@@ -152,12 +152,18 @@ public class Song {
         }
         this.lyrics = lyricsList;
     }
-
+    public String getArtistId() {
+        return artistId;
+    }
     public ArrayList<LyricLine> getLyrics() {
         return lyrics;
     }
 
     public String getLyricsUrl() {
         return lyrics_url;
+    }
+
+    public String getAlbumId() {
+        return album_id;
     }
 }

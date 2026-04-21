@@ -22,7 +22,8 @@ public interface ProfileAPIService  {
     Call<List<Profile>> getAllProfiles();
 
     // Lấy thông tin của 1 user cụ thể dựa vào ID
-    @GET("profiles")
+    @retrofit2.http.Headers("Cache-Control: no-cache")
+    @GET("profiles?select=display_name,avatar_url, role")
     Call<List<Profile>> getProfileById(
             @Query("id") String idFilter // Truyền vào dạng "eq.uuid-của-admin"
     );
@@ -39,5 +40,50 @@ public interface ProfileAPIService  {
             @Query(value = "id", encoded = true) String idFilter, // THÊM encoded = true VÀO ĐÂY
             @Body Map<String, Object> bodyData
     );
+    @retrofit2.http.HEAD("follows")
+    Call<Void> getFollowerCount(
+            @retrofit2.http.Header("Prefer") String preferCount, // Bắt buộc truyền "count=exact"
+            @retrofit2.http.Query("artist_id") String artistIdQuery
+    );
+    @retrofit2.http.HEAD("follows")
+    Call<Void> getFollowingCount(
+            @retrofit2.http.Header("Prefer") String preferCount,
+            @retrofit2.http.Query("follower_id") String followerIdQuery
+    );
+    @retrofit2.http.GET("follows?select=follower_id")
+    Call<List<Object>> checkFollowStatus(
+            @retrofit2.http.Query("follower_id") String followerIdEq,
+            @retrofit2.http.Query("artist_id") String artistIdEq
+    );
 
+    // 4. Nhấn Follow (Thêm record)
+    @retrofit2.http.POST("follows")
+    Call<Void> followUser(@retrofit2.http.Body java.util.Map<String, String> followData);
+
+    // 5. Bỏ Follow (Xóa record)
+    @retrofit2.http.DELETE("follows")
+    Call<Void> unfollowUser(
+            @retrofit2.http.Query("follower_id") String followerIdEq,
+            @retrofit2.http.Query("artist_id") String artistIdEq
+    );
+
+
+    // Bỏ dòng @Headers đi, để Retrofit tự lo!
+// Trở về sự cơ bản, không thêm mắm dặm muối
+    @retrofit2.http.POST("user_request_to_artist")
+    retrofit2.Call<okhttp3.ResponseBody> requestArtistRole(
+            @retrofit2.http.Body java.util.Map<String, Object> body // Dùng Map như cũ
+    );
+
+    // 1. API: Kiểm tra xem user có đang xin xỏ không
+    @retrofit2.http.GET("user_request_to_artist")
+    retrofit2.Call<java.util.List<Object>> checkArtistRequestStatus(
+            @retrofit2.http.Query("user_id") String userIdQuery
+    );
+
+    // 2. API: Hủy (Xóa) yêu cầu
+    @retrofit2.http.DELETE("user_request_to_artist")
+    retrofit2.Call<okhttp3.ResponseBody> cancelArtistRequest(
+            @retrofit2.http.Query("user_id") String userIdQuery
+    );
 }

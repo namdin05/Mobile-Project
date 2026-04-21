@@ -4,6 +4,9 @@ import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,27 +34,36 @@ import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Repository.PlaybackRepository;
 import com.melodix.app.Service.AudioPlayerService;
 import com.melodix.app.Utils.PlaybackUtils;
+import com.melodix.app.View.auth.LoginActivity;
 import com.melodix.app.View.fragments.AccountFragment;
 import com.melodix.app.View.fragments.LibraryFragment;
 import com.melodix.app.View.fragments.SearchFragment;
 import com.melodix.app.View.home.HomeFragment;
+import com.melodix.app.Utils.NetworkUtils;
 
-// THÊM IMPORT NÀY
 import com.melodix.app.ViewModel.ProfileViewModel;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
     private int currentTabId = R.id.nav_home;
     private AppRepository repository;
 
-    // Khai báo ProfileViewModel
     private ProfileViewModel profileViewModel;
 
-    // Tạo sẵn các Fragment
-    final Fragment homeFragment = new HomeFragment();
-    final Fragment searchFragment = new SearchFragment();
-    final Fragment libraryFragment = new LibraryFragment();
-    final Fragment accountFragment = new AccountFragment();
+    // Quản lý Fragment
+    private Fragment homeFragment;
+    private Fragment searchFragment;
+    private Fragment libraryFragment;
+    private Fragment accountFragment;
+    private Fragment activeFragment;
 
+    // Quản lý Mini Player
     private LinearLayout miniPlayer;
     private ImageView miniCover;
     private TextView miniTitle;
@@ -69,8 +81,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    Fragment activeFragment = homeFragment;
-
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -83,6 +93,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // --- 1. CHỐT DARK MODE TRƯỚC KHI VẼ MÀN HÌNH ---
+        android.content.SharedPreferences prefs = getSharedPreferences("MelodixSettings", MODE_PRIVATE);
+        boolean isDarkMode = prefs.getBoolean("dark_mode_enabled", false);
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(isDarkMode ?
+                androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES :
+                androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -93,19 +110,41 @@ public class MainActivity extends AppCompatActivity {
         askNotificationPermission();
         fetchAndSaveFCMToken();
 
-        repository = AppRepository.getInstance(this);
+        // --- 2. XỬ LÝ FRAGMENT CHỐNG LỖI DARK MODE ---
+        if (savedInstanceState == null) {
+            // Lần MỞ APP ĐẦU TIÊN: Tạo mới toàn bộ
+            homeFragment = new HomeFragment();
+            searchFragment = new SearchFragment();
+            libraryFragment = new LibraryFragment();
+            accountFragment = new AccountFragment();
 
-        if(savedInstanceState == null){
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.main_fragment_container, homeFragment)
-                    .add(R.id.main_fragment_container, searchFragment).hide(searchFragment)
-                    .add(R.id.main_fragment_container, libraryFragment).hide(libraryFragment)
-                    .add(R.id.main_fragment_container, accountFragment).hide(accountFragment)
+                    .add(R.id.main_fragment_container, homeFragment, "HOME")
+                    .add(R.id.main_fragment_container, searchFragment, "SEARCH").hide(searchFragment)
+                    .add(R.id.main_fragment_container, libraryFragment, "LIB").hide(libraryFragment)
+                    .add(R.id.main_fragment_container, accountFragment, "ACC").hide(accountFragment)
                     .commit();
+
+            activeFragment = homeFragment;
+            currentTabId = R.id.nav_home;
+        } else {
+            // LẦN KHỞI ĐỘNG LẠI (Do đổi Dark Mode/Xoay màn hình): Khôi phục bộ nhớ cũ
+            homeFragment = getSupportFragmentManager().findFragmentByTag("HOME");
+            searchFragment = getSupportFragmentManager().findFragmentByTag("SEARCH");
+            libraryFragment = getSupportFragmentManager().findFragmentByTag("LIB");
+            accountFragment = getSupportFragmentManager().findFragmentByTag("ACC");
+
+            // Tìm xem thằng nào đang mở thì gán nó vào active
+            if (!homeFragment.isHidden()) activeFragment = homeFragment;
+            else if (!searchFragment.isHidden()) activeFragment = searchFragment;
+            else if (!libraryFragment.isHidden()) activeFragment = libraryFragment;
+            else if (!accountFragment.isHidden()) activeFragment = accountFragment;
+
+            currentTabId = savedInstanceState.getInt("ACTIVE_TAB", R.id.nav_home);
         }
 
+        // --- 3. KHỞI TẠO MINI PLAYER ---
         miniPlayer = findViewById(R.id.mini_player_root);
-
         if (miniPlayer != null) {
             miniCover = findViewById(R.id.mini_cover);
             miniTitle = findViewById(R.id.mini_title);
@@ -124,38 +163,61 @@ public class MainActivity extends AppCompatActivity {
                 miniPlayPause.setImageResource(isNowPlaying ? R.drawable.ic_pause : R.drawable.ic_play);
                 PlaybackUtils.sendAction(this, AudioPlayerService.ACTION_TOGGLE_PLAY);
             });
-        } else {
-            Log.e("TEST_MINI", "LỖI TRẦM TRỌNG: KHÔNG TÌM THẤY MINI PLAYER TRONG XML!");
         }
 
+        // --- 4. BẮT SỰ KIỆN CLICK TAB ---
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_nav);
-        bottomNavigationView.setOnItemSelectedListener(menuItem -> {
-            Fragment selectedFragment = null;
-            int newTabId = menuItem.getItemId();
-            if(newTabId == currentTabId) return false;
+        // Đồng bộ lại tab đang chọn lỡ như bị Restart
+        bottomNavigationView.setSelectedItemId(currentTabId);
 
-            boolean isMovingRight = (getTabIdx(newTabId) > getTabIdx(currentTabId));
-            int enterAnim = isMovingRight ? R.anim.slide_in_right : R.anim.slide_in_left;
-            int exitAnim = isMovingRight ? R.anim.slide_out_left : R.anim.slide_out_right;
+        bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                Fragment selectedFragment = null;
+                int newTabId = menuItem.getItemId();
+                if(newTabId == currentTabId) return false;
 
-            if(newTabId == R.id.nav_home){
-                selectedFragment = homeFragment;
-            } else if(newTabId == R.id.nav_search){
-                selectedFragment = searchFragment;
-            } else if(newTabId == R.id.nav_library){
-                selectedFragment = libraryFragment;
-            } else if(newTabId == R.id.nav_account){
-                selectedFragment = accountFragment;
+                boolean isMovingRight = (getTabIdx(newTabId) > getTabIdx(currentTabId));
+                int enterAnim = isMovingRight ? R.anim.slide_in_right : R.anim.slide_in_left;
+                int exitAnim = isMovingRight ? R.anim.slide_out_left : R.anim.slide_out_right;
+
+                if(newTabId == R.id.nav_home) selectedFragment = homeFragment;
+                else if(newTabId == R.id.nav_search) selectedFragment = searchFragment;
+                else if(newTabId == R.id.nav_library) selectedFragment = libraryFragment;
+                else if(newTabId == R.id.nav_account) selectedFragment = accountFragment;
+
+                if (selectedFragment != null) {
+                    getSupportFragmentManager().beginTransaction()
+                            .setCustomAnimations(enterAnim, exitAnim)
+                            .hide(activeFragment)
+                            .show(selectedFragment)
+                            .commit();
+                    currentTabId = newTabId;
+                    activeFragment = selectedFragment;
+                }
+                return true;
             }
 
-            getSupportFragmentManager().beginTransaction()
-                    .setCustomAnimations(enterAnim, exitAnim)
-                    .hide(activeFragment).show(selectedFragment).commit();
-
-            currentTabId = newTabId;
-            activeFragment = selectedFragment;
-            return true;
         });
+        handleDeepLink(getIntent());
+        checkNetworkAndSwitchTab();
+    }
+
+    // ==========================================
+    // LƯU TRẠNG THÁI TRƯỚC KHI BỊ "GIẾT" BỞI DARK MODE
+    // ==========================================
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // Cất id của tab hiện tại vào balo
+        outState.putInt("ACTIVE_TAB", currentTabId);
+
+    }
+
+    @Override
+    protected void onNewIntent(android.content.Intent intent) {
+        super.onNewIntent(intent);
+        handleDeepLink(intent);
     }
 
     private int getTabIdx(int id){
@@ -168,14 +230,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateMiniPlayer() {
         String currentSongId = AudioPlayerService.getCurrentSongId();
-
         if (currentSongId == null) {
             miniPlayer.setVisibility(android.view.View.GONE);
             return;
         }
 
         Song song = PlaybackRepository.getInstance().getCurrentSong();
-
         if (song == null) {
             miniPlayer.setVisibility(android.view.View.GONE);
             return;
@@ -205,6 +265,26 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private void checkNetworkAndSwitchTab() {
+        boolean isOnline = NetworkUtils.isNetworkAvailable(this);
+
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+        if (bottomNav == null) return;
+
+        if (!isOnline) {
+            bottomNav.setSelectedItemId(R.id.nav_library);
+
+            // Tắt tab Home và Search để tránh load dữ liệu
+            bottomNav.getMenu().findItem(R.id.nav_home).setEnabled(false);
+            bottomNav.getMenu().findItem(R.id.nav_search).setEnabled(false);
+
+            Toast.makeText(this, "Không có kết nối mạng.\nChỉ có thể nghe nhạc đã tải về.", Toast.LENGTH_LONG).show();
+        } else {
+            bottomNav.getMenu().findItem(R.id.nav_home).setEnabled(true);
+            bottomNav.getMenu().findItem(R.id.nav_search).setEnabled(true);
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -214,6 +294,7 @@ public class MainActivity extends AppCompatActivity {
 
         updateMiniPlayer();
         mainHandler.post(miniPlayerWatcher);
+        checkNetworkAndSwitchTab();
     }
 
     @Override
@@ -226,7 +307,6 @@ public class MainActivity extends AppCompatActivity {
     // ==========================================
     // LOGIC XỬ LÝ PUSH NOTIFICATION (FIREBASE)
     // ==========================================
-
     private void askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -252,4 +332,51 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
-}
+
+    // Hàm Lễ tân phân loại link
+// Lễ tân phân loại link
+    private void handleDeepLink(android.content.Intent intent) {
+        if (intent != null && android.content.Intent.ACTION_VIEW.equals(intent.getAction())) {
+            android.net.Uri data = intent.getData();
+
+            // 👇 SỬA ĐÚNG DÒNG NÀY ĐỂ BẮT CẢ 2 ĐƯỜNG 👇
+            if (data != null && ("giabaocode.github.io".equals(data.getHost()) || "redirect".equals(data.getHost()))) {
+
+                String type = data.getQueryParameter("type");
+                String id = data.getQueryParameter("id");
+
+                if (type != null && id != null) {
+                    android.content.Intent nextIntent = null;
+
+                    switch (type) {
+                        case "user":
+                            nextIntent = new android.content.Intent(this, com.melodix.app.View.profile.UserProfileActivity.class);
+                            nextIntent.putExtra(com.melodix.app.View.profile.UserProfileActivity.EXTRA_USER_ID, id);
+                            break;
+                        case "playlist":
+                            nextIntent = new android.content.Intent(this, com.melodix.app.View.PlaylistDetailActivity.class);
+                            nextIntent.putExtra(com.melodix.app.View.PlaylistDetailActivity.EXTRA_PLAYLIST_ID, id);
+                            break;
+                        case "album":
+                            nextIntent = new android.content.Intent(this, com.melodix.app.View.AlbumDetailActivity.class);
+                            nextIntent.putExtra(com.melodix.app.View.AlbumDetailActivity.EXTRA_ALBUM_ID, id);
+                            break;
+                        case "profile": // Dành cho Nghệ sĩ
+                            nextIntent = new android.content.Intent(this, com.melodix.app.View.ArtistDetailActivity.class);
+                            nextIntent.putExtra(com.melodix.app.View.ArtistDetailActivity.EXTRA_ARTIST_ID, id);
+                            break;
+                        case "song":
+                            nextIntent = new android.content.Intent(this, com.melodix.app.PlayerActivity.class);
+                            nextIntent.putExtra(com.melodix.app.PlayerActivity.EXTRA_SONG_ID, id);
+                            // Có thể cần thêm cờ để tự động Play luôn
+                            nextIntent.putExtra("start_playback", true);
+                            break;
+                    }
+                    if (nextIntent != null) {
+                        startActivity(nextIntent);
+                    }
+                }
+            }
+        }
+    }}
+

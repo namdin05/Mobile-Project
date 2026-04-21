@@ -11,6 +11,7 @@ import com.melodix.app.BuildConfig;
 import com.melodix.app.Model.Profile;
 import com.melodix.app.Service.ProfileAPIService;
 import com.melodix.app.Service.RetrofitClient;
+import com.melodix.app.Utils.SessionManager;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,49 +23,20 @@ import retrofit2.Response;
 
 public class ProfileRepository {
     private ProfileAPIService profileAPIService;
-    private final MutableLiveData<List<Profile>> _profiles = new MutableLiveData<>();
-    public LiveData<List<Profile>> profiles = _profiles;
-
-    // THÊM BIẾN NÀY ĐỂ DÙNG CHUNG CHO TOÀN BỘ REPO
-    private SharedPreferences prefs;
-
+    private Context context;
     public ProfileRepository(Context context) {
         profileAPIService = RetrofitClient.getClient(context).create(ProfileAPIService.class);
-        // Khởi tạo SharedPreferences ngay từ đầu
-        prefs = context.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
-
-        fetchAllProfiles();
+        this.context = context;
     }
 
     public MutableLiveData<List<Profile>> fetchAllProfiles() {
         // ... (Giữ nguyên code của bạn) ...
+        MutableLiveData<List<Profile>> profile = new MutableLiveData<>();
         profileAPIService.getAllProfiles().enqueue(new Callback<List<Profile>>() {
             @Override
             public void onResponse(Call<List<Profile>> call, Response<List<Profile>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    _profiles.setValue(response.body());
-                } else {
-                    _profiles.setValue(null);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Profile>> call, Throwable t) {
-                _profiles.setValue(null);
-            }
-        });
-
-        return _profiles;
-    }
-
-    public MutableLiveData<Profile> fetchProfileById(String id) {
-        // ... (Giữ nguyên code của bạn) ...
-        MutableLiveData<Profile> profile = new MutableLiveData<>();
-        profileAPIService.getProfileById("eq." + id).enqueue(new Callback<List<Profile>>() {
-            @Override
-            public void onResponse(Call<List<Profile>> call, Response<List<Profile>> response) {
-                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    profile.setValue(response.body().get(0));
+                    profile.setValue(response.body());
                 } else {
                     profile.setValue(null);
                 }
@@ -79,9 +51,49 @@ public class ProfileRepository {
         return profile;
     }
 
+    public MutableLiveData<Profile> fetchProfileById(String id) {
+        MutableLiveData<Profile> profile = new MutableLiveData<>();
+
+        Log.e("DEBUG_PROFILE", "1. Đang gọi API lấy Profile cho UID: " + id);
+
+        profileAPIService.getProfileById("eq." + id).enqueue(new Callback<List<Profile>>() {
+            @Override
+            public void onResponse(Call<List<Profile>> call, Response<List<Profile>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    Log.e("DEBUG_PROFILE", "2. Lấy Profile thành công!");
+                    profile.setValue(response.body().get(0));
+                } else {
+                    Log.e("DEBUG_PROFILE", "2. LỖI API! Mã lỗi: " + response.code());
+                    try {
+                        if (response.errorBody() != null) {
+                            Log.e("DEBUG_PROFILE", "Chi tiết lỗi từ Supabase: " + response.errorBody().string());
+                        } else if (response.body() != null && response.body().isEmpty()) {
+                            Log.e("DEBUG_PROFILE", "Lỗi: Database trả về mảng rỗng [] (Không có User nào mang ID này)");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    profile.setValue(null); // API lỗi nên trả về null
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Profile>> call, Throwable t) {
+                Log.e("DEBUG_PROFILE", "2. LỖI MẠNG hoặc sập Server: " + t.getMessage());
+                profile.setValue(null);
+            }
+        });
+
+        return profile;
+    }
+
+    public void getProfileById(String userId, Callback<List<Profile>> callback) {
+        profileAPIService.getProfileById("eq." + userId).enqueue(callback);
+    }
+
     public void updateTokenToServer(String token) {
         // ĐÃ SỬA LỖI: Lấy userId từ biến prefs đã khai báo ở Constructor
-        String userId = prefs.getString("USER_ID", "");
+        String userId = SessionManager.getInstance(context).getUserId();
 
         if (userId.isEmpty()) {
             Log.w("MELODIX_FCM", "Chưa đăng nhập, không lưu Token");
@@ -116,11 +128,11 @@ public class ProfileRepository {
 
     // Lấy ID người dùng đang đăng nhập hiện tại
     public String getCurrentUserId() {
-        return prefs.getString("USER_ID", "");
+        return SessionManager.getInstance(context).getUserId();
     }
 
     // Xóa bộ nhớ đệm khi Đăng xuất
     public void clearSession() {
-        prefs.edit().clear().apply();
+        SessionManager.getInstance(context).clear();
     }
 }

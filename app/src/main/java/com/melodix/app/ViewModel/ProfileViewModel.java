@@ -7,41 +7,52 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.melodix.app.Model.Profile;
 import com.melodix.app.Repository.ProfileRepository;
 
 public class ProfileViewModel extends AndroidViewModel {
     private ProfileRepository repository;
 
-    private MutableLiveData<Profile> profile = new MutableLiveData<>();
-    private MutableLiveData<Boolean> logoutStatus = new MutableLiveData<>();
+    // ĐÃ SỬA: Khởi tạo ngay để LiveData không bao giờ bị null
+    private final MutableLiveData<Profile> profile = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> logoutStatus = new MutableLiveData<>(false);
 
     public ProfileViewModel(@NonNull Application application) {
         super(application);
-        // Khởi tạo Repo
         repository = new ProfileRepository(application);
-    }
-
-    public LiveData<Profile> getProfile() {
-        return profile;
     }
 
     public LiveData<Boolean> getLogoutStatus() {
         return logoutStatus;
     }
 
+    // ĐÃ SỬA 1: Hàm getProfile() giờ đây chỉ làm đúng 1 việc là trả về LiveData
+    // Tuyệt đối không gọi API ở hàm này để tuân thủ chuẩn MVVM
+    public LiveData<Profile> getProfile() {
+        return profile;
+    }
+
+    // ĐÃ SỬA 2: Đưa toàn bộ logic gọi mạng vào đây.
     public void loadProfileInfo() {
-        // Tận dụng 2 hàm đã có sẵn bên ProfileRepository
         String uid = repository.getCurrentUserId();
+        Log.e("DEBUG_PROFILE", "0. UID lấy từ bộ nhớ máy là: [" + uid + "]");
 
         if (!uid.isEmpty()) {
-            repository.fetchProfileById(uid).observeForever(profile -> {
-                this.profile.setValue(profile);
-            });
+            LiveData<Profile> repoLiveData = repository.fetchProfileById(uid);
+
+            Observer<Profile> observer = new Observer<Profile>() {
+                @Override
+                public void onChanged(Profile fetchedProfile) {
+                    profile.setValue(fetchedProfile);
+                    repoLiveData.removeObserver(this);
+                }
+            };
+            repoLiveData.observeForever(observer);
         } else {
-            this.profile.setValue(null);
+            Log.e("DEBUG_PROFILE", "LỖI: UID trống trơn -> Đẩy null về cho Activity");
+            profile.setValue(null);
         }
     }
 
@@ -53,4 +64,6 @@ public class ProfileViewModel extends AndroidViewModel {
         repository.clearSession();
         logoutStatus.setValue(true);
     }
+
+
 }

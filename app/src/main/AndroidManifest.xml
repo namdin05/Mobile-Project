@@ -6,6 +6,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SHORT_SERVICE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
@@ -25,8 +28,6 @@
             android:exported="false"
             tools:ignore="AppLinkUrlError">
         </activity>
-
-        <activity android:name=".ArtistActivity" />
 
         <activity
             android:name=".PlayerActivity"
@@ -66,7 +67,7 @@
 
 
             <!-- ACTIVITY / View / admin -->
-            <activity android:name=".View.admin.AdminActivity" />"
+            <activity android:name=".View.admin.AdminActivity" />
 
             <!-- ACTIVITY / View / artist -->
             <activity android:name=".View.artist.CreateAlbumActivity" />

@@ -2,7 +2,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@drawable/bg_screen"
+    android:background="@color/mdx_bg"
     android:orientation="vertical"
     android:padding="20dp">
 
@@ -15,11 +15,11 @@
             android:id="@+id/btn_back"
             android:layout_width="42dp"
             android:layout_height="42dp"
-            android:background="@drawable/bg_circle_surface"
+            android:background="@color/mdx_bg"
             app:srcCompat="@drawable/ic_back"
             android:scaleType="centerInside"
             android:padding="10dp"
-            android:tint="@color/black"/>
+            app:tint="@color/mdx_text"/>
 
         <TextView
             android:id="@+id/tv_title"
@@ -39,5 +39,5 @@
         android:layout_height="0dp"
         android:layout_marginTop="18dp"
         android:layout_weight="1"
-        android:background="@drawable/bg_card" />
+        android:background="@color/mdx_bg" />
 </LinearLayout>

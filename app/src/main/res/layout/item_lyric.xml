@@ -8,5 +8,5 @@
     android:textStyle="bold"
     android:fontFamily="sans-serif-medium"
     android:lineSpacingExtra="8dp"
-    android:textColor="@color/black"
+    android:textColor="@color/mdx_text"
     xmlns:android="http://schemas.android.com/apk/res/android" />

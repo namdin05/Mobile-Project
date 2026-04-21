@@ -9,7 +9,6 @@ import retrofit2.http.Header;
 import retrofit2.http.Query;
 
 public interface AlbumAPIService {
-
     @GET("album_details_view")
     Call<List<Album>> getAllAlbums();
 
@@ -23,4 +22,6 @@ public interface AlbumAPIService {
     @GET("song_details_view")
     Call<List<Song>> getAlbumDetails(@Query("album_id") String albumIdQuery);
 
+    @GET("song_details_view?select=*")
+    Call<List<Song>> getSongsByAlbumIdForArtist(@Query("album_id") String albumIdQuery);
 }

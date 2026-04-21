@@ -3,8 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="16dp"
-    android:textColor="@color/melodix_text_primary"
-    android:background="@color/melodix_card_bg"
+    android:textColor="@color/mdx_text"
+    android:background="@color/mdx_surface"
     android:textSize="16sp"
     android:ellipsize="end"
     android:maxLines="1" />

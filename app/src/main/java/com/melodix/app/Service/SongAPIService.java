@@ -37,4 +37,16 @@ public interface SongAPIService {
             @Body StatusUpdateRequest body
     );
 
+
+    // Gọi hàm RPC từ Supabase bằng phương thức POST
+    @retrofit2.http.POST("rpc/get_songs_by_genre")
+    Call<List<Song>> getSongsByGenre(
+            @retrofit2.http.Body java.util.Map<String, Integer> body
+    );
+
+    // ĐỔI TÊN ĐƯỜNG DẪN Ở ĐÂY 👇
+    @retrofit2.http.POST("rpc/add_song_stream") // Bỏ rest/v1 vì BaseURL của SupabaseClient đã có rồi
+    retrofit2.Call<Void> recordPlay(
+            @retrofit2.http.Body java.util.Map<String, Object> body
+    );
 }

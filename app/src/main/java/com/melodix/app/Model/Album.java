@@ -25,6 +25,9 @@ public class Album implements Serializable {
     @SerializedName("artistName")
     public String artistName;
 
+    @SerializedName("status")
+    public String status;
+
     // Các biến dưới đây Database không trả về, cứ để kệ nó
     public String genre;
     public String description;

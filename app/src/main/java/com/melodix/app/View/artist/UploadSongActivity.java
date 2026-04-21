@@ -19,7 +19,6 @@ import com.melodix.app.R;
 import com.melodix.app.Service.ArtistAPIService;
 import com.melodix.app.Service.GenreAPIService;
 import com.melodix.app.Service.RetrofitClient;
-import com.melodix.app.Model.SessionManager;
 import com.melodix.app.Service.SearchAPIService;
 import com.melodix.app.Service.StorageAPIService;
 

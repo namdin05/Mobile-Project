@@ -45,6 +45,13 @@ public class HomeViewModel extends AndroidViewModel {
         return newReleases;
     }
 
+    // Bạn ném hàm này vào trong class HomeViewModel nhé
+    public LiveData<List<Song>> getSongsByGenre(int genreId) {
+        // Khác với list Trending hay New Release (chỉ load 1 lần),
+        // list nhạc theo thể loại sẽ phụ thuộc vào ID người dùng bấm, nên ta gọi thẳng từ Repository.
+        return songRepository.fetchSongsByGenre(genreId);
+    }
+
     public LiveData<List<Song>> getTrendingSongs() {
         if (trendingSongs == null) {
             trendingSongs = songRepository.fetchTrendingSongs();

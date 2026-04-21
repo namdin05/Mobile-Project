@@ -29,6 +29,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
     private RecyclerView rvTracks;
     private SongAdapter trackAdapter;
     private TextView tvTrackCount;
+    private com.melodix.app.Model.MiniPlayerController miniPlayerController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +48,24 @@ public class AlbumDetailActivity extends AppCompatActivity {
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
         tvTrackCount = findViewById(R.id.tv_track_count);
 
+        ImageView btnShare = findViewById(R.id.btn_share);
+        btnShare.setOnClickListener(v ->{
+            if(repository != null){
+                TextView tvTitle = findViewById(R.id.tv_title);
+                String albumName = tvTitle.getText().toString();
+                if (!albumName.equals("Đang tải...")){
+                    com.melodix.app.Utils.ShareUtils.shareContent(
+                            AlbumDetailActivity.this,
+                            "album",
+                            albumId,
+                            albumName
+                    );
+                }else{
+                    Toast.makeText(AlbumDetailActivity.this, "Vui lòng đợi tải xong thông tin album", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
         // 1. Cài đặt RecyclerView cho Track List
         rvTracks = findViewById(R.id.rv_tracks);
         rvTracks.setLayoutManager(new LinearLayoutManager(this));
@@ -63,9 +82,20 @@ public class AlbumDetailActivity extends AppCompatActivity {
                 // Xử lý sự kiện Menu 3 chấm
                 switch (actionId) {
                     case "share":
-                        // GỌI HÀM SHARE THẦN THÁNH Ở ĐÂY!
-                        // Dùng AlbumDetailActivity.this vì ta đang đứng trong một Anonymous Class (lớp ẩn danh)
-                        ShareUtils.shareSongToFriends(AlbumDetailActivity.this, song);
+                        // 👇 XÓA DÒNG NÀY ĐI 👇
+                        // ShareUtils.shareSongToFriends(AlbumDetailActivity.this, song);
+
+                        // 👇 THAY BẰNG ĐOẠN NÀY ĐỂ ĐỒNG BỘ VỚI PLAYER ACTIVITY 👇
+                        if (song != null && song.getId() != null) {
+                            com.melodix.app.Utils.ShareUtils.shareContent(
+                                    AlbumDetailActivity.this,
+                                    "song",           // Type là bài hát
+                                    song.getId(),     // ID của bài hát người dùng vừa bấm
+                                    song.getTitle()   // Tên bài hát
+                            );
+                        } else {
+                            Toast.makeText(AlbumDetailActivity.this, "Lỗi dữ liệu bài hát", Toast.LENGTH_SHORT).show();
+                        }
                         break;
 
                     case "play":
@@ -86,6 +116,20 @@ public class AlbumDetailActivity extends AppCompatActivity {
             }
         });
         rvTracks.setAdapter(trackAdapter);
+
+        // XỬ LÝ SỰ KIỆN NÚT PHÁT TẤT CẢ
+        View btnPlayAll = findViewById(R.id.btn_play_all);
+        btnPlayAll.setOnClickListener(v -> {
+            if (trackAdapter != null && trackAdapter.getSongs() != null && !trackAdapter.getSongs().isEmpty()) {
+                // Lấy toàn bộ danh sách bài hát trong Album
+                ArrayList<Song> allSongs = new ArrayList<>(trackAdapter.getSongs());
+
+                // Gọi hàm PlaybackUtils, truyền list vào và bắt đầu phát từ bài đầu tiên (index 0)
+                PlaybackUtils.playSong(AlbumDetailActivity.this, allSongs, allSongs.get(0).getId());
+            } else {
+                Toast.makeText(AlbumDetailActivity.this, "Album chưa có bài hát nào để phát", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // 2. GỌI API LẤY CHI TIẾT ALBUM
         repository.getAlbumById(albumId, new AppRepository.AlbumCallback() {
@@ -126,7 +170,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
 
                         trackAdapter.update(songs);
                         // Cập nhật số lượng bài hát lên tiêu đề
-                        tvTrackCount.setText("Danh sách bài hát (" + songs.size() + ")");
+                        tvTrackCount.setText("Track List (" + songs.size() + ")");
                     }
 
                     @Override
@@ -146,5 +190,22 @@ public class AlbumDetailActivity extends AppCompatActivity {
             }
 
         });
+        miniPlayerController = new com.melodix.app.Model.MiniPlayerController(this);
+    }
+    // THÊM 2 HÀM NÀY VÀO TRONG CLASS AlbumDetailActivity
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (miniPlayerController != null) {
+            miniPlayerController.onResume();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (miniPlayerController != null) {
+            miniPlayerController.onPause();
+        }
     }
 }

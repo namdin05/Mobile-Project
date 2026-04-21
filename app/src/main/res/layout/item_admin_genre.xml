@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="@color/melodix_card_bg"
+    app:cardBackgroundColor="@color/mdx_card"
     app:cardCornerRadius="12dp"
     app:cardElevation="0dp">
 
@@ -19,7 +19,8 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_music_note" app:shapeAppearanceOverlay="@style/CornerSize10Percent"
+            android:src="@drawable/ic_music_note"
+            app:shapeAppearanceOverlay="@style/CornerSize10Percent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -30,7 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:text="Pop Music"
-            android:textColor="@color/melodix_text_primary"
+            android:textColor="@color/mdx_text"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -52,7 +53,8 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:padding="6dp"
-                android:src="@drawable/ic_edit" app:tint="@color/melodix_accent_green" />
+                android:src="@drawable/ic_edit"
+                app:tint="@color/mdx_primary" />
 
             <ImageView
                 android:id="@+id/btnDeleteGenre"
@@ -60,7 +62,8 @@
                 android:layout_height="32dp"
                 android:layout_marginStart="8dp"
                 android:padding="6dp"
-                android:src="@drawable/ic_delete" app:tint="@android:color/holo_red_light" />
+                android:src="@drawable/ic_delete"
+                app:tint="@color/mdx_danger" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

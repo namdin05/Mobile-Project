@@ -34,6 +34,7 @@ import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Utils.Constants;
 
+import com.melodix.app.Utils.PlaybackUtils;
 import com.melodix.app.View.AlbumDetailActivity;
 import com.melodix.app.View.ArtistDetailActivity;
 import com.melodix.app.View.PlaylistDetailActivity;
@@ -44,6 +45,8 @@ public class SearchFragment extends Fragment {
     private AppRepository repository;
     private SearchResultAdapter resultAdapter;
     private EditText etSearch;
+
+    private android.widget.ListPopupWindow recentSearchPopup;
     private LinearLayout recentContainer;
     private String filter = Constants.FILTER_ALL;
     private TextView tvRecentLabel;
@@ -99,7 +102,18 @@ public class SearchFragment extends Fragment {
             }
             return false;
         });
+        etSearch.setOnClickListener(v -> {
+            if (etSearch.getText().toString().trim().isEmpty()) {
+                showRecentSearchDropdown();
+            }
+        });
 
+        // Bắt luôn cả sự kiện khi ô Search được Focus (nháy nháy con trỏ)
+        etSearch.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus && etSearch.getText().toString().trim().isEmpty()) {
+                showRecentSearchDropdown();
+            }
+        });
         // 2. SỰ KIỆN GÕ PHÍM (Live Search + Hiện dấu X)
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
@@ -112,8 +126,14 @@ public class SearchFragment extends Fragment {
                 // Tự động hiện/ẩn dấu X ở thanh tìm kiếm
                 if (s.length() > 0) {
                     etSearch.setCompoundDrawablesWithIntrinsicBounds(0, 0, android.R.drawable.ic_menu_close_clear_cancel, 0);
+                    if (recentSearchPopup != null && recentSearchPopup.isShowing()) {
+                        recentSearchPopup.dismiss();
+                    }
                 } else {
                     etSearch.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                    if (etSearch.hasFocus()) {
+                        showRecentSearchDropdown();
+                    }
                 }
 
                 if (searchRunnable != null) {
@@ -154,7 +174,7 @@ public class SearchFragment extends Fragment {
             }
         });
 
-        // 4.2. Khi chạm vào vùng của danh sách kết quả (nhưng không trúng item nào)
+       //  4.2. Khi chạm vào vùng của danh sách kết quả (nhưng không trúng item nào)
         rvResults.setOnTouchListener((v, event) -> {
             hideKeyboard();
             return false; // Giữ nguyên false để không chặn sự kiện click vào bài hát
@@ -164,7 +184,123 @@ public class SearchFragment extends Fragment {
 
         return view;
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+        renderRecentSearches();
+    }
+    // ==========================================
+    // HIỂN THỊ BẢNG THẢ XUỐNG 10 LỊCH SỬ TÌM KIẾM
+    // ==========================================
+// ==========================================
+    // BẢNG THẢ XUỐNG 10 LỊCH SỬ (BẢN ĐỘ KIỂNG)
+    // ==========================================
+    private void showRecentSearchDropdown() {
+        ArrayList<String> recent = repository.getRecentSearches();
+        if (recent == null || recent.isEmpty()) return;
 
+        // Tạo 1 list MỚI để mình có thể can thiệp xóa (remove) item lúc bấm chữ X
+        java.util.List<String> top10 = new java.util.ArrayList<>(recent.subList(0, Math.min(recent.size(), 10)));
+
+        if (recentSearchPopup == null) {
+            recentSearchPopup = new android.widget.ListPopupWindow(requireContext());
+            recentSearchPopup.setAnchorView(etSearch);
+
+            // Ép cái bảng rộng bằng y chang thanh Search (Không bị thò ra thụt vào)
+            etSearch.post(() -> recentSearchPopup.setWidth(etSearch.getWidth()));
+
+            // Dùng background card bo góc của sếp thay vì cục hình chữ nhật
+            recentSearchPopup.setBackgroundDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.bg_card));
+            recentSearchPopup.setVerticalOffset(10); // Cách thanh search xuống 10 pixel cho thoáng
+        }
+
+        // TỰ TẠO ADAPTER ĐỂ VẼ GIAO DIỆN (CHỮ BÊN TRÁI, DẤU X BÊN PHẢI)
+        android.widget.BaseAdapter customAdapter = new android.widget.BaseAdapter() {
+            @Override
+            public int getCount() { return top10.size(); }
+            @Override
+            public Object getItem(int position) { return top10.get(position); }
+            @Override
+            public long getItemId(int position) { return position; }
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                LinearLayout layout;
+                TextView tvKeyword;
+                TextView tvClose;
+
+                if (convertView == null) {
+                    // Tạo một thanh ngang (Hàng)
+                    layout = new LinearLayout(requireContext());
+                    layout.setOrientation(LinearLayout.HORIZONTAL);
+                    layout.setPadding(40, 36, 40, 36); // Đệm trên dưới trái phải
+                    layout.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+                    // Thêm hiệu ứng gợn sóng (Ripple) khi bấm vào hàng
+                    android.util.TypedValue outValue = new android.util.TypedValue();
+                    requireContext().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+                    layout.setBackgroundResource(outValue.resourceId);
+
+                    // Khúc hiển thị Từ khóa
+                    tvKeyword = new TextView(requireContext());
+                    tvKeyword.setTextColor(ContextCompat.getColor(requireContext(), R.color.mdx_text));
+                    tvKeyword.setTextSize(16f);
+                    tvKeyword.setSingleLine(true);
+                    tvKeyword.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+                    tvKeyword.setLayoutParams(params); // Chiếm hết phần không gian trống
+
+                    // Khúc hiển thị Dấu X
+                    tvClose = new TextView(requireContext());
+                    tvClose.setText("✕");
+                    tvClose.setTextColor(ContextCompat.getColor(requireContext(), R.color.mdx_text_secondary)); // Màu xám nhạt
+                    tvClose.setTextSize(18f);
+                    tvClose.setPadding(30, 10, 10, 10); // Cho vùng bấm của dấu X bự ra tí
+
+                    // Ráp chữ và dấu X vào hàng
+                    layout.addView(tvKeyword);
+                    layout.addView(tvClose);
+                } else {
+                    // Tái sử dụng để cuộn không bị giật lag
+                    layout = (LinearLayout) convertView;
+                    tvKeyword = (TextView) layout.getChildAt(0);
+                    tvClose = (TextView) layout.getChildAt(1);
+                }
+
+                String keyword = top10.get(position);
+                tvKeyword.setText(keyword);
+
+                // SỰ KIỆN 1: Bấm vào dòng đó -> Tìm kiếm bài hát
+                layout.setOnClickListener(v -> {
+                    etSearch.setText(keyword);
+                    etSearch.setSelection(keyword.length());
+                    recentSearchPopup.dismiss(); // Thu dọn bảng
+                    hideKeyboard();
+                    repository.saveToRecentSearch(keyword); // Lưu lên đầu
+                    renderRecentSearches();
+                    runSearch();
+                });
+
+                // SỰ KIỆN 2: Bấm vào dấu X -> Xóa khỏi hệ mặt trời
+                tvClose.setOnClickListener(v -> {
+                    repository.removeRecentSearch(keyword); // Xóa trong Database SharedPreferences
+                    top10.remove(position); // Xóa khỏi danh sách đang hiện
+                    notifyDataSetChanged(); // Load lại cái bảng thả xuống
+                    renderRecentSearches(); // Load lại luôn mấy cái Chip UI ở dưới
+
+                    // Nếu lỡ tay xóa sạch 10 cái rồi thì dọn cái bảng đi
+                    if (top10.isEmpty() && recentSearchPopup != null) {
+                        recentSearchPopup.dismiss();
+                    }
+                });
+
+                return layout;
+            }
+        };
+
+        recentSearchPopup.setAdapter(customAdapter);
+        recentSearchPopup.show();
+    }
     // 1. Thay thế hàm bindChips cũ bằng hàm này
     private void bindChips(View view) {
         Chip chipAll = view.findViewById(R.id.chip_all);
@@ -315,19 +451,47 @@ public class SearchFragment extends Fragment {
     }
 
     private void openResult(SearchResultItem item) {
+        String historyKeyword = null;
+
+        if (item != null && !TextUtils.isEmpty(item.title)) {
+            historyKeyword = item.title.trim();   // ưu tiên lưu đúng item vừa bấm
+        }
+
+        if (TextUtils.isEmpty(historyKeyword)) {
+            historyKeyword = etSearch.getText().toString().trim(); // fallback
+        }
+
+        if (!TextUtils.isEmpty(historyKeyword)) {
+            repository.saveToRecentSearch(historyKeyword);
+            etSearch.setText(historyKeyword);
+            etSearch.setSelection(historyKeyword.length());
+            renderRecentSearches();
+        }
+
+        hideKeyboard();
+
         switch (item.type) {
             case Constants.FILTER_SONG:
+                Song clickedSong = repository.getSongById(item.targetId);
+                if (clickedSong != null) {
+                    ArrayList<Song> playList = new ArrayList<>();
+                    playList.add(clickedSong);
+                    PlaybackUtils.playSong(requireContext(), playList, clickedSong.getId());
+                }
                 break;
+
             case Constants.FILTER_ARTIST:
                 Intent artistIntent = new Intent(requireContext(), ArtistDetailActivity.class);
                 artistIntent.putExtra(ArtistDetailActivity.EXTRA_ARTIST_ID, item.targetId);
                 startActivity(artistIntent);
                 break;
+
             case Constants.FILTER_ALBUM:
                 Intent albumIntent = new Intent(requireContext(), AlbumDetailActivity.class);
                 albumIntent.putExtra(AlbumDetailActivity.EXTRA_ALBUM_ID, item.targetId);
                 startActivity(albumIntent);
                 break;
+
             case Constants.FILTER_PLAYLIST:
                 Intent playlistIntent = new Intent(requireContext(), PlaylistDetailActivity.class);
                 playlistIntent.putExtra(PlaylistDetailActivity.EXTRA_PLAYLIST_ID, item.targetId);
@@ -335,7 +499,6 @@ public class SearchFragment extends Fragment {
                 break;
         }
     }
-
     // Hàm hỗ trợ hạ bàn phím và bỏ con trỏ nhấp nháy ở ô Search
     private void hideKeyboard() {
         View view = requireActivity().getCurrentFocus();

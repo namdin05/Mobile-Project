@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.melodix.app.BuildConfig;
+import com.melodix.app.Utils.SessionManager;
 
 import java.io.IOException;
 
@@ -32,29 +33,39 @@ public class RetrofitClient {
             sharedHttpClient = new OkHttpClient.Builder().addInterceptor(new Interceptor() {
                 @Override
                 public Response intercept(Chain chain) throws IOException {
-                    SharedPreferences prefs = safeContext.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+                    SessionManager sessionManager = SessionManager.getInstance(safeContext);
 
-                    String role = prefs.getString("USER_ROLE", "user");
+                    String role = sessionManager.getRole();
+                    if (role == null) role = "user";
 
                     String apikey;
                     String authBearer;
 
                     if ("admin".equals(role)) {
-                        // NẾU LÀ ADMIN: Dùng SERVICE_KEY cho cả 2 để bypass RLS (bỏ qua quyền truy cập)
                         apikey = BuildConfig.SERVICE_KEY;
                         authBearer = BuildConfig.SERVICE_KEY;
                     } else {
-                        // NẾU LÀ USER BÌNH THƯỜNG: Dùng API_KEY và Token của User
                         apikey = BuildConfig.API_KEY;
-                        authBearer = prefs.getString("ACCESS_TOKEN", BuildConfig.API_KEY);
+                        String token = sessionManager.getAccessToken();
+                        authBearer = (token != null && !token.isEmpty()) ? token : BuildConfig.API_KEY;
                     }
 
-                    Request newRequest = chain.request().newBuilder()
-                            .addHeader("apikey", apikey)
-                            .addHeader("Authorization", "Bearer " + authBearer)
-                            .build();
+                    // 1. Lấy Request gốc mà API Service gửi xuống
+                    Request original = chain.request();
+                    Request.Builder requestBuilder = original.newBuilder();
 
-                    return chain.proceed(newRequest);
+                    // ==================================================================
+                    // 2. CHỐT CHẶN: Chỉ tự động gắn Header nếu Request gốc CHƯA CÓ
+                    // ==================================================================
+                    if (original.header("apikey") == null) {
+                        requestBuilder.addHeader("apikey", apikey);
+                    }
+
+                    if (original.header("Authorization") == null) {
+                        requestBuilder.addHeader("Authorization", "Bearer " + authBearer);
+                    }
+
+                    return chain.proceed(requestBuilder.build());
                 }
             }).build();
         }

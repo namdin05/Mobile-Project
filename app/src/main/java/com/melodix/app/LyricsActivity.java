@@ -56,7 +56,7 @@ public class LyricsActivity extends AppCompatActivity {
         }
         playbackRepository = PlaybackRepository.getInstance();
         appRepository = AppRepository.getInstance(this);
-        ThemeUtils.applyNightMode(appRepository.getCurrentUser() == null || appRepository.getCurrentUser().darkMode);
+//        ThemeUtils.applyNightMode(appRepository.getCurrentUser() == null || appRepository.getCurrentUser().darkMode);
         super.onCreate(savedInstanceState);
 
         // Đảm bảo tên layout này khớp với file xml của bạn (ví dụ: activity_lyrics)
@@ -118,7 +118,20 @@ public class LyricsActivity extends AppCompatActivity {
         rvLyrics.setLayoutManager(layoutManager);
 
         // Nạp data
-        lyricAdapter = new LyricAdapter(currentSong.getLyrics());
+        // Khởi tạo Adapter và lắng nghe sự kiện Click
+        lyricAdapter = new LyricAdapter(currentSong.getLyrics(), new LyricAdapter.OnLyricClickListener() {
+            @Override
+            public void onLyricClick(long timeMs) {
+                // 1. Ép RecyclerView cuộn mượt đến ngay dòng vừa bấm
+                syncLyrics((int) timeMs);
+
+                // 2. Gửi lệnh xuống Service để tua bài hát
+                android.content.Intent intent = new android.content.Intent(LyricsActivity.this, AudioPlayerService.class);
+                intent.setAction(AudioPlayerService.ACTION_SEEK_TO);
+                intent.putExtra(AudioPlayerService.EXTRA_SEEK, (int) timeMs);
+                startService(intent);
+            }
+        });
         rvLyrics.setAdapter(lyricAdapter);
     }
 

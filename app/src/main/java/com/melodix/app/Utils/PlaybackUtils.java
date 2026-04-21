@@ -45,7 +45,7 @@ public class PlaybackUtils {
 
     public static void setSleepTimer(Context context, int minutes) {
         Intent intent = new Intent(context, AudioPlayerService.class);
-//        intent.setAction(AudioPlayerService.ACTION_SET_SLEEP_TIMER);
+        intent.setAction(AudioPlayerService.ACTION_SET_SLEEP_TIMER);
         intent.putExtra(AudioPlayerService.EXTRA_TIMER_MINUTES, minutes);
         context.startService(intent);
     }

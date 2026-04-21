@@ -1,24 +1,30 @@
 package com.melodix.app.View.artist;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.melodix.app.BuildConfig;
 import com.melodix.app.Constants;
-import com.melodix.app.Model.SessionManager;
+import com.melodix.app.Model.Song;
 import com.melodix.app.R;
+import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Service.ArtistAPIService;
 import com.melodix.app.Service.ProfileAPIService;
 import com.melodix.app.Service.RetrofitClient;
@@ -26,7 +32,9 @@ import com.melodix.app.Service.StorageAPIService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import okhttp3.MediaType;
@@ -43,10 +51,18 @@ public class CreateAlbumActivity extends AppCompatActivity {
     private ImageView imgCoverPreview;
     private MaterialButton btnCreate;
 
+    private RecyclerView rvAvailableSongs;
+    private com.melodix.app.View.adapters.SongSelectionAdapter songSelectionAdapter;
+    private List<Song> allMySongs = new ArrayList<>();
+    private final List<String> selectedSongIds = new ArrayList<>();
+
     private Uri coverUri = null;
     private String artistId;
+    private TextView btnGoToUploadSong;
+    private boolean isEditMode = false;
+    private String editAlbumId = null;
+    private String existingCoverUrl = null;
 
-    // Trình chọn ảnh
     private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -64,19 +80,28 @@ public class CreateAlbumActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_album);
 
-        artistId = SessionManager.getInstance(this).getCurrentUser().getId();
+        // ĐÃ SỬA: Lấy artistId từ SharedPreferences thay vì SessionManager
+        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+        artistId = prefs.getString("USER_ID", null);
+
+        if (artistId == null) {
+            Toast.makeText(this, "Vui lòng đăng nhập lại", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         edtTitle = findViewById(R.id.edt_album_title);
-
-        // Đã xóa edtYear vì không cần bắt người dùng nhập nữa
-
         btnPickCover = findViewById(R.id.btn_pick_cover);
         layoutPlaceholder = findViewById(R.id.layout_placeholder);
         imgCoverPreview = findViewById(R.id.img_cover_preview);
         btnCreate = findViewById(R.id.btn_create_album);
-
+        rvAvailableSongs = findViewById(R.id.rv_available_songs);
+        btnGoToUploadSong = findViewById(R.id.btn_go_to_upload_song);
+        btnGoToUploadSong.setOnClickListener(v -> {
+            Intent intent = new Intent(CreateAlbumActivity.this, UploadSongActivity.class);
+            startActivity(intent);
+        });
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
-
         btnPickCover.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK);
             intent.setType("image/*");
@@ -84,11 +109,77 @@ public class CreateAlbumActivity extends AppCompatActivity {
         });
 
         btnCreate.setOnClickListener(v -> handleCreateAlbum());
+
+        isEditMode = getIntent().getBooleanExtra("IS_EDIT_MODE", false);
+
+        if (isEditMode) {
+            editAlbumId = getIntent().getStringExtra("EDIT_ALBUM_ID");
+            String oldTitle = getIntent().getStringExtra("EDIT_ALBUM_TITLE");
+            existingCoverUrl = getIntent().getStringExtra("EDIT_ALBUM_COVER");
+
+            edtTitle.setText(oldTitle);
+            btnCreate.setText("CẬP NHẬT ALBUM");
+
+            if (existingCoverUrl != null && !existingCoverUrl.isEmpty()) {
+                layoutPlaceholder.setVisibility(View.GONE);
+                imgCoverPreview.setVisibility(View.VISIBLE);
+                Glide.with(this).load(existingCoverUrl).into(imgCoverPreview);
+            }
+        }
+
+        setupSongSelectionList();
+        fetchMySongs();
+    }
+
+    private void setupSongSelectionList() {
+        rvAvailableSongs.setLayoutManager(new LinearLayoutManager(this));
+        songSelectionAdapter = new com.melodix.app.View.adapters.SongSelectionAdapter(this, allMySongs, selectedSongIds);
+        rvAvailableSongs.setAdapter(songSelectionAdapter);
+    }
+    // ==========================================
+    // TỰ ĐỘNG LOAD LẠI BÀI HÁT KHI QUAY TRỞ VỀ TỪ TRANG UPLOAD
+    // ==========================================
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Mỗi lần màn hình này hiện lên (kể cả khi vừa tạo xong bài hát quay về),
+        // nó sẽ tự động chạy xuống Database kéo bài hát mới nhất lên.
+        if (artistId != null) {
+            fetchMySongs();
+        }
+    }
+    private void fetchMySongs() {
+        AppRepository.getInstance(this).getMyUploadSongs(artistId, new AppRepository.SongListCallback() {
+            @Override
+            public void onSuccess(ArrayList<Song> songs) {
+                if (isFinishing()) return;
+                List<Song> availableSongs = new ArrayList<>();
+                selectedSongIds.clear();
+
+                for (Song s : songs) {
+                    boolean isSingle = (s.getAlbumId() == null || s.getAlbumId().isEmpty() || s.getAlbumId().equals("null"));
+                    boolean belongsToThisAlbum = isEditMode && s.getAlbumId() != null && s.getAlbumId().equals(editAlbumId);
+                    boolean isNotRejected = (s.getStatus() == null || !s.getStatus().equalsIgnoreCase("rejected"));
+
+                    if ((isSingle || belongsToThisAlbum) && isNotRejected) {
+                        availableSongs.add(s);
+                        if (belongsToThisAlbum) {
+                            selectedSongIds.add(s.getId());
+                        }
+                    }
+                }
+                songSelectionAdapter.updateData(new ArrayList<>(availableSongs));
+            }
+
+            @Override
+            public void onError(String message) {
+                Toast.makeText(CreateAlbumActivity.this, "Chi tiết lỗi: " + message, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void handleCreateAlbum() {
         String title = edtTitle.getText().toString().trim();
-
         if (title.isEmpty()) {
             edtTitle.setError("Tên album là bắt buộc");
             return;
@@ -98,10 +189,9 @@ public class CreateAlbumActivity extends AppCompatActivity {
         btnCreate.setText("ĐANG XỬ LÝ...");
 
         if (coverUri != null) {
-            uploadCoverAndSave(title); // Không cần truyền year nữa
+            uploadCoverAndSave(title);
         } else {
-            // Không up ảnh bìa thì lưu database thẳng luôn
-            saveToDatabase(title, null); // Không cần truyền year nữa
+            saveToDatabase(title, isEditMode ? existingCoverUrl : null);
         }
     }
 
@@ -111,9 +201,7 @@ public class CreateAlbumActivity extends AppCompatActivity {
             ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
             int len;
-            while ((len = inputStream.read(buffer)) != -1) {
-                byteBuffer.write(buffer, 0, len);
-            }
+            while ((len = inputStream.read(buffer)) != -1) { byteBuffer.write(buffer, 0, len); }
             byte[] imageBytes = byteBuffer.toByteArray();
 
             RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpeg"), imageBytes);
@@ -131,35 +219,50 @@ public class CreateAlbumActivity extends AppCompatActivity {
                     if (response.isSuccessful()) {
                         String coverUrl = Constants.STORAGE_BASE_URL + Constants.ALBUM_COVER_BUCKET + fileName;
                         saveToDatabase(title, coverUrl);
+                    } else { showError("Lỗi upload ảnh"); }
+                }
+                @Override public void onFailure(Call<ResponseBody> call, Throwable t) { showError("Lỗi mạng upload ảnh"); }
+            });
+        } catch (Exception e) { showError("Lỗi đọc file ảnh"); }
+    }
+
+    private void saveToDatabase(String title, String coverUrl) {
+        Map<String, Object> albumData = new HashMap<>();
+
+        if (isEditMode) {
+            albumData.put("p_album_id", editAlbumId);
+            albumData.put("p_title", title);
+            albumData.put("p_cover", coverUrl);
+            albumData.put("p_song_ids", selectedSongIds);
+
+            ArtistAPIService dbService = RetrofitClient.getClient(getApplication()).create(ArtistAPIService.class);
+            dbService.updateAlbumWithSongs(albumData).enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(CreateAlbumActivity.this, "Đã cập nhật Album & Bài hát!", Toast.LENGTH_SHORT).show();
+                        finish();
                     } else {
-                        showError("Lỗi upload ảnh: " + response.code());
+                        showError("Lỗi cập nhật Album: " + response.code());
                     }
                 }
 
                 @Override
                 public void onFailure(Call<ResponseBody> call, Throwable t) {
-                    showError("Lỗi mạng khi upload ảnh");
+                    showError("Lỗi kết nối mạng");
                 }
             });
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            showError("Lỗi đọc file ảnh");
-        }
-    }
+        } else {
+            albumData.put("p_title", title);
+            albumData.put("p_artist_id", artistId);
+            albumData.put("p_year", java.util.Calendar.getInstance().get(java.util.Calendar.YEAR));
+            albumData.put("p_description", "");
 
-    private void saveToDatabase(String title, String coverUrl) {
-        Map<String, Object> albumData = new HashMap<>();
-        albumData.put("title", title);
-        albumData.put("artist_id", artistId);
+            if (coverUrl != null) albumData.put("p_cover_url", coverUrl);
+            else albumData.put("p_cover_url", null);
 
-        // ĐÂY LÀ PHẦN PHÉP THUẬT: Tự động lấy năm hiện tại của máy
-        int currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
-        albumData.put("release_year", currentYear);
-
-        if (coverUrl != null) {
-            albumData.put("cover_url", coverUrl);
-        }
+            albumData.put("p_existing_song_ids", selectedSongIds);
 
         ArtistAPIService apiService = RetrofitClient.getClient(getApplicationContext()).create(ArtistAPIService.class);
         apiService.createAlbum(albumData)
@@ -168,33 +271,41 @@ public class CreateAlbumActivity extends AppCompatActivity {
                     public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                         if (response.isSuccessful()) {
                             Toast.makeText(CreateAlbumActivity.this, "Đã tạo Album thành công!", Toast.LENGTH_LONG).show();
-                            resetForm();
+                            finish();
                         } else {
                             showError("Lỗi lưu Database");
                         }
                     }
 
-                    @Override
-                    public void onFailure(Call<ResponseBody> call, Throwable t) {
-                        showError("Lỗi kết nối máy chủ");
-                    }
-                });
+                        @Override
+                        public void onFailure(Call<ResponseBody> call, Throwable t) {
+                            showError("Lỗi kết nối máy chủ");
+                        }
+                    });
+        }
     }
 
     private void showError(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
         btnCreate.setEnabled(true);
-        btnCreate.setText("TẠO ALBUM");
+        btnCreate.setText(isEditMode ? "CẬP NHẬT ALBUM" : "TẠO ALBUM");
     }
 
-    private void resetForm(){
-        btnCreate.setEnabled(true);
-        btnCreate.setText("TẠO ALBUM");
-
-        edtTitle.setText("");
-
-        coverUri = null;
-        imgCoverPreview.setVisibility(View.GONE);
-        layoutPlaceholder.setVisibility(View.VISIBLE);
+    @Override
+    public boolean dispatchTouchEvent(android.view.MotionEvent ev) {
+        if (ev.getAction() == android.view.MotionEvent.ACTION_DOWN) {
+            View v = getCurrentFocus();
+            if (v instanceof EditText) {
+                android.graphics.Rect outRect = new android.graphics.Rect();
+                v.getGlobalVisibleRect(outRect);
+                if (!outRect.contains((int) ev.getRawX(), (int) ev.getRawY())) {
+                    v.clearFocus();
+                    android.view.inputmethod.InputMethodManager imm =
+                            (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+        }
+        return super.dispatchTouchEvent(ev);
     }
 }
