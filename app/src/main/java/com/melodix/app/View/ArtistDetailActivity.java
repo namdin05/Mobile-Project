@@ -146,7 +146,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
                     String displayCount = count >= 1000 ?
                             String.format(java.util.Locale.US, "%.1fK", count / 1000f) :
                             String.valueOf(count);
-                    tvFollowerCount.setText(displayCount + " người theo dõi");
+                    tvFollowerCount.setText(displayCount + " follower(s)");
                 });
 
                 // LẤY BÀI HÁT
