@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -22,22 +24,24 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.melodix.app.Service.ProfileAPIService;
-import com.melodix.app.Service.RetrofitClient;
 import com.melodix.app.Model.Song;
 import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Repository.PlaybackRepository;
 import com.melodix.app.Service.AudioPlayerService;
 import com.melodix.app.Utils.PlaybackUtils;
+import com.melodix.app.View.auth.LoginActivity;
 import com.melodix.app.View.fragments.AccountFragment;
 import com.melodix.app.View.fragments.LibraryFragment;
 import com.melodix.app.View.fragments.SearchFragment;
 import com.melodix.app.View.home.HomeFragment;
 import com.melodix.app.Utils.NetworkUtils;
+
+import com.melodix.app.ViewModel.ProfileViewModel;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,6 +53,8 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
     private int currentTabId = R.id.nav_home;
     private AppRepository repository;
+
+    private ProfileViewModel profileViewModel;
 
     // Quản lý Fragment
     private Fragment homeFragment;
@@ -85,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // --- 1. CHỐT DARK MODE TRƯỚC KHI VẼ MÀN HÌNH ---
@@ -98,8 +103,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        repository = AppRepository.getInstance(this);
+        // 1. KHỞI TẠO VIEWMODEL ĐẦU TIÊN (Rất quan trọng để tránh lỗi Null)
+        profileViewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
 
+        // 2. SAU ĐÓ MỚI GỌI CÁC HÀM LIÊN QUAN ĐẾN NÓ
         askNotificationPermission();
         fetchAndSaveFCMToken();
 
@@ -311,27 +318,18 @@ public class MainActivity extends AppCompatActivity {
     private void fetchAndSaveFCMToken() {
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(task -> {
-                    if (!task.isSuccessful()) return;
+                    if (!task.isSuccessful()) {
+                        Log.w("MELODIX_FCM", "Lấy FCM Token thất bại", task.getException());
+                        return;
+                    }
+
                     String token = task.getResult();
-                    updateTokenToServer(token);
-                });
-    }
+                    Log.d("MELODIX_FCM", "Đã lấy được FCM Token: " + token);
 
-    private void updateTokenToServer(String token) {
-        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
-        String userId = prefs.getString("USER_ID", "");
-        if (userId.isEmpty()) return;
-
-        ProfileAPIService apiService = RetrofitClient.getClient().create(ProfileAPIService.class);
-        Map<String, Object> body = new HashMap<>();
-        body.put("fcm_token", token);
-
-        apiService.updateFcmToken(BuildConfig.SERVICE_KEY, "Bearer " + BuildConfig.SERVICE_KEY, "eq." + userId, body)
-                .enqueue(new Callback<Void>() {
-                    @Override
-                    public void onResponse(Call<Void> call, Response<Void> response) {}
-                    @Override
-                    public void onFailure(Call<Void> call, Throwable t) {}
+                    // Gọi ViewModel để cập nhật Token (ViewModel sẽ gọi xuống Repo)
+                    if (profileViewModel != null) {
+                        profileViewModel.updateTokenToServer(token);
+                    }
                 });
     }
 
@@ -374,7 +372,6 @@ public class MainActivity extends AppCompatActivity {
                             nextIntent.putExtra("start_playback", true);
                             break;
                     }
-
                     if (nextIntent != null) {
                         startActivity(nextIntent);
                     }

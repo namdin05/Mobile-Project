@@ -28,6 +28,7 @@ import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Service.ArtistAPIService;
 import com.melodix.app.Service.ProfileAPIService;
 import com.melodix.app.Service.RetrofitClient;
+import com.melodix.app.Service.StorageAPIService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -206,10 +207,12 @@ public class CreateAlbumActivity extends AppCompatActivity {
             RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpeg"), imageBytes);
             String fileName = "album_" + System.currentTimeMillis() + ".jpg";
 
-            ProfileAPIService storageService = RetrofitClient.getClient().create(ProfileAPIService.class);
+            StorageAPIService storageService = RetrofitClient.getStorage(getApplicationContext()).create(StorageAPIService.class);
+
             storageService.uploadFileToStorage(
-                    BuildConfig.API_KEY, "Bearer " + BuildConfig.API_KEY, "image/jpeg", "true",
-                    Constants.ALBUM_COVER_BUCKET.replace("/", ""), fileName, requestBody
+                    "image/jpeg", "true",
+                    Constants.ALBUM_COVER_BUCKET.replace("/", ""),
+                    fileName, requestBody
             ).enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -232,7 +235,7 @@ public class CreateAlbumActivity extends AppCompatActivity {
             albumData.put("p_cover", coverUrl);
             albumData.put("p_song_ids", selectedSongIds);
 
-            ArtistAPIService dbService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
+            ArtistAPIService dbService = RetrofitClient.getClient(getApplication()).create(ArtistAPIService.class);
             dbService.updateAlbumWithSongs(albumData).enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -261,18 +264,18 @@ public class CreateAlbumActivity extends AppCompatActivity {
 
             albumData.put("p_existing_song_ids", selectedSongIds);
 
-            ArtistAPIService apiService = RetrofitClient.getClient().create(ArtistAPIService.class);
-            apiService.createAlbumWithSongs(BuildConfig.API_KEY, "Bearer " + BuildConfig.API_KEY, albumData)
-                    .enqueue(new Callback<ResponseBody>() {
-                        @Override
-                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                            if (response.isSuccessful()) {
-                                Toast.makeText(CreateAlbumActivity.this, "Đã gửi Album! Đang chờ duyệt.", Toast.LENGTH_LONG).show();
-                                finish();
-                            } else {
-                                showError("Lỗi lưu Database RPC");
-                            }
+        ArtistAPIService apiService = RetrofitClient.getClient(getApplicationContext()).create(ArtistAPIService.class);
+        apiService.createAlbum(albumData)
+                .enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        if (response.isSuccessful()) {
+                            Toast.makeText(CreateAlbumActivity.this, "Đã tạo Album thành công!", Toast.LENGTH_LONG).show();
+                            finish();
+                        } else {
+                            showError("Lỗi lưu Database");
                         }
+                    }
 
                         @Override
                         public void onFailure(Call<ResponseBody> call, Throwable t) {

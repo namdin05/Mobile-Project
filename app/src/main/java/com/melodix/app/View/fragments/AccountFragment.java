@@ -21,6 +21,7 @@ import androidx.fragment.app.Fragment;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Utils.AppUiUtils;
+import com.melodix.app.Utils.SessionManager;
 import com.melodix.app.View.artist.ManageSongActivity;
 
 public class AccountFragment extends Fragment {
@@ -31,12 +32,14 @@ public class AccountFragment extends Fragment {
     private LinearLayout cardArtistCenter, btnArtistUpload, btnArtistAlbums, btnArtistStats;
 
     // Giao diện Nút Xin Nghệ Sĩ
-    private com.google.android.material.button.MaterialButton btnRequestArtist;
+    private com.google.android.material.button.MaterialButton btnRequestArtist, btnLogOut;
 
     // 👇 Thêm biến cho vòng xoay làm mới 👇
     private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefresh;
 
     private SharedPreferences sharedPreferences;
+
+    private com.melodix.app.ViewModel.ProfileViewModel profileViewModel;
     private static final String PREF_NAME = "MelodixSettings";
     private static final String KEY_DARK_MODE = "dark_mode_enabled";
 
@@ -58,6 +61,24 @@ public class AccountFragment extends Fragment {
         btnArtistUpload = view.findViewById(R.id.btn_artist_upload);
         btnArtistAlbums = view.findViewById(R.id.btn_artist_albums);
         btnArtistStats = view.findViewById(R.id.btn_artist_stats);
+        btnLogOut = view.findViewById(R.id.btn_logout);
+
+        profileViewModel = new androidx.lifecycle.ViewModelProvider(this).get(com.melodix.app.ViewModel.ProfileViewModel.class);
+
+        // 2. Bắt sự kiện bấm nút Đăng xuất
+        btnLogOut.setOnClickListener(v -> {
+            profileViewModel.performLogout();
+        });
+
+        // 3. Lắng nghe trạng thái và chuyển trang an toàn
+        profileViewModel.getLogoutStatus().observe(getViewLifecycleOwner(), isLoggedOut -> {
+            if (isLoggedOut != null && isLoggedOut) {
+                Intent intent = new Intent(requireActivity(), com.melodix.app.View.auth.LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                requireActivity().finish(); // Đóng hoàn toàn màn hình chứa Fragment
+            }
+        });
 
         // Ánh xạ Nút Xin Nghệ Sĩ
         btnRequestArtist = view.findViewById(R.id.btn_request_artist);
@@ -70,7 +91,7 @@ public class AccountFragment extends Fragment {
 
             // Sự kiện khi vuốt màn hình
             swipeRefresh.setOnRefreshListener(() -> {
-                String myId = sharedPreferences.getString("USER_ID", null);
+                String myId = SessionManager.getInstance(getContext()).getUserId();
                 if (myId != null) {
                     // Chạy ngầm 2 hàm kiểm tra
                     checkRequestStatus(myId);
@@ -182,11 +203,9 @@ public class AccountFragment extends Fragment {
     // ========================================================
 
     private void checkRequestStatus(String userId) {
-        com.melodix.app.Service.ProfileAPIService apiService = com.melodix.app.Service.RetrofitClient.getClient().create(com.melodix.app.Service.ProfileAPIService.class);
-        String apiKey = com.melodix.app.BuildConfig.API_KEY;
-        String token = "Bearer " + apiKey;
+        com.melodix.app.Service.ProfileAPIService apiService = com.melodix.app.Service.RetrofitClient.getClient(getActivity().getApplication()).create(com.melodix.app.Service.ProfileAPIService.class);
 
-        apiService.checkArtistRequestStatus(apiKey, token, "eq." + userId).enqueue(new retrofit2.Callback<java.util.List<Object>>() {
+        apiService.checkArtistRequestStatus("eq." + userId).enqueue(new retrofit2.Callback<java.util.List<Object>>() {
             @Override
             public void onResponse(retrofit2.Call<java.util.List<Object>> call, retrofit2.Response<java.util.List<Object>> response) {
                 if (isAdded() && response.isSuccessful() && response.body() != null) {
@@ -199,14 +218,12 @@ public class AccountFragment extends Fragment {
     }
 
     private void sendArtistRequest(String userId) {
-        com.melodix.app.Service.ProfileAPIService apiService = com.melodix.app.Service.RetrofitClient.getClient().create(com.melodix.app.Service.ProfileAPIService.class);
-        String apiKey = com.melodix.app.BuildConfig.API_KEY;
-        String token = "Bearer " + apiKey;
+        com.melodix.app.Service.ProfileAPIService apiService = com.melodix.app.Service.RetrofitClient.getClient(getActivity().getApplication()).create(com.melodix.app.Service.ProfileAPIService.class);
 
         java.util.Map<String, Object> data = new java.util.HashMap<>();
         data.put("user_id", userId);
 
-        apiService.requestArtistRole(apiKey, token, data).enqueue(new retrofit2.Callback<okhttp3.ResponseBody>() {
+        apiService.requestArtistRole(data).enqueue(new retrofit2.Callback<okhttp3.ResponseBody>() {
             @Override
             public void onResponse(retrofit2.Call<okhttp3.ResponseBody> call, retrofit2.Response<okhttp3.ResponseBody> response) {
                 if (isAdded()) {
@@ -226,11 +243,9 @@ public class AccountFragment extends Fragment {
     }
 
     private void cancelArtistRequest(String userId) {
-        com.melodix.app.Service.ProfileAPIService apiService = com.melodix.app.Service.RetrofitClient.getClient().create(com.melodix.app.Service.ProfileAPIService.class);
-        String apiKey = com.melodix.app.BuildConfig.API_KEY;
-        String token = "Bearer " + apiKey;
+        com.melodix.app.Service.ProfileAPIService apiService = com.melodix.app.Service.RetrofitClient.getClient(getActivity().getApplication()).create(com.melodix.app.Service.ProfileAPIService.class);
 
-        apiService.cancelArtistRequest(apiKey, token, "eq." + userId).enqueue(new retrofit2.Callback<okhttp3.ResponseBody>() {
+        apiService.cancelArtistRequest("eq." + userId).enqueue(new retrofit2.Callback<okhttp3.ResponseBody>() {
             @Override
             public void onResponse(retrofit2.Call<okhttp3.ResponseBody> call, retrofit2.Response<okhttp3.ResponseBody> response) {
                 if (isAdded()) {
@@ -277,7 +292,7 @@ public class AccountFragment extends Fragment {
     // ĐỒNG BỘ NGẦM (HOÀN THIỆN CẢ LÊN CHỨC LẪN GIÁNG CHỨC)
     // ========================================================
     private void syncProfileRoleSilently(String userId) {
-        com.melodix.app.Repository.ProfileRepository profileRepo = new com.melodix.app.Repository.ProfileRepository();
+        com.melodix.app.Repository.ProfileRepository profileRepo = new com.melodix.app.Repository.ProfileRepository(getContext());
         profileRepo.getProfileById(userId, new retrofit2.Callback<java.util.List<com.melodix.app.Model.Profile>>() {
             @Override
             public void onResponse(retrofit2.Call<java.util.List<com.melodix.app.Model.Profile>> call, retrofit2.Response<java.util.List<com.melodix.app.Model.Profile>> response) {

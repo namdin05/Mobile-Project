@@ -61,10 +61,10 @@ public class AppRepository {
         this.gson = new GsonBuilder().create();
 
         // Khởi tạo các Service gọi thẳng vào Supabase
-        this.searchApiService = RetrofitClient.getSupabaseClient().create(SearchAPIService.class);
-        this.albumApiService = RetrofitClient.getSupabaseClient().create(AlbumAPIService.class);
-        this.artistApiService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
-        this.profileApiService = RetrofitClient.getSupabaseClient().create(ProfileAPIService.class);
+        this.searchApiService = RetrofitClient.getClient(appContext).create(SearchAPIService.class);
+        this.albumApiService = RetrofitClient.getClient(appContext).create(AlbumAPIService.class);
+        this.artistApiService = RetrofitClient.getClient(appContext).create(ArtistAPIService.class);
+        this.profileApiService = RetrofitClient.getClient(appContext).create(ProfileAPIService.class);
     }
 
     public static synchronized AppRepository getInstance(Context context) {
@@ -530,7 +530,7 @@ public class AppRepository {
 
         // 👇 DÙNG getSupabaseClient() - Nó đã có sẵn Interceptor lấy Key xịn từ Constants rồi
         com.melodix.app.Service.SongAPIService apiService =
-                com.melodix.app.Service.RetrofitClient.getSupabaseClient().create(com.melodix.app.Service.SongAPIService.class);
+                com.melodix.app.Service.RetrofitClient.getClient(appContext).create(com.melodix.app.Service.SongAPIService.class);
 
         apiService.recordPlay(body).enqueue(new retrofit2.Callback<Void>() {
             @Override

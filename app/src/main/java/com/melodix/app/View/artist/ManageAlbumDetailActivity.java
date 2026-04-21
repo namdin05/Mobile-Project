@@ -59,8 +59,8 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_album_detail);
 
-        albumApiService = RetrofitClient.getSupabaseClient().create(AlbumAPIService.class);
-        artistApiService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
+        albumApiService = RetrofitClient.getClient(getApplicationContext()).create(AlbumAPIService.class);
+        artistApiService = RetrofitClient.getClient(getApplicationContext()).create(ArtistAPIService.class);
 
         // Lấy dữ liệu từ Intent gửi sang
         albumId = getIntent().getStringExtra("ALBUM_ID");

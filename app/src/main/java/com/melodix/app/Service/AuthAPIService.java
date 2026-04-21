@@ -15,28 +15,17 @@ import retrofit2.http.GET;
 import retrofit2.http.Query;
 
 public interface AuthAPIService {
-    @POST("auth/v1/token?grant_type=password")
+    @POST("token?grant_type=password")
     Call<AuthResponse> signInWithEmail(
-            @Header("apikey") String apiKey,
             @Body SignInRequest request
     );
 
-    @POST("auth/v1/signup")
+    @POST("signup")
     Call<AuthResponse> signUpWithEmail(
-            @Header("apikey") String apiKey,
             @Body SignUpRequest request
     );
 
-    @GET("rest/v1/profiles")
-    Call<List<Profile>> getProfile(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
-            @Query("id") String userIdFilter // Định dạng: eq.ID_CUA_USER
-    );
-
-    @GET("auth/v1/user")
+    @GET("user")
     Call<ResponseBody> getUserInfo(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token
     );
 }

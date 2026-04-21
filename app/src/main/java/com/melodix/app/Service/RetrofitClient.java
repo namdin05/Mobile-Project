@@ -1,10 +1,12 @@
 package com.melodix.app.Service;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import com.melodix.app.BuildConfig;
-import com.melodix.app.Utils.Constants; // 👉 ĐÃ THÊM IMPORT CONSTANTS
+import com.melodix.app.Utils.SessionManager;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -15,63 +17,100 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
 
-    // 1. Máy chủ gốc (Dành cho Upload Storage, RPC, Auth...)
-    private static Retrofit baseRetrofit = null;
+    private static OkHttpClient sharedHttpClient = null;
 
-    // 2. Máy chủ Database (Dành riêng cho truy vấn bảng, view có sẵn rest/v1/)
-    private static Retrofit supabaseDatabaseRetrofit = null;
+    private static Retrofit databaseRetrofit = null;
+    private static Retrofit storageRetrofit = null;
+    private static Retrofit authRetrofit = null;
 
     // =========================================================================
-    // HÀM 1: LẤY CLIENT GỐC (Dùng để up nhạc/ảnh)
+    // HÀM CHUNG: SETUP OKHTTP CLIENT (Gắn Chìa Khóa + Token)
     // =========================================================================
-    public static Retrofit getClient() {
-        if (baseRetrofit == null) {
+    private static OkHttpClient getSharedHttpClient(Context context) {
+        if (sharedHttpClient == null) {
+            final Context safeContext = context.getApplicationContext();
 
-            // 👉 BƠM 60 GIÂY THỜI GIAN CHỜ CHO VIỆC UPLOAD FILE NẶNG
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .connectTimeout(60, TimeUnit.SECONDS)
-                    .readTimeout(60, TimeUnit.SECONDS)
-                    .writeTimeout(60, TimeUnit.SECONDS)
-                    .build();
+            sharedHttpClient = new OkHttpClient.Builder().addInterceptor(new Interceptor() {
+                @Override
+                public Response intercept(Chain chain) throws IOException {
+                    SessionManager sessionManager = SessionManager.getInstance(safeContext);
 
-            baseRetrofit = new Retrofit.Builder()
-                    .baseUrl(BuildConfig.BASE_URL)
-                    .client(client) // Gắn cái client kiên nhẫn này vào
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
+                    String role = sessionManager.getRole();
+                    if (role == null) role = "user";
+
+                    String apikey;
+                    String authBearer;
+
+                    if ("admin".equals(role)) {
+                        apikey = BuildConfig.SERVICE_KEY;
+                        authBearer = BuildConfig.SERVICE_KEY;
+                    } else {
+                        apikey = BuildConfig.API_KEY;
+                        String token = sessionManager.getAccessToken();
+                        authBearer = (token != null && !token.isEmpty()) ? token : BuildConfig.API_KEY;
+                    }
+
+                    // 1. Lấy Request gốc mà API Service gửi xuống
+                    Request original = chain.request();
+                    Request.Builder requestBuilder = original.newBuilder();
+
+                    // ==================================================================
+                    // 2. CHỐT CHẶN: Chỉ tự động gắn Header nếu Request gốc CHƯA CÓ
+                    // ==================================================================
+                    if (original.header("apikey") == null) {
+                        requestBuilder.addHeader("apikey", apikey);
+                    }
+
+                    if (original.header("Authorization") == null) {
+                        requestBuilder.addHeader("Authorization", "Bearer " + authBearer);
+                    }
+
+                    return chain.proceed(requestBuilder.build());
+                }
+            }).build();
         }
-        return baseRetrofit;
+        return sharedHttpClient;
     }
 
     // =========================================================================
-    // HÀM 2: LẤY CLIENT DATABASE (Tự động gắn Header)
+    // NHÁNH 1: DATABASE (rest/v1/)
     // =========================================================================
-    public static Retrofit getSupabaseClient() {
-        if (supabaseDatabaseRetrofit == null) {
-
-            // 👉 BƠM THÊM 60 GIÂY VÀO CHỖ CÓ SẴN INTERCEPTOR
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .connectTimeout(60, TimeUnit.SECONDS)
-                    .readTimeout(60, TimeUnit.SECONDS)
-                    .writeTimeout(60, TimeUnit.SECONDS)
-                    .addInterceptor(new Interceptor() {
-                        @Override
-                        public Response intercept(Chain chain) throws IOException {
-                            // 👇 ĐÃ SỬA: Lấy thẻ xịn từ Constants thay vì BuildConfig bị lỗi
-                            Request newRequest = chain.request().newBuilder()
-                                    .addHeader("apikey", Constants.API_KEY)
-                                    .addHeader("Authorization", "Bearer " + Constants.API_KEY)
-                                    .build();
-                            return chain.proceed(newRequest);
-                        }
-                    }).build();
-
-            supabaseDatabaseRetrofit = new Retrofit.Builder()
-                    .baseUrl(BuildConfig.BASE_URL + "rest/v1/")
-                    .client(client)
+    public static Retrofit getClient(Context context) {
+        if (databaseRetrofit == null) {
+            databaseRetrofit = new Retrofit.Builder()
+                    .baseUrl(BuildConfig.BASE_URL + "rest/v1/") // Đuôi rest
+                    .client(getSharedHttpClient(context))       // Nhét bộ gắn Key chung vào
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
-        return supabaseDatabaseRetrofit;
+        return databaseRetrofit;
+    }
+
+    // =========================================================================
+    // NHÁNH 2: STORAGE (storage/v1/)
+    // =========================================================================
+    public static Retrofit getStorage(Context context) {
+        if (storageRetrofit == null) {
+            storageRetrofit = new Retrofit.Builder()
+                    .baseUrl(BuildConfig.BASE_URL + "storage/v1/object/") // Đuôi storage
+                    .client(getSharedHttpClient(context))          // Nhét bộ gắn Key chung vào
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+        return storageRetrofit;
+    }
+
+    // =========================================================================
+    // NHÁNH 3: AUTH (auth/v1/)
+    // =========================================================================
+    public static Retrofit getAuth(Context context) {
+        if (authRetrofit == null) {
+            authRetrofit = new Retrofit.Builder()
+                    .baseUrl(BuildConfig.BASE_URL + "auth/v1/") // Đuôi auth
+                    .client(getSharedHttpClient(context))       // Nhét bộ gắn Key chung vào
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+        return authRetrofit;
     }
 }

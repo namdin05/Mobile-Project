@@ -30,11 +30,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-
-
         buildConfigField("String", "SERVICE_KEY", "\"${properties.getProperty("ADMIN_KEY")}\"")
-
-
         buildConfigField("String", "BASE_URL", "\"${properties.getProperty("BASE_URL")}\"")
         buildConfigField("String", "API_KEY", "\"${properties.getProperty("API_KEY")}\"")
     }

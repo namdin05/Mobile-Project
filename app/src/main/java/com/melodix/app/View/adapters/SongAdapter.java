@@ -23,12 +23,17 @@ import java.util.Collections;
 import java.util.List;
 
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
+
+    private final Context context;
+    private final List<Song> songs;
+    private final OnSongActionListener listener;
+
     public interface OnSongActionListener {
         void onSongClick(Song song, int position);
         void onMenuClick(Song song, int position, String actionId);
     }
 
-    private final Context context;
+
 
     private boolean isAnalyticsMode = false; // Mặc định là TẮT
 
@@ -36,8 +41,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     public void setAnalyticsMode(boolean isAnalyticsMode) {
         this.isAnalyticsMode = isAnalyticsMode;
     }
-    private final List<Song> songs;
-    private final OnSongActionListener listener;
 
     public SongAdapter(Context context, List<Song> songs, OnSongActionListener listener) {
         this.context = context;
@@ -214,6 +217,5 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             this.songs.addAll(newSongs);
             notifyDataSetChanged();
         }
-
     }
 }

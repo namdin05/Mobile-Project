@@ -18,46 +18,25 @@ import retrofit2.http.Query;
 
 public interface ProfileAPIService  {
 
-    @GET("rest/v1/profiles")
-    Call<List<Profile>> getAllProfiles(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token
-    );
+    @GET("profiles")
+    Call<List<Profile>> getAllProfiles();
 
     // Lấy thông tin của 1 user cụ thể dựa vào ID
     @retrofit2.http.Headers("Cache-Control: no-cache")
-    @GET("rest/v1/profiles?select=display_name,avatar_url, role")
+    @GET("profiles?select=display_name,avatar_url, role")
     Call<List<Profile>> getProfileById(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
             @Query("id") String idFilter // Truyền vào dạng "eq.uuid-của-admin"
     );
 
-    // Hàm Upload đa năng cho mọi Bucket
-    @POST("storage/v1/object/{bucketName}/{fileName}")
-    Call<ResponseBody> uploadFileToStorage(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
-            @Header("Content-Type") String contentType,
-            @Header("x-upsert") String upsert,
-            @Path("bucketName") String bucketName, // <-- Thêm biến này
-            @Path("fileName") String fileName,
-            @Body RequestBody file
-    );
-
     // 2. Hàm Cập nhật (PATCH) thông tin profile
-    @PATCH("rest/v1/profiles")
+    @PATCH("profiles")
     Call<ResponseBody> updateProfile(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
             @Query("id") String idFilter, // eq.[UID]
             @Body java.util.Map<String, Object> bodyData // Gửi HashMap cho tiện
     );
 
-    @PATCH("/rest/v1/profiles")
+    @PATCH("profiles")
     Call<Void> updateFcmToken(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
             @Query(value = "id", encoded = true) String idFilter, // THÊM encoded = true VÀO ĐÂY
             @Body Map<String, Object> bodyData
     );
@@ -91,26 +70,20 @@ public interface ProfileAPIService  {
 
     // Bỏ dòng @Headers đi, để Retrofit tự lo!
 // Trở về sự cơ bản, không thêm mắm dặm muối
-    @retrofit2.http.POST("rest/v1/user_request_to_artist")
+    @retrofit2.http.POST("user_request_to_artist")
     retrofit2.Call<okhttp3.ResponseBody> requestArtistRole(
-            @retrofit2.http.Header("apikey") String apiKey,
-            @retrofit2.http.Header("Authorization") String token,
             @retrofit2.http.Body java.util.Map<String, Object> body // Dùng Map như cũ
     );
 
     // 1. API: Kiểm tra xem user có đang xin xỏ không
-    @retrofit2.http.GET("rest/v1/user_request_to_artist")
+    @retrofit2.http.GET("user_request_to_artist")
     retrofit2.Call<java.util.List<Object>> checkArtistRequestStatus(
-            @retrofit2.http.Header("apikey") String apiKey,
-            @retrofit2.http.Header("Authorization") String token,
             @retrofit2.http.Query("user_id") String userIdQuery
     );
 
     // 2. API: Hủy (Xóa) yêu cầu
-    @retrofit2.http.DELETE("rest/v1/user_request_to_artist")
+    @retrofit2.http.DELETE("user_request_to_artist")
     retrofit2.Call<okhttp3.ResponseBody> cancelArtistRequest(
-            @retrofit2.http.Header("apikey") String apiKey,
-            @retrofit2.http.Header("Authorization") String token,
             @retrofit2.http.Query("user_id") String userIdQuery
     );
 }

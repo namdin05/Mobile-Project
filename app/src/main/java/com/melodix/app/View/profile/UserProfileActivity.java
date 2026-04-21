@@ -102,7 +102,7 @@ public class UserProfileActivity extends AppCompatActivity {
     }
 
     private void loadUserInfo(String userId) {
-        ProfileRepository profileRepo = new ProfileRepository();
+        ProfileRepository profileRepo = new ProfileRepository(getBaseContext());
         profileRepo.getProfileById(userId, new Callback<List<Profile>>() {
             @Override
             public void onResponse(Call<List<Profile>> call, Response<List<Profile>> response) {
@@ -248,7 +248,7 @@ public class UserProfileActivity extends AppCompatActivity {
     }
 
     private void checkCurrentFollowStatus() {
-        com.melodix.app.Service.ProfileAPIService apiService = com.melodix.app.Service.RetrofitClient.getSupabaseClient().create(com.melodix.app.Service.ProfileAPIService.class);
+        com.melodix.app.Service.ProfileAPIService apiService = com.melodix.app.Service.RetrofitClient.getClient(getApplication()).create(com.melodix.app.Service.ProfileAPIService.class);
         apiService.checkFollowStatus("eq." + myUserId, "eq." + targetUserId).enqueue(new retrofit2.Callback<List<Object>>() {
             @Override
             public void onResponse(retrofit2.Call<List<Object>> call, retrofit2.Response<List<Object>> response) {
@@ -272,7 +272,7 @@ public class UserProfileActivity extends AppCompatActivity {
     }
 
     private void toggleFollowStatus() {
-        com.melodix.app.Service.ProfileAPIService apiService = com.melodix.app.Service.RetrofitClient.getSupabaseClient().create(com.melodix.app.Service.ProfileAPIService.class);
+        com.melodix.app.Service.ProfileAPIService apiService = com.melodix.app.Service.RetrofitClient.getClient(getApplication()).create(com.melodix.app.Service.ProfileAPIService.class);
 
         if (isFollowing) {
             // HÀNH ĐỘNG: BỎ THEO DÕI (Cập nhật UI ngay lập tức để tạo độ mượt)

@@ -27,7 +27,7 @@
             android:contentDescription="Back"
             android:focusable="true"
             android:padding="8dp"
-            android:src="@drawable/ic_arrow_back"
+            android:src="@drawable/ic_back"
             app:tint="?android:attr/textColorPrimary" />
 
         <TextView

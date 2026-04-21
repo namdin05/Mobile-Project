@@ -18,79 +18,59 @@ import retrofit2.http.Query;
 
 public interface PlaylistAPIService {
 
-    @POST("rest/v1/playlists")
+    @POST("playlists")
     Call<List<Playlist>> createPlaylist(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
             @Header("Prefer") String prefer,
             @Body Map<String, Object> data
     );
 
-    @GET("rest/v1/playlists")
+    @GET("playlists")
     Call<List<Playlist>> getUserPlaylists(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
             @Query("user_id") String userIdFilter
     );
 
-    @PATCH("rest/v1/playlists")
+    @PATCH("playlists")
     Call<ResponseBody> updatePlaylist(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
             @Query("id") String idFilter,
             @Body Map<String, Object> data
     );
 
-    @DELETE("rest/v1/playlists")
+    @DELETE("playlists")
     Call<ResponseBody> deletePlaylist(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
             @Query("id") String idFilter
     );
 
     // Playlist Songs
-    @POST("rest/v1/playlist_songs")
+    @POST("playlist_songs")
     Call<ResponseBody> addSongToPlaylist(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
             @Body Map<String, Object> data
     );
 
-    @DELETE("rest/v1/playlist_songs")
+    @DELETE("playlist_songs")
     Call<ResponseBody> removeSongFromPlaylist(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
             @Query("playlist_id") String playlistFilter,
             @Query("song_id") String songFilter
     );
 
-    @PATCH("rest/v1/playlist_songs")
+    @PATCH("playlist_songs")
     Call<ResponseBody> updatePlaylistSongOrder(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
             @Query("playlist_id") String playlistFilter,
             @Query("song_id") String songFilter,
             @Body Map<String, Object> data
     );
 
-    @GET("rest/v1/playlist_songs?select=*,songs(*)")
+    @GET("playlist_songs?select=*,songs(*)")
     Call<List<PlaylistSong>> getPlaylistSongs(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
             @Query("playlist_id") String playlistFilter
     );
 
-    @GET("rest/v1/playlists")
+    @GET("playlists")
     Call<List<Playlist>> getPlaylistById(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
             @Query("id") String idFilter
     );
 
-    @GET("rest/v1/playlist_song_details?select=*,songs(*)")
+    @GET("playlist_song_details?select=*,songs(*)")
     Call<List<PlaylistSong>> getPlaylistSongsFromView(
-            @Header("apikey") String apiKey,
-            @Header("Authorization") String token,
             @Query("playlist_id") String playlistFilter
     );
 }

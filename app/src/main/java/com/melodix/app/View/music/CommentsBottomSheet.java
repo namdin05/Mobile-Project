@@ -1,5 +1,8 @@
 package com.melodix.app.View.music;
 
+import static android.content.Context.MODE_PRIVATE;
+
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -14,12 +17,13 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.melodix.app.Repository.CommentRepository;
 import com.melodix.app.Model.Comment;
-import com.melodix.app.Model.SessionManager;
+import com.melodix.app.Service.ProfileAPIService;
 import com.melodix.app.View.adapters.CommentAdapter;
 
 import java.util.ArrayList;
@@ -27,6 +31,7 @@ import java.util.List;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.melodix.app.R;
+import com.melodix.app.ViewModel.CommentViewModel;
 
 import org.json.JSONObject;
 
@@ -55,6 +60,8 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
     private final List<Comment> commentList = new ArrayList<>();
     private static final String EDGE_FUNCTION_URL = "https://ggektdtrjagrmfnimmaw.supabase.co/functions/v1/summarize-comments";
 
+    private CommentViewModel viewModel;
+
     public static CommentsBottomSheet newInstance(String songId) {
         CommentsBottomSheet fragment = new CommentsBottomSheet();
         Bundle args = new Bundle();
@@ -75,23 +82,56 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.layout_bottom_sheet_comments, container, false);
+        return inflater.inflate(R.layout.layout_bottom_sheet_comments, container, false);
+    }
 
-        // Ánh xạ UI
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
         tvAiContent = view.findViewById(R.id.tv_ai_summary_content);
         rvComments = view.findViewById(R.id.rv_comments);
         edtComment = view.findViewById(R.id.edt_comment_input);
         btnSend = view.findViewById(R.id.btn_send_comment);
 
-        setupRecyclerView();
-        // Vừa mở Bottom Sheet lên là gọi Edge Function lấy tóm tắt AI ngay
-        fetchAiSummaryFromEdgeFunction();
+        viewModel = new ViewModelProvider(this).get(CommentViewModel.class);
 
-        // TODO: Sau này bạn gọi API Supabase ở đây để lấy danh sách Comment thật đổ vào rv_comments
-         fetchCommentsList();
+        setupRecyclerView();
+        fetchAiSummaryFromEdgeFunction();
+        fetchCommentsList();
+
         btnSend.setOnClickListener(v -> postNewComment());
 
-        return view;
+        viewModel.getActionSuccess().observe(getViewLifecycleOwner(), isSuccess -> {
+            if (isSuccess != null && isSuccess) {
+                edtComment.setText("");
+                fetchCommentsList(); // Tải lại danh sách
+            }
+        });
+
+        viewModel.getActionMessage().observe(getViewLifecycleOwner(), message -> {
+            if (message != null && !message.isEmpty()) {
+                showToast(message);
+            }
+        });
+
+        viewModel.getCommentsList().observe(getViewLifecycleOwner(), comments -> {
+            if (comments != null) {
+                commentList.clear();
+                commentList.addAll(comments);
+                if (commentAdapter != null) {
+                    commentAdapter.notifyDataSetChanged();
+                }
+                Log.d("COMMENTS", "Loaded " + commentList.size() + " comments");
+            }
+        });
+
+        // Lắng nghe lỗi nếu tải xịt
+        viewModel.getFetchMessage().observe(getViewLifecycleOwner(), message -> {
+            if (message != null && !message.isEmpty()) {
+                showToast(message);
+                Log.e("COMMENTS", message);
+            }
+        });
     }
 
     private void fetchAiSummaryFromEdgeFunction() {
@@ -161,73 +201,17 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
 
     private void fetchCommentsList() {
         if (songId == null) return;
-
-        commentRepository.getCommentsBySong(songId, new retrofit2.Callback<List<Comment>>() {
-            @Override
-            public void onResponse(retrofit2.Call<List<Comment>> call, retrofit2.Response<List<Comment>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    commentList.clear();
-                    commentList.addAll(response.body());
-                    if (commentAdapter != null) {
-                        commentAdapter.notifyDataSetChanged();
-                    }
-                    Log.d("COMMENTS", "Loaded " + commentList.size() + " comments");
-                }
-            }
-
-            @Override
-            public void onFailure(retrofit2.Call<List<Comment>> call, Throwable t) {
-                Log.e("COMMENTS", "Failed to load comments: " + t.getMessage());
-                showToast("Không tải được bình luận");
-            }
-        });
+        // Giao toàn bộ việc gọi mạng cho ViewModel lo!
+        viewModel.fetchComments(songId);
     }
 
     private void postNewComment() {
         String content = edtComment.getText().toString().trim();
         if (content.isEmpty()) return;
 
-        SessionManager session = SessionManager.getInstance(requireContext());
-        if (session.getCurrentUser() == null) {
-            showToast("Vui lòng đăng nhập để bình luận");
-            return;
-        }
-
-        // Log để debug
-        Log.d("COMMENT_DEBUG", "Posting comment - SongId: " + songId + ", UserId: " + session.getCurrentUser().getId() + ", Content: " + content);
-
-        commentRepository.postComment(
-                songId,
-                session.getCurrentUser().getId(),
-                content,
-                new retrofit2.Callback<ResponseBody>() {
-                    @Override
-                    public void onResponse(retrofit2.Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
-                        if (response.isSuccessful()) {
-                            edtComment.setText("");
-                            showToast("Bình luận đã được đăng!");
-                            fetchCommentsList();
-                        } else {
-                            // Log lỗi chi tiết từ server
-                            try {
-                                String errorBody = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
-                                Log.e("COMMENT_ERROR", "Error code: " + response.code() + ", Error body: " + errorBody);
-                                showToast("Đăng bình luận thất bại: " + response.code());
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                showToast("Đăng bình luận thất bại");
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(retrofit2.Call<ResponseBody> call, Throwable t) {
-                        Log.e("COMMENT_ERROR", "Network error: " + t.getMessage());
-                        showToast("Lỗi kết nối: " + t.getMessage());
-                    }
-                });
+        // Quăng xuống cho ViewModel lo hết!
+        viewModel.postNewComment(songId, content);
     }
-
 
     // Hàm phụ trợ giúp an toàn cập nhật UI từ Background Thread của OkHttp
     private void updateUi(String text) {

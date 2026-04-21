@@ -3,8 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/mdx_bg">
+    android:layout_height="match_parent">
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilStatusFilter"
@@ -14,9 +13,9 @@
         android:layout_marginTop="24dp"
         android:layout_marginEnd="20dp"
         app:hintEnabled="false"
-        app:boxStrokeColor="@color/mdx_line"
-        app:boxBackgroundColor="@color/mdx_surface"
-        app:endIconTint="@color/mdx_text_secondary"
+        app:boxStrokeColor="@color/white"
+        app:boxBackgroundColor="@color/melodix_accent_green"
+        app:endIconTint="@color/melodix_text_secondary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -27,7 +26,7 @@
             android:inputType="none"
             android:padding="12dp"
             android:text="All"
-            android:textColor="@color/mdx_text"
+            android:textColor="@color/melodix_text_primary"
             android:textSize="14sp" />
 
     </com.google.android.material.textfield.TextInputLayout>
@@ -37,7 +36,58 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
+        android:paddingHorizontal="20dp"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@+id/tilStatusFilter"
+        app:layout_constraintBottom_toTopOf="@+id/layoutActionFooter" />
+
+    <LinearLayout
+        android:id="@+id/layoutActionFooter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/melodix_card_bg"
+        android:elevation="12dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tilStatusFilter" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/tvSelectedSongTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Đang chọn: Tên bài hát"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReject"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Từ chối"
+                android:textColor="@color/melodix_text_secondary"
+                app:backgroundTint="#333333" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnApprove"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Duyệt bài"
+                android:textColor="@android:color/white"
+                app:backgroundTint="@color/melodix_accent_green" />
+        </LinearLayout>
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

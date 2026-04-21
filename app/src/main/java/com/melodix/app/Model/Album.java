@@ -46,4 +46,24 @@ public class Album implements Serializable {
         this.description = description;
         this.year = year;
     }
+
+    public String getId () {
+        return id;
+    }
+
+    public String getTitle () {
+        return title;
+    }
+
+    public String getArtistId () {
+        return artistId;
+    }
+
+    public String getCoverUrl () {
+        return coverRes;
+    }
+
+    public int getReleaseYear () {
+        return year;
+    }
 }

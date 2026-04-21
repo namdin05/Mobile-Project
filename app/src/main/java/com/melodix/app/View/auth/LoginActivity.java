@@ -1,7 +1,6 @@
 package com.melodix.app.View.auth;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,9 +12,10 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.melodix.app.AdminActivity;
+import com.melodix.app.View.admin.AdminActivity;
 import com.melodix.app.BuildConfig;
 import com.melodix.app.MainActivity;
+import com.melodix.app.Utils.SessionManager; // IMPORT CLASS SESSION
 import com.melodix.app.R;
 import com.melodix.app.ViewModel.AuthViewModel;
 
@@ -33,27 +33,27 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // =========================================================
-        // KIỂM TRA AUTO-LOGIN NGAY KHI VỪA MỞ APP
+        // KIỂM TRA AUTO-LOGIN BẰNG SESSION MANAGER
         // =========================================================
-        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
-        boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
+        SessionManager sessionManager = SessionManager.getInstance(this);
 
-        if (isLoggedIn) {
-            String savedRole = prefs.getString("USER_ROLE", "user");
-
-            if ("admin".equals(savedRole)) {
+        // In log ra để xem rốt cuộc két sắt đang thiếu cái gì
+        Log.e("DEBUG_SESSION", "Có Session không: " + sessionManager.hasSession());
+        Log.e("DEBUG_SESSION", "User ID: " + sessionManager.getUserId());
+        Log.e("DEBUG_SESSION", "Token: " + sessionManager.getAccessToken());
+        if (sessionManager.hasSession()) {
+            String role = sessionManager.getRole();
+            if ("admin".equals(role)) {
                 startActivity(new Intent(LoginActivity.this, AdminActivity.class));
             } else {
                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
             }
             finish();
-            return;
+            return; // Thoát ngay không load UI nữa
         }
-        // =========================================================
 
         setContentView(R.layout.activity_login);
 
-        // Khởi tạo ViewModel
         authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
         edtEmail = findViewById(R.id.edtEmail);
@@ -63,61 +63,86 @@ public class LoginActivity extends AppCompatActivity {
         btnLoginFacebook = findViewById(R.id.btnLoginFacebook);
         tvGoToRegister = findViewById(R.id.tvGoToRegister);
 
-        // 1. Xử lý đăng nhập Email
         btnLoginEmail.setOnClickListener(v -> {
             String email = edtEmail.getText().toString().trim();
             String pass = edtPassword.getText().toString().trim();
 
-            if (!email.isEmpty() && !pass.isEmpty()) {
-
-               
-                btnLoginEmail.setEnabled(false); // khoa de ko bi spam, tao nhieu luong
-                // GỌI VIEW MODEL VÀ QUAN SÁT KẾT QUẢ (LIVEDATA)
-                authViewModel.login(email, pass, this).observe(LoginActivity.this, loginResult -> {
+            if (email.isEmpty() || pass.isEmpty()) {
+                Toast.makeText(LoginActivity.this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
+            } else {
+                authViewModel.login(email, pass).observe(this, loginResult -> {
                     if (loginResult.isSuccess()) {
                         String role = loginResult.getRole();
-                        Log.d("ROLE", role);
-
-                        // LƯU TRẠNG THÁI KHI ĐĂNG NHẬP THÀNH CÔNG
-                        SharedPreferences.Editor editor = getSharedPreferences("MelodixPrefs", MODE_PRIVATE).edit();
-                        editor.putBoolean("IS_LOGGED_IN", true);
-                        editor.putString("USER_ROLE", role);
-                        editor.putString("USER_ID", loginResult.getUserId());
-                        editor.apply();
 
                         if ("admin".equals(role)) {
-                            // 1. ADMIN -> Mở màn hình duyệt nhạc
-                            Toast.makeText(this, "Xin chào Quản trị viên!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, "Xin chào Quản trị viên!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, AdminActivity.class));
-
-//                        } else if ("artist".equals(role)) {
-//                            // 2. ARTIST -> Mở không gian làm việc của Nghệ sĩ
-//                            Toast.makeText(this, "Chào mừng Nghệ sĩ trở lại!", Toast.LENGTH_SHORT).show();
-//                            startActivity(new Intent(LoginActivity.this, ArtistActivity.class));
-
                         } else {
-                            // 3. USER (Mặc định) -> Mở trang nghe nhạc bình thường
-                            Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         }
                         finish();
                     } else {
                         Toast.makeText(LoginActivity.this, loginResult.getErrorMessage(), Toast.LENGTH_LONG).show();
-                        btnLoginEmail.setEnabled(true);
                     }
                 });
-            } else {
-                Toast.makeText(LoginActivity.this, "Vui lòng nhập Email và Mật khẩu", Toast.LENGTH_SHORT).show();
             }
         });
+
+        btnLoginGoogle.setOnClickListener(v -> socialLogin("google"));
+        btnLoginFacebook.setOnClickListener(v -> socialLogin("facebook"));
 
         tvGoToRegister.setOnClickListener(v -> {
             startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
         });
+    }
 
-        // 2. Xử lý đăng nhập Mạng xã hội
-        btnLoginGoogle.setOnClickListener(v -> socialLogin("google"));
-        btnLoginFacebook.setOnClickListener(v -> socialLogin("facebook"));
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Intent intent = getIntent();
+        Uri uri = intent.getData();
+
+        // ĐÃ SỬA: Kiểm tra chính xác scheme là "melodix" và host là "callback"
+        if (uri != null && "melodix".equals(uri.getScheme()) && "callback".equals(uri.getHost())) {
+
+            String fragment = uri.getFragment();
+            if (fragment != null) {
+                String[] params = fragment.split("&");
+                String accessToken = null;
+
+                for (String param : params) {
+                    if (param.startsWith("access_token=")) {
+                        accessToken = param.split("=")[1];
+                        break;
+                    }
+                }
+
+                if (accessToken != null) {
+                    intent.setData(null); // Xóa link đi để khỏi lặp lại
+
+                    Toast.makeText(this, "Waiting...", Toast.LENGTH_SHORT).show();
+                    Log.e("SOCIAL_LOGIN", "0. Đã chộp được Token: " + accessToken);
+
+                    authViewModel.handleSocialLoginToken(accessToken).observe(this, loginResult -> {
+                        if (loginResult.isSuccess()) {
+                            String role = loginResult.getRole();
+
+                            if ("admin".equals(role)) {
+                                Toast.makeText(this, "Hi! Admin.", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(LoginActivity.this, AdminActivity.class));
+                            } else {
+                                Toast.makeText(this, "Welcome!", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                            }
+                            finish();
+                        } else {
+                            Toast.makeText(LoginActivity.this, loginResult.getErrorMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            }
+        }
     }
 
     private void socialLogin(String provider) {
@@ -126,66 +151,9 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(browserIntent);
     }
 
-    // 3. Hứng Token khi Google/Facebook trả về App
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Uri uri = getIntent().getData();
-        if (uri != null && uri.getScheme() != null && uri.getScheme().equals("melodix")) {
-            String fragment = uri.getFragment();
-            if (fragment != null && fragment.contains("access_token=")) {
-                String[] params = fragment.split("&");
-                for (String param : params) {
-                    if (param.startsWith("access_token=")) {
-                        String accessToken = param.split("=")[1];
-                        Log.d("MELODIX_OAUTH", "Google/FB Token: " + accessToken);
-
-                        // XÓA DATA INTENT ĐỂ KHÔNG BỊ CHẠY LẠI NHIỀU LẦN
-                        getIntent().setData(null);
-
-                        Toast.makeText(this, "Đang đồng bộ dữ liệu...", Toast.LENGTH_SHORT).show();
-
-                        // =========================================================
-                        // GỌI VIEW MODEL ĐỂ ĐỔI TOKEN LẤY UID VÀ ROLE
-                        // =========================================================
-                        authViewModel.handleSocialLoginToken(accessToken).observe(LoginActivity.this, loginResult -> {
-                            if (loginResult.isSuccess()) {
-                                String role = loginResult.getRole();
-                                String uid = loginResult.getUserId();
-
-                                // LƯU TRẠNG THÁI KHI LOGIN MXH THÀNH CÔNG
-                                SharedPreferences.Editor editor = getSharedPreferences("MelodixPrefs", MODE_PRIVATE).edit();
-                                editor.putBoolean("IS_LOGGED_IN", true);
-                                editor.putString("USER_ROLE", role);
-                                editor.putString("USER_ID", uid);
-                                editor.putString("AUTH_TOKEN", accessToken);
-                                editor.apply();
-
-                                if ("admin".equals(role)) {
-                                    Toast.makeText(this, "Xin chào Quản trị viên!", Toast.LENGTH_SHORT).show();
-                                    startActivity(new Intent(LoginActivity.this, AdminActivity.class));
-                                } else {
-                                    Toast.makeText(this, "Đăng nhập MXH thành công!", Toast.LENGTH_SHORT).show();
-                                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                }
-                                finish();
-                            } else {
-                                Toast.makeText(LoginActivity.this, loginResult.getErrorMessage(), Toast.LENGTH_LONG).show();
-                            }
-                        });
-
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        // Ghi đè cái Intent cũ bằng cái Intent mới (chứa link Supabase)
-        // Để lát nữa thằng onResume() nó gọi getIntent() sẽ lấy được đúng data!
         setIntent(intent);
     }
 }

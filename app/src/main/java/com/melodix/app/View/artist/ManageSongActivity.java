@@ -49,7 +49,8 @@ public class ManageSongActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_song);
 
-        apiService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
+        // 1. Ánh xạ View
+        apiService = RetrofitClient.getClient(getApplicationContext()).create(ArtistAPIService.class);
         rvSongs = findViewById(R.id.rv_manage_songs);
         rvSongs.setLayoutManager(new LinearLayoutManager(this));
 
@@ -210,14 +211,12 @@ public class ManageSongActivity extends AppCompatActivity {
                 .setPositiveButton("Delete Permanently", (dialog, which) -> {
 
                     SharedPreferences prefs = getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
-                    String token = prefs.getString("ACCESS_TOKEN", "");
-                    String apiKey = com.melodix.app.BuildConfig.SERVICE_KEY;
 
                     String audioFileName = extractFileNameFromUrl(song.getAudioUrl());
                     String coverFileName = extractFileNameFromUrl(song.getCoverUrl());
 
                     if (audioFileName != null) {
-                        apiService.deleteAudioFile(apiKey, "Bearer " + token, audioFileName)
+                        apiService.deleteAudioFile(audioFileName)
                                 .enqueue(new Callback<Void>() {
                                     @Override public void onResponse(Call<Void> c, Response<Void> r) {}
                                     @Override public void onFailure(Call<Void> c, Throwable t) {}
@@ -225,7 +224,7 @@ public class ManageSongActivity extends AppCompatActivity {
                     }
 
                     if (coverFileName != null && !song.getCoverUrl().contains("default")) {
-                        apiService.deleteCoverFile(apiKey, "Bearer " + token, coverFileName)
+                        apiService.deleteCoverFile(coverFileName)
                                 .enqueue(new Callback<Void>() {
                                     @Override public void onResponse(Call<Void> c, Response<Void> r) {}
                                     @Override public void onFailure(Call<Void> c, Throwable t) {}

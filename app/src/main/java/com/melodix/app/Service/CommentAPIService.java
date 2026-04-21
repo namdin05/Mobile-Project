@@ -16,18 +16,16 @@ import retrofit2.http.Query;
 public interface CommentAPIService {
 
     // Lấy danh sách comment + thông tin user (join profiles)
-    @GET("rest/v1/comments?select=*,profiles!comments_user_id_fkey(display_name,username,avatar_url)")
+    @GET("comments?select=*,profiles!comments_user_id_fkey(display_name,username,avatar_url)")
     Call<List<Comment>> getCommentsBySong(
-            @Header("apikey") String apiKey,
             @Query("song_id") String songIdFilter,
             @Query("order") String order
     );
 
     // Đăng comment mới
-    @POST("rest/v1/comments")
+    @POST("comments")
     Call<ResponseBody> postComment(
-            @Header("apikey") String apiKey,
-            @Header("Prefer") String prefer,
+            //@Header("Prefer") String prefer,
             @Body Map<String, Object> data
     );
 }

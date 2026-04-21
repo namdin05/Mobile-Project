@@ -6,26 +6,33 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.melodix.app.Model.LyricLine;
 import com.melodix.app.Model.Song;
+import com.melodix.app.Model.StatusUpdateRequest;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Repository.DownloadRepository;
 import com.melodix.app.Repository.PlaybackRepository;
+import com.melodix.app.Service.AdminAPIService;
 import com.melodix.app.Service.AudioPlayerService;
+import com.melodix.app.Service.RetrofitClient;
 import com.melodix.app.Utils.AppUiUtils;
 import com.melodix.app.Utils.LyricUtils;
 import com.melodix.app.Utils.PlaybackUtils;
@@ -35,6 +42,7 @@ import com.melodix.app.Utils.ThemeUtils;
 import com.melodix.app.Utils.TimeUtils;
 import com.melodix.app.View.music.CommentsBottomSheet;
 import com.melodix.app.View.adapters.LyricAdapter;
+import com.melodix.app.ViewModel.SongViewModel;
 //import com.melodix.app.View.adapters.LyricAdapter;
 import com.melodix.app.Model.AppDatabase;
 import com.melodix.app.Model.DownloadedSong;
@@ -45,6 +53,10 @@ import android.database.Cursor;
 
 
 import java.util.ArrayList;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class PlayerActivity extends AppCompatActivity {
     public static final String EXTRA_SONG_ID = "extra_song_id";
@@ -62,6 +74,11 @@ public class PlayerActivity extends AppCompatActivity {
     private int currentLyricIndex = -1;
     private boolean isAutoPlay = false;
 
+
+    private SongViewModel songViewModel;
+
+    private LinearLayout layoutAdminActions;
+    private Button btnApprove, btnReject;
 
     // tao bo lap lich
     private final android.os.Handler progressHandler = new android.os.Handler(android.os.Looper.getMainLooper());
@@ -98,6 +115,26 @@ public class PlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        songViewModel = new ViewModelProvider(this).get(SongViewModel.class);
+
+        // Lắng nghe kết quả thành công / thất bại
+        songViewModel.getActionSuccess().observe(this, isSuccess -> {
+            if (isSuccess != null) {
+                if (isSuccess) {
+                    layoutAdminActions.setVisibility(View.GONE); // Thành công thì giấu thanh Admin đi
+                } else {
+                    layoutAdminActions.setVisibility(View.VISIBLE); // Lỗi thì hiện lại cho bấm tiếp
+                }
+            }
+        });
+
+        // Lắng nghe lời nhắn để hiện Toast
+        songViewModel.getActionMessage().observe(this, message -> {
+            if (message != null && !message.isEmpty()) {
+                Toast.makeText(PlayerActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
         repository = AppRepository.getInstance(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
@@ -107,6 +144,9 @@ public class PlayerActivity extends AppCompatActivity {
         tvElapsed = findViewById(R.id.tv_elapsed);
         tvTotal = findViewById(R.id.tv_total);
         btnPlayPause = findViewById(R.id.btn_play_pause);
+        layoutAdminActions = findViewById(R.id.layoutAdminActions);
+        btnApprove = findViewById(R.id.btnApprove);
+        btnReject = findViewById(R.id.btnReject);
 
         // 1. ƯU TIÊN CAO NHẤT: Mở từ File Manager (My Files)
         Uri data = getIntent().getData();
@@ -182,6 +222,22 @@ public class PlayerActivity extends AppCompatActivity {
     // =========================================================
     private void setupUIEvents() {
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+
+        btnApprove.setOnClickListener(v -> {
+            if (currentSong != null) {
+                layoutAdminActions.setVisibility(View.GONE); // Giấu đi ngay cho UX mượt
+                currentSong.setStatus("approved"); // Cập nhật local
+                songViewModel.updateSongStatus(currentSong.getId(), "approved"); // Đẩy cho ViewModel lo mạng
+            }
+        });
+
+        btnReject.setOnClickListener(v -> {
+            if (currentSong != null) {
+                layoutAdminActions.setVisibility(View.GONE);
+                currentSong.setStatus("rejected");
+                songViewModel.updateSongStatus(currentSong.getId(), "rejected");
+            }
+        });
 
         // COMMENT BUTTON
         findViewById(R.id.btn_comments).setOnClickListener(v -> {
@@ -365,6 +421,12 @@ public class PlayerActivity extends AppCompatActivity {
     private void updatePlaybackUi(int position, int duration, boolean playing) {
         int displayPosition = position + 500;
         if (displayPosition > duration) displayPosition = duration;
+
+        if ("pending".equals(currentSong.getStatus())) {
+            layoutAdminActions.setVisibility(View.VISIBLE);
+        } else {
+            layoutAdminActions.setVisibility(View.GONE);
+        }
 
         if (duration > 0) {
             seekBar.setMax(duration);
@@ -556,6 +618,7 @@ public class PlayerActivity extends AppCompatActivity {
         btnLoop.setColorFilter(tint);
         btnLoop.setAlpha(looping ? 1f : 0.65f);
     }
+
 
     @Override
     protected void onResume() {

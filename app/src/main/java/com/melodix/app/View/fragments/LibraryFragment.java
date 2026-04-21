@@ -307,8 +307,8 @@ public class LibraryFragment extends Fragment {
 
     // ĐÃ SỬA: Lấy USER_ID từ SharedPreferences thay vì SessionManager
     private String getCurrentUserId() {
-        com.melodix.app.Model.SessionManager session = com.melodix.app.Model.SessionManager.getInstance(requireContext());
-        return session.getCurrentUser() != null ? session.getCurrentUser().getId() : null;
+        SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+        return prefs.getString("USER_ID", null);
     }
 
     @Override

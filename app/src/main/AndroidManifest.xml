@@ -10,10 +10,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-<!--    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"-->
-<!--        android:maxSdkVersion="28" />-->
-<!--    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"-->
-<!--        android:maxSdkVersion="28" />-->
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -25,29 +22,13 @@
         android:theme="@style/Theme.Melodix"
         android:usesCleartextTraffic="true">
 
+        <!-- ACTIVITY -->
         <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:launchMode="singleTask"
+            android:exported="false"
             tools:ignore="AppLinkUrlError">
-
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https"
-                    android:host="giabaocode.github.io"
-                    android:pathPrefix="/melodix-redirect" />
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="melodix" android:host="redirect" />
-            </intent-filter>
-
         </activity>
+
         <activity
             android:name=".PlayerActivity"
             android:exported="true">
@@ -57,47 +38,46 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="melodix" android:host="song" />
             </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:mimeType="audio/*" />
-                <data android:mimeType="audio/mpeg" />
-                <data android:mimeType="audio/mp3" />
-
-                <data android:scheme="content" />
-                <data android:scheme="file" />
-            </intent-filter>
-        </activity>
-        <service
-            android:name=".Service.AudioPlayerService"
-            android:exported="false"
-            android:foregroundServiceType="mediaPlayback" />
-
-
-        <activity
-            android:name=".View.auth.LoginActivity"
-            android:exported="true"
-            android:launchMode="singleTask"> <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:host="callback"
-                    android:scheme="melodix" />
-            </intent-filter>
         </activity>
 
-        <activity
-            android:name=".LyricsActivity"
-            android:exported="false" />
+        <activity android:name=".LyricsActivity"
+                  android:exported="false" />
+
+            <!-- ACTIVITY / View / auth -->
+            <activity android:name=".View.auth.RegisterActivity" />
+            <activity
+                android:name=".View.auth.LoginActivity"
+                android:exported="true"
+                android:launchMode="singleTask">
+                <intent-filter>
+                    <action android:name="android.intent.action.MAIN" />
+                    <category android:name="android.intent.category.LAUNCHER" />
+                </intent-filter>
+
+                <intent-filter>
+                    <action android:name="android.intent.action.VIEW" />
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <category android:name="android.intent.category.BROWSABLE" />
+                    <data
+                        android:host="callback"
+                        android:scheme="melodix" />
+                </intent-filter>
+            </activity>
+
+
+
+            <!-- ACTIVITY / View / admin -->
+            <activity android:name=".View.admin.AdminActivity" />
+
+            <!-- ACTIVITY / View / artist -->
+            <activity android:name=".View.artist.CreateAlbumActivity" />
+            <activity android:name=".View.artist.ManageSongActivity" />
+            <activity android:name=".View.artist.ArtistAnalyticsActivity" />
+            <activity android:name=".View.artist.UploadSongActivity" />
+
+            <!-- ACTIVITY / View / profile -->
+            <activity android:name=".View.profile.AdminProfileActivity"
+                android:exported="false"/>
 
         <activity android:name=".View.AlbumDetailActivity" android:exported="false" />
         <activity android:name=".View.ArtistDetailActivity" android:exported="false" />
@@ -105,25 +85,12 @@
         <activity android:name=".View.ArtistAlbumsActivity" android:exported="false" />
         <activity android:name=".View.PlaylistDetailActivity" android:exported="false" />
 
-        <activity android:name=".View.auth.RegisterActivity" />
-        <activity android:name=".View.artist.UploadSongActivity" />
+        <!--SERVICE-->
+        <service
+            android:name=".Service.AudioPlayerService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
 
-        <activity android:name=".AdminActivity" />
-
-        <activity android:name=".View.profile.AdminProfileActivity"
-                  android:exported="false"/>
-
-
-        
-        <activity android:name=".View.artist.CreateAlbumActivity" />
-        <activity android:name=".View.artist.ManageSongActivity" />
-        <activity android:name=".View.artist.ManageAlbumActivity" />
-        <activity android:name=".View.artist.ManageAlbumDetailActivity" />
-        <activity android:name=".View.artist.ArtistAnalyticsActivity" />
-        <activity
-            android:name=".View.profile.UserProfileActivity"
-            android:exported="false" />
-      
         <service
             android:name=".Service.firebase.MessageService"
             android:exported="true">
@@ -131,12 +98,6 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-        <service
-            android:name="androidx.work.impl.foreground.SystemForegroundService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync|shortService" />
-
 
     </application>
-
 </manifest>

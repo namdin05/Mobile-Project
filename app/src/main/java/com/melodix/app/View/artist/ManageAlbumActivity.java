@@ -50,7 +50,7 @@ public class ManageAlbumActivity extends AppCompatActivity {
         setContentView(R.layout.activity_manage_album);
 
         // Initialize API
-        artistApiService = RetrofitClient.getSupabaseClient().create(ArtistAPIService.class);
+        artistApiService = RetrofitClient.getClient(getApplication()).create(ArtistAPIService.class);
 
         // Get USER_ID from SharedPreferences
         SharedPreferences prefs = getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);

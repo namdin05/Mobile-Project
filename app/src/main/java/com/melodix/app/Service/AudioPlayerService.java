@@ -31,7 +31,6 @@ public class AudioPlayerService extends Service {
     private PlaybackRepository playbackRepo = PlaybackRepository.getInstance();
     public static final int NOTIFICATION_ID = 991;
     private static final String CHANNEL_ID = "melodix_playback_channel";
-
     public static final String ACTION_PLAY_SONG = "com.melodix.app.action.PLAY_SONG";
     public static final String ACTION_TOGGLE_PLAY = "com.melodix.app.action.TOGGLE_PLAY";
     public static final String ACTION_NEXT = "com.melodix.app.action.NEXT";

@@ -76,6 +76,6 @@
             android:layout_height="32dp"
             android:padding="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_more_vert" />
+            android:src="@drawable/ic_more" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

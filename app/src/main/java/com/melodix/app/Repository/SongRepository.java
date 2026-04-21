@@ -1,5 +1,6 @@
 package com.melodix.app.Repository;
 
+import android.content.Context;
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
@@ -25,13 +26,11 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class SongRepository {
-    private static final String API_KEY = BuildConfig.API_KEY;
-
-    private static final String token = "Bearer " + BuildConfig.SERVICE_KEY;
     private SongAPIService songAPIService;
 
-    public SongRepository() {
-        songAPIService = RetrofitClient.getClient().create(SongAPIService.class);
+
+    public SongRepository(Context context) {
+        songAPIService = RetrofitClient.getClient(context).create(SongAPIService.class);
     }
     public androidx.lifecycle.LiveData<List<Song>> fetchSongsByGenre(int genreId) {
         androidx.lifecycle.MutableLiveData<List<Song>> liveData = new androidx.lifecycle.MutableLiveData<>();
@@ -39,12 +38,8 @@ public class SongRepository {
         java.util.Map<String, Integer> body = new java.util.HashMap<>();
         body.put("p_genre_id", genreId);
 
-        // 1. Khai báo đủ 2 loại Key
-        String apiKey = BuildConfig.SERVICE_KEY;
-        String authHeader = "Bearer " + apiKey;
-
         // 2. Gọi hàm và truyền đủ 3 tham số (apiKey, authHeader, body)
-        songAPIService.getSongsByGenre(apiKey, authHeader, body).enqueue(new retrofit2.Callback<List<Song>>() {
+        songAPIService.getSongsByGenre(body).enqueue(new retrofit2.Callback<List<Song>>() {
             @Override
             public void onResponse(retrofit2.Call<List<Song>> call, retrofit2.Response<List<Song>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -74,7 +69,7 @@ public class SongRepository {
     public MutableLiveData<List<Song>> fetchAllSongs(){
         MutableLiveData<List<Song>> songs = new MutableLiveData<>();
 
-        songAPIService.getAllSongs(API_KEY, token).enqueue(new Callback<List<Song>>() {
+        songAPIService.getAllSongs().enqueue(new Callback<List<Song>>() {
             @Override
             public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -95,11 +90,10 @@ public class SongRepository {
         return songs;
     }
 
-
     public MutableLiveData<List<Song>> fetchNewReleaseSongs(){
         MutableLiveData<List<Song>> songs = new MutableLiveData<>();
 
-        songAPIService.getNewReleaseSongs(API_KEY, 5).enqueue(new Callback<List<Song>>() {
+        songAPIService.getNewReleaseSongs(5).enqueue(new Callback<List<Song>>() {
             @Override
             public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
                 if(response.isSuccessful() && response.body() != null){
@@ -122,7 +116,7 @@ public class SongRepository {
     public MutableLiveData<List<Song>> fetchTrendingSongs(){
         MutableLiveData<List<Song>> songs = new MutableLiveData<>();
 
-        songAPIService.getTrendingSongs(API_KEY, 5).enqueue(new Callback<List<Song>>() {
+        songAPIService.getTrendingSongs(5).enqueue(new Callback<List<Song>>() {
             @Override
             public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
                 if(response.isSuccessful() && response.body() != null){
@@ -139,6 +133,31 @@ public class SongRepository {
             }
         });
         return songs;
+    }
+
+    public void updateSongStatus(String songId, String newStatus, MutableLiveData<Boolean> isSuccess, MutableLiveData<String> message) {
+        // Tái sử dụng model StatusUpdateRequest của bạn
+        com.melodix.app.Model.StatusUpdateRequest body = new com.melodix.app.Model.StatusUpdateRequest(newStatus);
+
+        songAPIService.updateRequestStatus("eq." + songId, body).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    String msg = newStatus.equals("approved") ? "Đã duyệt bài thành công!" : "Đã từ chối bài hát.";
+                    message.postValue(msg);
+                    isSuccess.postValue(true);
+                } else {
+                    message.postValue("Lỗi từ máy chủ!");
+                    isSuccess.postValue(false);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                message.postValue("Mất mạng rồi!");
+                isSuccess.postValue(false);
+            }
+        });
     }
 
 }

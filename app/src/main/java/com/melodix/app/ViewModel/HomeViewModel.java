@@ -1,5 +1,9 @@
 package com.melodix.app.ViewModel;
 
+import android.app.Application;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -13,16 +17,27 @@ import com.melodix.app.Repository.auth.AuthRepository;
 
 import java.util.List;
 
-public class HomeViewModel extends ViewModel {
-    private SongRepository songRepository = new SongRepository();
-    private GenreRepository genreRepository = new GenreRepository();
-    private BannerRepository bannerRepository = new BannerRepository();
+public class HomeViewModel extends AndroidViewModel {
+    private SongRepository songRepository;
+    private GenreRepository genreRepository;
+    private BannerRepository bannerRepository;
 
     private LiveData<List<Song>> newReleases;
     private LiveData<List<Song>> trendingSongs;
     private LiveData<List<Genre>> genres;
     private LiveData<List<Banner>> banners;
     // view model chi goi API 1 lan va giu cac data du Activity, fragment bi destroy hay ko
+
+    public HomeViewModel(@NonNull Application application) {
+        super(application);
+
+        // Truyền thẳng cái 'application' (Context) xuống cho Repository
+        songRepository = new SongRepository(application);
+        genreRepository = new GenreRepository(application);
+        bannerRepository = new BannerRepository(application);
+    }
+
+
     public LiveData<List<Song>> getNewReleases() {
         if (newReleases == null) {
             newReleases = songRepository.fetchNewReleaseSongs();

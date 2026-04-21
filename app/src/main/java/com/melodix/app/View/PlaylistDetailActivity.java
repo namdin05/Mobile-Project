@@ -1,5 +1,8 @@
 package com.melodix.app.View;
 
+import static androidx.core.content.ContentProviderCompat.requireContext;
+
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -138,9 +141,10 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
     private void setupDragAndDrop() {
         // Chỉ chủ sở hữu mới được kéo thả
-        com.melodix.app.Model.Profile currentUser = com.melodix.app.Model.SessionManager.getInstance(this).getCurrentUser();
-        if (currentUser == null || currentPlaylist == null ||
-                !currentUser.getId().equals(currentPlaylist.ownerUserId)) {
+        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+        String currentUserId = prefs.getString("USER_ID", null);
+
+        if (currentUserId.equals(currentPlaylist.ownerUserId)) {
             Log.d("DRAG_DROP", "Không phải chủ sở hữu → tắt chức năng kéo thả");
             return;
         }
