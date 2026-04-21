@@ -40,6 +40,9 @@ public class ArtistDetailActivity extends AppCompatActivity {
     private TextView tvSongsTitle, tvAlbumsTitle, tvRelatedTitle;
     private TextView tvSeeAllSongs, tvSeeAllAlbums;
 
+    // THÊM: Khai báo MiniPlayerController
+    private com.melodix.app.Model.MiniPlayerController miniPlayerController;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,9 +71,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
                 );
             }else{
                 Toast.makeText(ArtistDetailActivity.this, "Vui lòng đợi tải xong thông tin nghệ sĩ", Toast.LENGTH_SHORT).show();
-
             }
-
         });
 
         findViewById(R.id.btn_follow).setOnClickListener(v -> Toast.makeText(this, "Đang phát triển", Toast.LENGTH_SHORT).show());
@@ -80,7 +81,6 @@ public class ArtistDetailActivity extends AppCompatActivity {
         // ==========================================
         findViewById(R.id.btn_play_all).setOnClickListener(v -> {
             if (songAdapter != null && songAdapter.getSongs() != null && !songAdapter.getSongs().isEmpty()) {
-                // Lấy bài hát đầu tiên trong danh sách để phát, và đưa toàn bộ list vào Queue
                 playSongAndSetQueue(songAdapter.getSongs().get(0), songAdapter.getSongs());
             } else {
                 Toast.makeText(this, "Chưa có bài hát để phát", Toast.LENGTH_SHORT).show();
@@ -112,13 +112,10 @@ public class ArtistDetailActivity extends AppCompatActivity {
         songAdapter = new SongAdapter(this, repository.getAllApprovedSongs(), new SongAdapter.OnSongActionListener() {
             @Override
             public void onSongClick(Song song, int position) {
-                // Gọi hàm phát nhạc và nhét toàn bộ bài hát trên màn hình vào Queue
                 playSongAndSetQueue(song, songAdapter.getSongs());
-//                Log.d("fixxxx", new Gson().toJson(songAdapter.getSongs()));
             }
             @Override
             public void onMenuClick(Song song, int position, String actionId) {
-                // Truyền thêm biến song vào
                 handleMenuClick(song, actionId);
             }
         });
@@ -140,6 +137,17 @@ public class ArtistDetailActivity extends AppCompatActivity {
 
                 if (TextUtils.isEmpty(artist.bio)) tvBio.setVisibility(View.GONE);
                 else { tvBio.setVisibility(View.VISIBLE); tvBio.setText(artist.bio); }
+
+                TextView tvFollowerCount = findViewById(R.id.tv_follower_count);
+
+                repository.getFollowerCount(artistId, count -> {
+                    if (isFinishing() || isDestroyed()) return;
+                    tvFollowerCount.setVisibility(View.VISIBLE);
+                    String displayCount = count >= 1000 ?
+                            String.format(java.util.Locale.US, "%.1fK", count / 1000f) :
+                            String.valueOf(count);
+                    tvFollowerCount.setText(displayCount + " follower(s)");
+                });
 
                 // LẤY BÀI HÁT
                 repository.getSongsByArtist(artistId, new AppRepository.SongListCallback() {
@@ -209,27 +217,15 @@ public class ArtistDetailActivity extends AppCompatActivity {
                 if (!isFinishing() && !isDestroyed()) finish();
             }
         });
+
+        // THÊM: Khởi tạo MiniPlayer Controller
+        miniPlayerController = new com.melodix.app.Model.MiniPlayerController(this);
     }
 
-    // ==========================================
-    // HÀM XỬ LÝ PHÁT NHẠC (Y hệt HomeFragment)
-    // ==========================================
-//    private void playSongAndSetQueue(Song selectedSong, java.util.List<Song> currentList) {
-//        AppRepository.getInstance(this).setCurrentQueue(new ArrayList<>(currentList), selectedSong.getId());
-//        Intent intent = new Intent(this, PlayerActivity.class);
-//        intent.putExtra(PlayerActivity.EXTRA_SONG_ID, selectedSong.getId());
-//        intent.putExtra("start_playback", true);
-//        startActivity(intent);
-//    }
-
     private void playSongAndSetQueue(Song selectedSong, java.util.List<Song> currentList) {
-        // Gọi thẳng PlaybackUtils, nó sẽ tự lo việc lưu Queue vào PlaybackRepository và mở PlayerActivity
         PlaybackUtils.playSong(this, (ArrayList<Song>) currentList, selectedSong.getId());
     }
 
-    // ==========================================
-    // MENU DẤU 3 CHẤM
-    // ==========================================
     private void handleMenuClick(Song song, String action){
         switch (action){
             case "play":
@@ -247,16 +243,12 @@ public class ArtistDetailActivity extends AppCompatActivity {
                 Toast.makeText(this,"Bình luận về " + song.getTitle(), LENGTH_SHORT).show();
                 break;
             case "share":
-                // 👇 XÓA DÒNG NÀY ĐI 👇
-                // ShareUtils.shareSongToFriends(AlbumDetailActivity.this, song);
-
-                // 👇 THAY BẰNG ĐOẠN NÀY ĐỂ ĐỒNG BỘ VỚI PLAYER ACTIVITY 👇
                 if (song != null && song.getId() != null) {
                     com.melodix.app.Utils.ShareUtils.shareContent(
                             ArtistDetailActivity.this,
-                            "song",           // Type là bài hát
-                            song.getId(),     // ID của bài hát người dùng vừa bấm
-                            song.getTitle()   // Tên bài hát
+                            "song",
+                            song.getId(),
+                            song.getTitle()
                     );
                 } else {
                     Toast.makeText(ArtistDetailActivity.this, "Lỗi dữ liệu bài hát", Toast.LENGTH_SHORT).show();
@@ -268,4 +260,20 @@ public class ArtistDetailActivity extends AppCompatActivity {
         }
     }
 
+    // THÊM: Quản lý vòng đời của Mini Player (Đánh thức và Ngủ đông)
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (miniPlayerController != null) {
+            miniPlayerController.onResume();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (miniPlayerController != null) {
+            miniPlayerController.onPause();
+        }
+    }
 }

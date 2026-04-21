@@ -30,7 +30,7 @@ public class ArtistAnalyticsActivity extends AppCompatActivity {
     public static final String EXTRA_ARTIST_ID = "extra_artist_id";
 
     // 1. Nhóm UI Components
-    private TextView tvStreams, tvLikes, tvSongs, tvTotalFollowers;
+    private TextView tvStreams, tvLikes, tvSongs;
     private TextView tvSeeAllStreams, tvSeeAllLikes;
     private RecyclerView rvTopStreams, rvTopLikes;
 
@@ -68,7 +68,6 @@ public class ArtistAnalyticsActivity extends AppCompatActivity {
         tvStreams = findViewById(R.id.tv_stat_streams);
         tvLikes = findViewById(R.id.tv_stat_likes);
         tvSongs = findViewById(R.id.tv_stat_songs);
-        tvTotalFollowers = findViewById(R.id.tv_total_followers);
 
         tvSeeAllStreams = findViewById(R.id.tv_see_all_streams);
         tvSeeAllLikes = findViewById(R.id.tv_see_all_likes);
@@ -89,9 +88,8 @@ public class ArtistAnalyticsActivity extends AppCompatActivity {
      */
     private void setupListeners() {
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
-
-        tvSeeAllStreams.setOnClickListener(v -> openAllSongs(currentArtistId));
-        tvSeeAllLikes.setOnClickListener(v -> openAllSongs(currentArtistId));
+        tvSeeAllStreams.setOnClickListener(v -> openAllSongs(currentArtistId, "streams"));
+        tvSeeAllLikes.setOnClickListener(v -> openAllSongs(currentArtistId, "likes"));
     }
 
     /**
@@ -116,7 +114,6 @@ public class ArtistAnalyticsActivity extends AppCompatActivity {
                 tvStreams.setText(numberFormat.format(stats.totalStreams));
                 tvLikes.setText(numberFormat.format(stats.totalLikes));
                 tvSongs.setText(numberFormat.format(stats.totalSongs));
-                tvTotalFollowers.setText(numberFormat.format(stats.totalListeners) + " Người theo dõi");
             }
 
             @Override
@@ -204,9 +201,10 @@ public class ArtistAnalyticsActivity extends AppCompatActivity {
     /**
      * Hàm tiện ích: Mở trang Danh sách toàn bộ bài hát
      */
-    private void openAllSongs(String artistId) {
+    private void openAllSongs(String artistId, String sortType) {
         Intent intent = new Intent(this, ArtistSongsActivity.class);
         intent.putExtra(ArtistDetailActivity.EXTRA_ARTIST_ID, artistId);
+        intent.putExtra("sort_type", sortType);
         startActivity(intent);
     }
 }

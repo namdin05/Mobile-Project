@@ -4,6 +4,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -25,9 +26,8 @@ import com.melodix.app.Repository.PlaybackRepository;
 import com.melodix.app.Utils.ResourceUtils;
 import com.melodix.app.PlayerActivity;
 
-import java.io.File;
-
 public class AudioPlayerService extends Service {
+    private static boolean hasRecordedPlay = false; // Bấm nút chặn spam view
     private PlaybackRepository playbackRepo = PlaybackRepository.getInstance();
     public static final int NOTIFICATION_ID = 991;
     private static final String CHANNEL_ID = "melodix_playback_channel";
@@ -43,6 +43,8 @@ public class AudioPlayerService extends Service {
     public static final String ACTION_STOP = "com.melodix.app.action.STOP";
     public static final String ACTION_SET_SLEEP_TIMER = "com.melodix.app.action.SET_SLEEP_TIMER";
     public static final String ACTION_STATE_CHANGED = "com.melodix.app.action.STATE_CHANGED";
+
+    public static final String ACTION_PAUSE = "com.melodix.app.ACTION_PAUSE";
 
     public static final String EXTRA_SONG_ID = "extra_song_id";
     public static final String EXTRA_SEEK = "extra_seek";
@@ -69,7 +71,7 @@ public class AudioPlayerService extends Service {
     public static boolean isLoopMode() { return isLoopingOne; }
 
     public static int getCurrentPosition() {
-        if (instance != null && instance.mediaPlayer != null) { // Thêm điều kiện isPlaying
+        if (instance != null && instance.mediaPlayer != null) {
             try { return instance.mediaPlayer.getCurrentPosition(); }
             catch (Exception ignored) {}
         }
@@ -77,7 +79,7 @@ public class AudioPlayerService extends Service {
     }
 
     public static int getDuration() {
-        if (instance != null && instance.mediaPlayer != null) { // Thêm điều kiện isPlaying
+        if (instance != null && instance.mediaPlayer != null) {
             try { return instance.mediaPlayer.getDuration(); }
             catch (Exception ignored) {}
         }
@@ -97,31 +99,14 @@ public class AudioPlayerService extends Service {
         mediaSession = new MediaSessionCompat(this, "AudioPlayerService");
         mediaSession.setActive(true);
         mediaSession.setCallback(new android.support.v4.media.session.MediaSessionCompat.Callback() {
-            @Override
-            public void onPlay() {
-                togglePlayPause(); // Gọi hàm play/pause của bạn
-            }
-
-            @Override
-            public void onPause() {
-                togglePlayPause(); // Gọi hàm play/pause của bạn
-            }
-
-            @Override
-            public void onSkipToNext() {
-                playNext(); // Gọi hàm chuyển bài tới
-            }
-
-            @Override
-            public void onSkipToPrevious() {
-                playPrevious(); // Gọi hàm lùi bài
-            }
-
-            @Override
-            public void onSeekTo(long pos) {
+            @Override public void onPlay() { togglePlayPause(); }
+            @Override public void onPause() { togglePlayPause(); }
+            @Override public void onSkipToNext() { playNext(); }
+            @Override public void onSkipToPrevious() { playPrevious(); }
+            @Override public void onSeekTo(long pos) {
                 if (mediaPlayer != null) {
-                    mediaPlayer.seekTo((int) pos); // Xử lý khi người dùng tua trên thanh thời gian
-                    updateNotification(repository.getSongById(currentSongId), isPlaying);
+                    mediaPlayer.seekTo((int) pos);
+                    updateNotification(playbackRepo.getCurrentSong(), isPlaying);
                 }
             }
         });
@@ -130,8 +115,19 @@ public class AudioPlayerService extends Service {
             @Override
             public void run() {
                 broadcastState();
-                // Tắt refresh liên tục vì Notification xịn không cần tự redraw mỗi giây,
-                // chỉ cần gọi khi đổi trạng thái Play/Pause hoặc chuyển bài.
+
+                // ĐỒNG HỒ ĐẾM GIÂY VÀ CỘNG VIEW (Đã tích hợp test log)
+                if (mediaPlayer != null && isPlaying) {
+                    int listenedSec = mediaPlayer.getCurrentPosition() / 1000;
+
+                    Log.d("TEST_TIME", "⏳ Đang nghe: " + listenedSec + "s - Đã cộng view chưa: " + hasRecordedPlay);
+
+                    if (listenedSec >= 15 && !hasRecordedPlay) {
+                        Log.d("TEST_TIME", "🚀 Đã đủ 15s! Bắt đầu gọi API cộng view...");
+                        repository.recordPlay(currentSongId); // Gọi hàm 1 tham số
+                        hasRecordedPlay = true;
+                    }
+                }
                 handler.postDelayed(this, 1000);
             }
         };
@@ -201,61 +197,46 @@ public class AudioPlayerService extends Service {
     private void playSong(String songId) {
         Song song = playbackRepo.getCurrentSong();
         if (song == null) {
-            android.util.Log.e("TEST_MUSIC", "LỖI: Không tìm thấy bài hát trong Queue! Bị thoát sớm.");
+            Log.e("TEST_MUSIC", "LỖI: Không tìm thấy bài hát trong Queue! Bị thoát sớm.");
             return;
         }
 
-        persistLastListen();
         releasePlayer();
         currentSongId = song.getId();
+        hasRecordedPlay = false; // Reset cờ cho bài hát mới
 
         try {
             mediaPlayer = new MediaPlayer();
 
-            // Khai báo cho Android biết đây là stream nhạc
             mediaPlayer.setAudioAttributes(new android.media.AudioAttributes.Builder()
                     .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
                     .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
                     .build());
 
-            // Truyền link URL từ API vào (ở đây bạn dùng thuộc tính audioRes để chứa URL)
             Log.d("TEST_MUSIC", "Đang tải link: " + song.getAudioUrl());
             mediaPlayer.setDataSource(song.getAudioUrl());
 
             mediaPlayer.setOnErrorListener((mp, what, extra) -> {
                 Log.e("TEST_MUSIC", "Lỗi phát nhạc! Mã lỗi: " + what + " - " + extra);
                 isPlaying = false;
-                broadcastState(); // Cập nhật giao diện thành Pause
-                return true; // QUAN TRỌNG: Trả về true để Android KHÔNG gọi OnCompletionListener nữa
+                broadcastState();
+                return true;
             });
 
-            // Quan trọng: Bắt sự kiện khi load mạng xong mới bắt đầu phát
             mediaPlayer.setOnPreparedListener(mp -> startPlayback());
-
-            // Dùng prepareAsync thay vì prepare để không làm đơ giao diện khi tải mạng
             mediaPlayer.prepareAsync();
 
-            // Code xử lý khi hát xong (Next/Loop) giữ nguyên
             mediaPlayer.setOnCompletionListener(mp -> {
-                int listenedSec = 0;
-                try {
-                    if (mp != null && isPlaying) {
-                        listenedSec = mp.getDuration() / 1000;
-                    }
-                } catch (Exception e) {
-                    android.util.Log.e("TEST_MUSIC", "Lỗi lấy Duration khi hết bài");
-                }
-
-                repository.recordPlay(currentSongId, listenedSec);
-
+                // ĐÃ XÓA KHÚC GỌI API BỊ LỖI Ở ĐÂY
                 if (isLoopingOne) {
                     try {
                         mp.seekTo(0);
                         mp.start();
+                        hasRecordedPlay = false; // Nếu bài hát tự lặp lại thì cho tính thêm view nữa
                         broadcastState();
                     } catch (Exception e) {}
                 } else {
-                    playNext(); // Đây là thủ phạm gây nhảy bài liên tục nếu không bị chặn đúng cách
+                    playNext();
                 }
             });
 
@@ -270,10 +251,7 @@ public class AudioPlayerService extends Service {
         applyPlaybackSpeed();
         mediaPlayer.start();
         isPlaying = true;
-
-        // --- GỌI UPDATE NOTIFICATION KHI BẮT ĐẦU PHÁT ---
         updateNotification(playbackRepo.getCurrentSong(), true);
-
         broadcastState();
     }
 
@@ -286,25 +264,28 @@ public class AudioPlayerService extends Service {
         if (mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
             isPlaying = false;
-            persistLastListen();
-            // --- GỌI UPDATE KHI TẠM DỪNG ---
             updateNotification(playbackRepo.getCurrentSong(), false);
         } else {
             mediaPlayer.start();
             applyPlaybackSpeed();
             isPlaying = true;
-            // --- GỌI UPDATE KHI PHÁT TIẾP ---
             updateNotification(playbackRepo.getCurrentSong(), true);
         }
     }
 
+    // Trong AudioPlayerService.java
     private void playNext() {
         Song next = playbackRepo.moveNext();
-        if (next == null || next.getId().equals(currentSongId)) {
-            stopPlayback();
-            stopForeground(true);
-        } else {
-            playSong(next.getId());
+        if (next != null) {
+            // Nếu bài tiếp theo khác bài hiện tại -> Phát bài mới
+            if (!next.getId().equals(currentSongId)) {
+                playSong(next.getId());
+            } else {
+                // Nếu chỉ có 1 bài (ID trùng nhau) thì lặp lại bài đó
+                mediaPlayer.seekTo(0);
+                mediaPlayer.start();
+                broadcastState();
+            }
         }
     }
 
@@ -331,11 +312,8 @@ public class AudioPlayerService extends Service {
         }
     }
 
-    // huy phat nhac
     private void stopPlayback() {
-        persistLastListen();
         releasePlayer();
-//        currentSongId = null;
         isPlaying = false;
         broadcastState();
     }
@@ -344,30 +322,17 @@ public class AudioPlayerService extends Service {
         if (sleepRunnable != null) handler.removeCallbacks(sleepRunnable);
         if (minutes <= 0) return;
         sleepRunnable = () -> {
-            // ĐÃ SỬA: Thay vì gọi stopPlayback() (giết chết player), ta chỉ TẠM DỪNG nó
             if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                 mediaPlayer.pause();
                 isPlaying = false;
-                persistLastListen();
-                updateNotification(playbackRepo.getCurrentSong(), false); // Cập nhật hình icon thành nút Play
-                broadcastState(); // Báo cho màn hình Player biết để dừng vạch thời gian
+                updateNotification(playbackRepo.getCurrentSong(), false);
+                broadcastState();
             }
-
-            // Tắt chế độ "chống trôi" của Service để người dùng có thể vuốt tắt thông báo nếu muốn
             stopForeground(false);
         };
         handler.postDelayed(sleepRunnable, minutes * 1000L);
     }
 
-    // luu lai luot nghe: dem so giay nghe bai hat nao, cong luot stream cho bai hat...
-    private void persistLastListen() {
-        if (mediaPlayer != null && currentSongId != null) {
-            int listenedSec = mediaPlayer.getCurrentPosition() / 1000;
-            repository.recordPlay(currentSongId, listenedSec);
-        }
-    }
-
-    // --- HÀM TẠO NOTIFICATION KIỂU MỚI (MÀN HÌNH KHÓA XỊN SÒ) ---
     private void updateNotification(Song currentSong, boolean isPlaying) {
         if (currentSong == null) return;
 
@@ -375,7 +340,6 @@ public class AudioPlayerService extends Service {
         PendingIntent prevIntent = createActionIntent(ACTION_PREVIOUS, 100);
         PendingIntent nextIntent = createActionIntent(ACTION_NEXT, 102);
 
-        // Lấy thời lượng và vị trí hiện tại
         long duration = mediaPlayer != null ? mediaPlayer.getDuration() : 0;
         long position = mediaPlayer != null ? mediaPlayer.getCurrentPosition() : 0;
 
@@ -384,38 +348,9 @@ public class AudioPlayerService extends Service {
         PendingIntent contentIntent = PendingIntent.getActivity(this, 11, openIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        // 1. Lấy ảnh Cover
-        Bitmap coverBitmap = null;
-        int coverResId = ResourceUtils.anyDrawable(this, currentSong.getCoverUrl());
-        if (coverResId != 0) {
-            coverBitmap = BitmapFactory.decodeResource(getResources(), coverResId);
-        }
-
-        // 2. Bơm trạng thái Play/Pause và VỊ TRÍ + QUYỀN TUA
-        android.support.v4.media.session.PlaybackStateCompat.Builder stateBuilder = new android.support.v4.media.session.PlaybackStateCompat.Builder()
-                .setActions(android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY |
-                        android.support.v4.media.session.PlaybackStateCompat.ACTION_PAUSE |
-                        android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
-                        android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
-                        android.support.v4.media.session.PlaybackStateCompat.ACTION_SEEK_TO) // Thêm quyền kéo tua
-                .setState(isPlaying ? android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING : android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED,
-                        position, playbackSpeed); // Cập nhật vị trí và tốc độ thực tế
-        mediaSession.setPlaybackState(stateBuilder.build());
-
-        // 3. Bơm thông tin bài hát và THỜI LƯỢNG (DURATION)
-        android.support.v4.media.MediaMetadataCompat.Builder metadataBuilder = new android.support.v4.media.MediaMetadataCompat.Builder()
-                .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE, currentSong.getTitle())
-                .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST, currentSong.getArtistName())
-                .putLong(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION, duration); // Thêm tổng thời gian để vẽ thanh progress
-
-        if (coverBitmap != null) {
-            metadataBuilder.putBitmap(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ALBUM_ART, coverBitmap);
-        }
-        mediaSession.setMetadata(metadataBuilder.build());
-
-        // 4. Tạo Notification
+        // 1. TẠO THÔNG BÁO CƠ BẢN VÀ HIỆN LÊN TRƯỚC (Để tránh lỗi Android ANR)
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_logo)
+                .setSmallIcon(R.drawable.ic_logo) // Bạn có thể thay bằng R.drawable.ic_music_note nếu muốn
                 .setContentTitle(currentSong.getTitle())
                 .setContentText(currentSong.getArtistName())
                 .setContentIntent(contentIntent)
@@ -429,11 +364,64 @@ public class AudioPlayerService extends Service {
                         .setShowActionsInCompactView(0, 1, 2)
                         .setMediaSession(mediaSession.getSessionToken()));
 
-        if (coverBitmap != null) {
-            builder.setLargeIcon(coverBitmap);
+        // Gắn luôn logo mặc định trong lúc chờ tải ảnh thật
+        Bitmap placeholder = BitmapFactory.decodeResource(getResources(), R.drawable.ic_logo);
+        if (placeholder != null) {
+            builder.setLargeIcon(placeholder);
         }
 
+        // Hiện thông báo lên liền
         startForeground(NOTIFICATION_ID, builder.build());
+
+        // Cập nhật trạng thái Play/Pause cho MediaSession
+        android.support.v4.media.session.PlaybackStateCompat.Builder stateBuilder = new android.support.v4.media.session.PlaybackStateCompat.Builder()
+                .setActions(android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY |
+                        android.support.v4.media.session.PlaybackStateCompat.ACTION_PAUSE |
+                        android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
+                        android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
+                        android.support.v4.media.session.PlaybackStateCompat.ACTION_SEEK_TO)
+                .setState(isPlaying ? android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING : android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED,
+                        position, playbackSpeed);
+        mediaSession.setPlaybackState(stateBuilder.build());
+
+        // 2. TẢI ẢNH QUA MẠNG BẰNG GLIDE VÀ CẬP NHẬT LẠI KHI TẢI XONG
+        if (currentSong.getCoverUrl() != null && !currentSong.getCoverUrl().isEmpty()) {
+            com.bumptech.glide.Glide.with(this)
+                    .asBitmap()
+                    .load(currentSong.getCoverUrl())
+                    .into(new com.bumptech.glide.request.target.CustomTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(@androidx.annotation.NonNull Bitmap resource, @androidx.annotation.Nullable com.bumptech.glide.request.transition.Transition<? super Bitmap> transition) {
+                            // Ảnh đã tải xong! Bơm ảnh vào Thông báo
+                            builder.setLargeIcon(resource);
+
+                            // Bơm ảnh vào màn hình khóa (Lockscreen)
+                            android.support.v4.media.MediaMetadataCompat.Builder metadataBuilder = new android.support.v4.media.MediaMetadataCompat.Builder()
+                                    .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE, currentSong.getTitle())
+                                    .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST, currentSong.getArtistName())
+                                    .putLong(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION, duration)
+                                    .putBitmap(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ALBUM_ART, resource); // Gắn ảnh bìa
+                            mediaSession.setMetadata(metadataBuilder.build());
+
+                            // Yêu cầu Android vẽ lại thông báo với ảnh mới
+                            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                            if (manager != null) {
+                                manager.notify(NOTIFICATION_ID, builder.build());
+                            }
+                        }
+
+                        @Override
+                        public void onLoadCleared(@androidx.annotation.Nullable android.graphics.drawable.Drawable placeholder) {
+                        }
+                    });
+        } else {
+            // Nếu bài hát không có link ảnh, chỉ update Text
+            android.support.v4.media.MediaMetadataCompat.Builder metadataBuilder = new android.support.v4.media.MediaMetadataCompat.Builder()
+                    .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE, currentSong.getTitle())
+                    .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST, currentSong.getArtistName())
+                    .putLong(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION, duration);
+            mediaSession.setMetadata(metadataBuilder.build());
+        }
     }
 
     private PendingIntent createActionIntent(String action, int requestCode) {
@@ -444,17 +432,16 @@ public class AudioPlayerService extends Service {
     }
 
     private void broadcastState() {
-        Intent stateIntent = new Intent(ACTION_STATE_CHANGED); // implicit intent, ai cung nhan duoc
-        stateIntent.setPackage(getPackageName()); // intent chi phat noi bo app
+        Intent stateIntent = new Intent(ACTION_STATE_CHANGED);
+        stateIntent.setPackage(getPackageName());
         stateIntent.putExtra(EXTRA_SONG_ID, currentSongId);
         stateIntent.putExtra("playing", isPlaying);
         stateIntent.putExtra("position", mediaPlayer != null ? mediaPlayer.getCurrentPosition() : 0);
         stateIntent.putExtra("duration", mediaPlayer != null ? mediaPlayer.getDuration() : 0);
         stateIntent.putExtra(EXTRA_SPEED, playbackSpeed);
-        sendBroadcast(stateIntent); // gui
+        sendBroadcast(stateIntent);
     }
 
-    // giai phong player
     private void releasePlayer() {
         if (mediaPlayer != null) {
             try { mediaPlayer.stop(); } catch (Exception ignored) {}
@@ -468,7 +455,6 @@ public class AudioPlayerService extends Service {
     public void onDestroy() {
         instance = null;
         handler.removeCallbacksAndMessages(null);
-        persistLastListen();
         releasePlayer();
         if (mediaSession != null) {
             mediaSession.release();

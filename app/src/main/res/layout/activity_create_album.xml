@@ -4,37 +4,48 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_screen"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
         android:gravity="center_vertical"
-        android:padding="16dp"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="6dp">
 
         <ImageView
             android:id="@+id/btn_back"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Back"
+            android:padding="8dp"
             android:src="@drawable/ic_back"
             app:tint="@color/mdx_text" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="Tạo Album Mới"
+            android:layout_marginStart="14dp"
+            android:text="Create New Album"
             android:textColor="@color/mdx_text"
-            android:textSize="20sp"
+            android:textSize="22sp"
             android:textStyle="bold" />
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="20dp">
+        android:clipToPadding="false"
+        android:paddingStart="20dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="24dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -43,12 +54,12 @@
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/btn_pick_cover"
-                android:layout_width="180dp"
-                android:layout_height="180dp"
+                android:layout_width="192dp"
+                android:layout_height="192dp"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="28dp"
                 app:cardBackgroundColor="@color/mdx_surface"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="20dp"
                 app:cardElevation="0dp">
 
                 <LinearLayout
@@ -56,26 +67,31 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
                     <ImageView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
+                        android:contentDescription="Choose cover"
                         android:src="@android:drawable/ic_menu_camera"
                         app:tint="@color/mdx_text_secondary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Chọn ảnh bìa"
-                        android:textColor="@color/mdx_text_secondary" />
+                        android:layout_marginTop="10dp"
+                        android:text="Choose cover art"
+                        android:textColor="@color/mdx_text_secondary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <ImageView
                     android:id="@+id/img_cover_preview"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:contentDescription="Album cover preview"
                     android:scaleType="centerCrop"
                     android:visibility="gone" />
             </androidx.cardview.widget.CardView>
@@ -83,49 +99,73 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tên Album *"
+                android:layout_marginBottom="8dp"
+                android:text="Album title *"
                 android:textColor="@color/mdx_text"
-                android:layout_marginBottom="8dp"/>
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <EditText
                 android:id="@+id/edt_album_title"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="52dp"
+                android:layout_marginBottom="22dp"
                 android:background="@drawable/bg_search_bar"
-                android:hint="Nhập tên album..."
-                android:textColorHint="@color/mdx_text_secondary"
-                android:textColor="@color/mdx_text"
+                android:hint="Enter album title..."
                 android:paddingHorizontal="16dp"
-                android:layout_marginBottom="20dp"/>
+                android:textColor="@color/mdx_text"
+                android:textColorHint="@color/mdx_text_secondary"
+                android:textSize="15sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Thêm bài hát có sẵn vào Album"
+                android:layout_marginBottom="10dp"
+                android:text="Add existing tracks to this album"
                 android:textColor="@color/mdx_text"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_available_songs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="120dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/bg_card"
+                android:minHeight="140dp"
                 android:nestedScrollingEnabled="false"
-                android:background="@drawable/bg_search_bar"
-                android:padding="8dp"
-                android:layout_marginBottom="24dp"/>
+                android:padding="10dp" />
+
+            <TextView
+                android:id="@+id/btn_go_to_upload_song"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="24dp"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="10dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="8dp"
+                android:text="+ Upload a new track"
+                android:textColor="#1DB954"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_create_album"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="TẠO ALBUM"
+                android:backgroundTint="#1DB954"
+                android:text="CREATE ALBUM"
+                android:textColor="#000000"
                 android:textSize="16sp"
+                android:textStyle="bold"
                 app:cornerRadius="28dp" />
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="40dp"/>
+                android:layout_height="28dp" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

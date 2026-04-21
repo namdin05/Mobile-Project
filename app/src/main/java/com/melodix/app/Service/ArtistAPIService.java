@@ -114,5 +114,23 @@
         Call<okhttp3.ResponseBody> updateAlbumWithSongs(
                 @retrofit2.http.Body java.util.Map<String, Object> bodyData
         );
+        // Lệnh xóa file mp3 khỏi bucket "song"
+        @retrofit2.http.DELETE("storage/v1/object/song/{file_name}")
+        Call<Void> deleteAudioFile(
+                @retrofit2.http.Header("apikey") String apiKey,
+                @retrofit2.http.Header("Authorization") String token,
+                @retrofit2.http.Path("file_name") String fileName
+        );
 
+        // Lệnh xóa file ảnh khỏi bucket "cover_song"
+        @retrofit2.http.DELETE("storage/v1/object/cover_song/{file_name}")
+        Call<Void> deleteCoverFile(
+                @retrofit2.http.Header("apikey") String apiKey,
+                @retrofit2.http.Header("Authorization") String token,
+                @retrofit2.http.Path("file_name") String fileName
+        );
+
+        // Gửi lệnh xóa Album
+        @retrofit2.http.DELETE("albums")
+        Call<Void> deleteAlbum(@retrofit2.http.Query("id") String operatorAndId);
     }

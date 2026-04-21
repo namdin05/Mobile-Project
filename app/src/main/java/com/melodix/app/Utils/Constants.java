@@ -21,4 +21,6 @@ public class Constants {
 
     public static final String PREFS_APP = "melodix_prefs";
     public static final String PREFS_DATA = "melodix_data";
+
+    public static final String API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnZWt0ZHRyamFncm1mbmltbWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxNzkyNzMsImV4cCI6MjA4OTc1NTI3M30.KoI-b-p-NblH7ZVdAw-y93ZGB3JCAWSK-w5MtKNPCWw";
 }

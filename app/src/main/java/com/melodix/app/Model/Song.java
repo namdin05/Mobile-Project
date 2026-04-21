@@ -46,7 +46,7 @@ public class Song {
     // THÊM SERIALIZED NAME ĐỂ NHẬN SỐ LƯỢT THÍCH TỪ SUPABASE
     @SerializedName("like_count")
     private int likes;
-
+    @SerializedName("artist_id")
     private String artistId;
     private String albumName;
     private String genre;
@@ -152,7 +152,9 @@ public class Song {
         }
         this.lyrics = lyricsList;
     }
-
+    public String getArtistId() {
+        return artistId;
+    }
     public ArrayList<LyricLine> getLyrics() {
         return lyrics;
     }
