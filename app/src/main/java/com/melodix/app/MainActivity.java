@@ -37,6 +37,7 @@ import com.melodix.app.View.fragments.AccountFragment;
 import com.melodix.app.View.fragments.LibraryFragment;
 import com.melodix.app.View.fragments.SearchFragment;
 import com.melodix.app.View.home.HomeFragment;
+import com.melodix.app.Utils.NetworkUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -192,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
 
         });
         handleDeepLink(getIntent());
+        checkNetworkAndSwitchTab();
     }
 
     // ==========================================
@@ -256,6 +258,26 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private void checkNetworkAndSwitchTab() {
+        boolean isOnline = NetworkUtils.isNetworkAvailable(this);
+
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+        if (bottomNav == null) return;
+
+        if (!isOnline) {
+            bottomNav.setSelectedItemId(R.id.nav_library);
+
+            // Tắt tab Home và Search để tránh load dữ liệu
+            bottomNav.getMenu().findItem(R.id.nav_home).setEnabled(false);
+            bottomNav.getMenu().findItem(R.id.nav_search).setEnabled(false);
+
+            Toast.makeText(this, "Không có kết nối mạng.\nChỉ có thể nghe nhạc đã tải về.", Toast.LENGTH_LONG).show();
+        } else {
+            bottomNav.getMenu().findItem(R.id.nav_home).setEnabled(true);
+            bottomNav.getMenu().findItem(R.id.nav_search).setEnabled(true);
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -265,6 +287,7 @@ public class MainActivity extends AppCompatActivity {
 
         updateMiniPlayer();
         mainHandler.post(miniPlayerWatcher);
+        checkNetworkAndSwitchTab();
     }
 
     @Override

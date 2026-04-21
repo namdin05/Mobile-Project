@@ -58,6 +58,17 @@
                 android:nestedScrollingEnabled="false" />
 
             <TextView
+                android:id="@+id/tv_offline_notice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Không có kết nối mạng.\nChỉ hiển thị nhạc đã tải."
+                android:textColor="@color/mdx_text_muted"
+                android:gravity="center"
+                android:padding="20dp"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"

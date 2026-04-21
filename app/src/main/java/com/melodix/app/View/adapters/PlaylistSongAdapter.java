@@ -7,10 +7,10 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.melodix.app.Model.PlaylistSong;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
@@ -28,6 +28,7 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
         void onSongClick(PlaylistSong playlistSong);
         void onMoreClick(PlaylistSong playlistSong, int position);
     }
+
 
     public PlaylistSongAdapter(Context context, List<PlaylistSong> playlistSongs, OnSongActionListener listener) {
         this.context = context;
@@ -49,26 +50,23 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
 
         Song song = playlistSong.song;
 
-        String title = (song.getTitle() != null && !song.getTitle().trim().isEmpty())
-                ? song.getTitle() : "Không có tiêu đề";
+        holder.tvTitle.setText(song.getTitle() != null ? song.getTitle() : "Không có tiêu đề");
 
         String artist = (playlistSong.artistname != null && !playlistSong.artistname.trim().isEmpty())
-                ? playlistSong.artistname : "Unknown Artist";
+                ? playlistSong.artistname
+                : (song.getArtistName() != null ? song.getArtistName() : "Unknown Artist");
 
-        holder.tvTitle.setText(title);
         holder.tvSubtitle.setText(artist);
 
-        // Hiển thị thời lượng bài hát
         if (song.getDurationSeconds() > 0) {
             holder.tvMeta.setText(TimeUtils.formatDuration(song.getDurationSeconds()));
         } else {
             holder.tvMeta.setText("--:--");
         }
 
-        // Load ảnh bìa
         String coverUrl = song.getCoverUrl();
         if (coverUrl != null && !coverUrl.isEmpty() && !coverUrl.equals("null")) {
-            Glide.with(context)
+            com.bumptech.glide.Glide.with(context)
                     .load(coverUrl)
                     .placeholder(R.drawable.ic_music_placeholder)
                     .error(R.drawable.ic_music_placeholder)
@@ -77,12 +75,10 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
             holder.imgCover.setImageResource(R.drawable.ic_music_placeholder);
         }
 
-        // Click vào item → phát nhạc
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onSongClick(playlistSong);
         });
 
-        // Click nút More → hiện menu
         holder.btnMore.setOnClickListener(v -> {
             if (listener != null) listener.onMoreClick(playlistSong, position);
         });
@@ -93,9 +89,19 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
         return playlistSongs != null ? playlistSongs.size() : 0;
     }
 
+    public void moveItem(int fromPosition, int toPosition) {
+        if (fromPosition < 0 || toPosition < 0 ||
+                fromPosition >= playlistSongs.size() || toPosition >= playlistSongs.size()) {
+            return;
+        }
+        PlaylistSong item = playlistSongs.remove(fromPosition);
+        playlistSongs.add(toPosition, item);
+        notifyItemMoved(fromPosition, toPosition);
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgCover;
-        TextView tvTitle, tvSubtitle, tvMeta;   // tvMeta dùng để hiển thị thời lượng
+        TextView tvTitle, tvSubtitle, tvMeta;
         ImageButton btnMore;
 
         public ViewHolder(@NonNull View itemView) {
