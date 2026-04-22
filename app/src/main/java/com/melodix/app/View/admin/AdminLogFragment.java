@@ -53,23 +53,45 @@ public class AdminLogFragment extends Fragment {
 
         rvAuditLogs = view.findViewById(R.id.rvAuditLogs);
 
-        rvAuditLogs.setLayoutManager(new LinearLayoutManager(requireContext()));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext());
+        rvAuditLogs.setLayoutManager(layoutManager);
+
         logList = new ArrayList<>();
         logAdapter = new AdminLogAdapter(logList);
         rvAuditLogs.setAdapter(logAdapter);
 
         viewModel = new ViewModelProvider(this).get(AdminLogViewModel.class);
-        viewModel.fetchAuditLogs().observe(getViewLifecycleOwner(), auditLogs -> {
+
+        // 1. Lắng nghe dữ liệu đổ về
+        viewModel.getAuditLogs().observe(getViewLifecycleOwner(), auditLogs -> {
             if (auditLogs != null) {
                 logList.clear();
                 logList.addAll(auditLogs);
                 logAdapter.notifyDataSetChanged();
             }
-
-            if(logList.isEmpty()){
-                Toast.makeText(getContext(), "Chưa có dữ liệu log nào", Toast.LENGTH_SHORT).show();
-            }
         });
 
+        // 2. Kích hoạt lấy 20 dòng ĐẦU TIÊN khi vừa mở màn hình
+        viewModel.loadMoreLogs();
+
+        // 3. LẮP CẢM BIẾN CUỘN
+        rvAuditLogs.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                // dy > 0 có nghĩa là người dùng đang vuốt lên (cuộn danh sách xuống dưới)
+                if (dy > 0) {
+                    int visibleItemCount = layoutManager.getChildCount();
+                    int totalItemCount = layoutManager.getItemCount();
+                    int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
+
+                    // Nếu vị trí đang xem + số item hiển thị >= tổng số item -> Đã đến đáy
+                    if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
+                        viewModel.loadMoreLogs();
+                    }
+                }
+            }
+        });
     }
 }

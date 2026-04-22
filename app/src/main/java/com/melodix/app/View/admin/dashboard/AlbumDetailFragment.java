@@ -2,6 +2,7 @@ package com.melodix.app.View.admin.dashboard;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -39,12 +40,17 @@ public class AlbumDetailFragment extends Fragment {
 
     private String albumId = "";
     private String albumTitle = "";
+    private String albumCover = "";
+    private String albumStatus = "";
 
     private RecyclerView rvAlbumSongs;
-    private TextView tvDetailAlbumTitle;
+    private TextView tvDetailAlbumTitle, tvAlbumName;
+    private android.widget.ImageView imgAlbumCover;
+    private android.widget.LinearLayout layoutActionButtons;
+    private com.google.android.material.button.MaterialButton btnApprove, btnReject, btnHide;;
+
     private SongAdapter songAdapter;
     private List<Song> songList;
-
     private AlbumViewModel viewModel;
 
     @Nullable
@@ -59,26 +65,50 @@ public class AlbumDetailFragment extends Fragment {
 
         if (getArguments() != null) {
             albumId = getArguments().getString("ALBUM_ID", "");
-            albumTitle = getArguments().getString("ALBUM_TITLE", "Chi tiết Album");
+            albumTitle = getArguments().getString("ALBUM_TITLE", "Chi tiết");
+            albumCover = getArguments().getString("ALBUM_COVER", "");
+            albumStatus = getArguments().getString("ALBUM_STATUS", "");
         }
 
         // 2. ÁNH XẠ VIEW (Bắt buộc phải làm trước tiên)
-        tvDetailAlbumTitle = view.findViewById(R.id.tvDetailAlbumTitle);
-        rvAlbumSongs = view.findViewById(R.id.rvAlbumSongs); // Đưa lên đây!
-        ImageButton btnBack = view.findViewById(R.id.btnBackToAlbums);
+        tvAlbumName = view.findViewById(R.id.tvAlbumName);
+        imgAlbumCover = view.findViewById(R.id.imgAlbumCover);
+        layoutActionButtons = view.findViewById(R.id.layoutActionButtons);
+        btnApprove = view.findViewById(R.id.btnApprove);
+        btnReject = view.findViewById(R.id.btnReject);
+        btnHide = view.findViewById(R.id.btnHide);
+        rvAlbumSongs = view.findViewById(R.id.rvAlbumSongs);
 
-        tvDetailAlbumTitle.setText(albumTitle);
-        songList = new ArrayList<>();
+        layoutActionButtons.setVisibility(View.VISIBLE);
 
-        // 3. SETUP RECYCLER VIEW (Sau khi đã có rvAlbumSongs)
-        setupRecyclerView();
+        updateUIBasedOnStatus(albumStatus);
 
-        btnBack.setOnClickListener(v -> {
-            requireActivity().getSupportFragmentManager().popBackStack();
+        view.findViewById(R.id.btnBack).setOnClickListener(v -> {
+            // Quay lại Fragment trước đó trong BackStack
+            if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                getParentFragmentManager().popBackStack();
+            } else {
+                requireActivity().onBackPressed();
+            }
         });
 
+        tvAlbumName.setText(albumTitle);
+        com.bumptech.glide.Glide.with(requireContext()).load(albumCover).into(imgAlbumCover);
 
-        // 5. Gọi API tải danh sách bài hát
+        // XỬ LÝ NÚT APPROVE / REJECT
+        btnApprove.setOnClickListener(v -> viewModel.updateAlbumStatus(albumId, "approved"));
+        btnReject.setOnClickListener(v -> viewModel.updateAlbumStatus(albumId, "rejected"));
+
+        if ("hide".equalsIgnoreCase(albumStatus)) {
+            btnHide.setOnClickListener(v -> viewModel.updateAlbumStatus(albumId, "approved"));
+        } else {
+            btnHide.setOnClickListener(v -> viewModel.updateAlbumStatus(albumId, "hide"));
+        }
+
+        // 3. SETUP RECYCLER VIEW (Sau khi đã có rvAlbumSongs)
+        songList = new ArrayList<>();
+        setupRecyclerView();
+
         if (!albumId.isEmpty()) {
             viewModel = new ViewModelProvider(this).get(AlbumViewModel.class);
             viewModel.getSongsByAlbumId(albumId).observe(getViewLifecycleOwner(), songs -> {
@@ -88,6 +118,21 @@ public class AlbumDetailFragment extends Fragment {
                     songAdapter.update(new ArrayList<>(songList));
                     if(songList.isEmpty()){
                         Toast.makeText(getContext(), "Album này chưa có bài hát nào", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+            viewModel.getUpdateStatusResult().observe(getViewLifecycleOwner(), result -> {
+                if (result != null) {
+                    if (result.equals("error")) {
+                        Toast.makeText(requireContext(), "Lỗi cập nhật trạng thái Album!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        // Nếu thành công, result chính là chữ "approved" hoặc "rejected"
+                        Toast.makeText(requireContext(), "Cập nhật trạng thái Album thành công!", Toast.LENGTH_SHORT).show();
+
+                        // Cập nhật lại biến cục bộ và gọi hàm vẽ lại giao diện (để ẩn nút đi)
+                        albumStatus = result;
+                        updateUIBasedOnStatus(albumStatus);
                     }
                 }
             });
@@ -116,34 +161,29 @@ public class AlbumDetailFragment extends Fragment {
         rvAlbumSongs.setAdapter(songAdapter);
     }
 
+    private void updateUIBasedOnStatus(String status) {
+        if ("pending".equalsIgnoreCase(status)) {
+            // Nếu đang chờ duyệt -> Hiện Approve/Reject, Ẩn HIDE
+            btnApprove.setVisibility(View.VISIBLE);
+            btnReject.setVisibility(View.VISIBLE);
+            btnHide.setVisibility(View.GONE);
+
+        } else if ("hide".equalsIgnoreCase(status) || "rejected".equalsIgnoreCase(status)) {
+            btnHide.setText("SHOW");
+            btnHide.setBackgroundColor(getResources().getColor(R.color.mdx_main_color));
+            btnApprove.setVisibility(View.GONE);
+            btnReject.setVisibility(View.GONE);
+            btnHide.setVisibility(View.VISIBLE);
+        }
 
 
-//    private void fetchSongsInAlbum() {
-//        SongAPIService apiService = RetrofitClient.getClient().create(SongAPIService.class);
-//
-//        // Truyền bộ lọc eq.ID_CỦA_ALBUM
-//        String filter = "eq." + albumId;
-//
-//        apiService.getSongsByAlbum(filter).enqueue(new Callback<List<Song>>() {
-//            @Override
-//            public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
-//                if (response.isSuccessful() && response.body() != null) {
-//                    songList.clear();
-//                    songList.addAll(response.body());
-//                    songAdapter.update(new ArrayList<>(songList));
-//
-//                    if(songList.isEmpty()){
-//                        Toast.makeText(getContext(), "Album này chưa có bài hát nào", Toast.LENGTH_SHORT).show();
-//                    }
-//                } else {
-//                    Log.e("AdminAlbumDetail", "Lỗi tải bài hát: " + response.code());
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<List<Song>> call, Throwable t) {
-//                Log.e("AdminAlbumDetail", "Lỗi mạng: " + t.getMessage());
-//            }
-//        });
-//    }
+        else {
+            // Nếu đã duyệt (hoặc bất kỳ trạng thái nào khác) -> Hiện HIDE, Ẩn Approve/Reject
+            btnHide.setText("HIDE");
+            btnHide.setBackgroundColor(Color.parseColor("#F44336"));
+            btnApprove.setVisibility(View.GONE);
+            btnReject.setVisibility(View.GONE);
+            btnHide.setVisibility(View.VISIBLE);
+        }
+    }
 }

@@ -51,11 +51,21 @@ public class UserManagementFragment extends Fragment {
 
         actvRole = view.findViewById(R.id.actvRole);
 
+        view.findViewById(R.id.btnBack).setOnClickListener(v -> {
+            // Quay lại Fragment trước đó trong BackStack
+            if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                getParentFragmentManager().popBackStack();
+            } else {
+                requireActivity().onBackPressed();
+            }
+        });
+
         setupRecyclerView();
 
         setupRoleFilter();
 
         viewModel = new ViewModelProvider(this).get(AdminUserViewModel.class);
+
         viewModel.getAllProfiles().observe(getViewLifecycleOwner(), songs -> {
             if (songs != null) {
                 this.fullUserList = songs;

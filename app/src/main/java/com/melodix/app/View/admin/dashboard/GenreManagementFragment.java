@@ -110,6 +110,15 @@ public class GenreManagementFragment extends Fragment {
         });
 
         btnAddGenre.setOnClickListener(v -> showAddEditDialog(null));
+
+        view.findViewById(R.id.btnBack).setOnClickListener(v -> {
+            // Quay lại Fragment trước đó trong BackStack
+            if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                getParentFragmentManager().popBackStack();
+            } else {
+                requireActivity().onBackPressed();
+            }
+        });
     }
 
     private void observeGenreList() {

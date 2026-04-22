@@ -27,29 +27,9 @@ public class AdminRepository {
         apiService = RetrofitClient.getClient(context).create(AdminAPIService.class);
     }
 
-    public MutableLiveData<List<AuditLog>> fetchAuditLogs() {
-        MutableLiveData<List<AuditLog>> auditLog = new MutableLiveData<>();
-
-        apiService.getAuditLogs().enqueue(new Callback<List<AuditLog>>() {
-            @Override
-            public void onResponse(Call<List<AuditLog>> call, Response<List<AuditLog>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    auditLog.setValue(response.body());
-
-                } else {
-                    Log.e("AdminLog", "Lỗi tải dữ liệu: " + response.code());
-                    auditLog.setValue(null);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<AuditLog>> call, Throwable t) {
-                Log.e("AdminLog", "Lỗi mạng: " + t.getMessage());
-                auditLog.setValue(null);
-            }
-        });
-
-        return auditLog;
+    public void fetchAuditLogsPaged(int limit, int offset, Callback<List<AuditLog>> callback) {
+        // Truyền thẳng callback của ViewModel vào để xử lý
+        apiService.getAuditLogs(limit, offset).enqueue(callback);
     }
 
     public MutableLiveData<List<AppMetric>> fetchAllAppMetrics() {
