@@ -1,13 +1,12 @@
 package com.melodix.app.Utils;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.melodix.app.Model.Playlist;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
+import com.melodix.app.Service.AudioPlayerService;
 
 import java.util.ArrayList;
 
@@ -61,7 +60,7 @@ public class AppUiUtils {
     }
 
     // ==========================================
-    // ĐÃ BỎ COMMENT: TÍNH NĂNG TỐC ĐỘ PHÁT NHẠC
+    // TÍNH NĂNG TỐC ĐỘ PHÁT NHẠC (ĐÃ THÊM LOGIC ĐỔI MÀU XANH)
     // ==========================================
     public static void showSpeedDialog(Context context) {
         com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet =
@@ -76,11 +75,16 @@ public class AppUiUtils {
             parent.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         }
 
-        bindSpeed(view, bottomSheet, context, R.id.menu_speed_05, 0.5f, "0.5x");
-        bindSpeed(view, bottomSheet, context, R.id.menu_speed_10, 1.0f, "1.0x");
-        bindSpeed(view, bottomSheet, context, R.id.menu_speed_125, 1.25f, "1.25x");
-        bindSpeed(view, bottomSheet, context, R.id.menu_speed_15, 1.5f, "1.5x");
-        bindSpeed(view, bottomSheet, context, R.id.menu_speed_20, 2.0f, "2.0x");
+        // Lấy thông tin Tốc độ hiện tại & Màu sắc
+        float currentSpeed = AudioPlayerService.getCurrentSpeed();
+        int colorPrimary = androidx.core.content.ContextCompat.getColor(context, R.color.mdx_primary);
+        int colorNormal = androidx.core.content.ContextCompat.getColor(context, R.color.mdx_text);
+
+        bindSpeed(view, bottomSheet, context, R.id.menu_speed_05, 0.5f, "0.5x", currentSpeed, colorPrimary, colorNormal);
+        bindSpeed(view, bottomSheet, context, R.id.menu_speed_10, 1.0f, "1.0x", currentSpeed, colorPrimary, colorNormal);
+        bindSpeed(view, bottomSheet, context, R.id.menu_speed_125, 1.25f, "1.25x", currentSpeed, colorPrimary, colorNormal);
+        bindSpeed(view, bottomSheet, context, R.id.menu_speed_15, 1.5f, "1.5x", currentSpeed, colorPrimary, colorNormal);
+        bindSpeed(view, bottomSheet, context, R.id.menu_speed_20, 2.0f, "2.0x", currentSpeed, colorPrimary, colorNormal);
 
         bottomSheet.show();
     }
@@ -89,17 +93,33 @@ public class AppUiUtils {
                                   com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet,
                                   Context context,
                                   int viewId,
-                                  float speed,
-                                  String label) {
-        view.findViewById(viewId).setOnClickListener(v -> {
-            PlaybackUtils.setSpeed(context, speed);
+                                  float targetSpeed,
+                                  String label,
+                                  float currentSpeed,
+                                  int colorPrimary,
+                                  int colorNormal) {
+
+        android.widget.TextView tv = view.findViewById(viewId);
+
+        // Đổi màu xanh và in đậm nếu đúng tốc độ đang chọn
+        if (currentSpeed == targetSpeed) {
+            tv.setTextColor(colorPrimary);
+            tv.setTypeface(null, android.graphics.Typeface.BOLD);
+        } else {
+            tv.setTextColor(colorNormal);
+            tv.setTypeface(null, android.graphics.Typeface.NORMAL);
+        }
+
+        // Gán sự kiện Click
+        tv.setOnClickListener(v -> {
+            PlaybackUtils.setSpeed(context, targetSpeed);
             toast(context, "Speed set to " + label);
             bottomSheet.dismiss();
         });
     }
 
     // ==========================================
-    // ĐÃ BỎ COMMENT: TÍNH NĂNG HẸN GIỜ TẮT NHẠC
+    // TÍNH NĂNG HẸN GIỜ TẮT NHẠC
     // ==========================================
     public static void showSleepTimerDialog(Context context) {
         com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet =
@@ -134,6 +154,4 @@ public class AppUiUtils {
             bottomSheet.dismiss();
         });
     }
-
-    // (Hàm showCreatePlaylistDialog mình tạm thời vẫn giữ comment như bản gốc của bạn để tránh lỗi nếu bạn chưa thiết kế xong Layout nhé)
 }

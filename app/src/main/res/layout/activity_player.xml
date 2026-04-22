@@ -178,7 +178,7 @@
                     android:background="@drawable/bg_circle_surface"
                     android:padding="10dp"
                     android:scaleType="centerInside"
-                    android:src="@drawable/ic_timer"
+                    android:src="@drawable/btn_loop"
                     app:tint="@color/mdx_text" />
             </LinearLayout>
 

@@ -334,7 +334,10 @@ public class AudioPlayerService extends Service {
     }
 
     private void setSleepTimer(int minutes) {
-        if (sleepRunnable != null) handler.removeCallbacks(sleepRunnable);
+        if (sleepRunnable != null) {
+            handler.removeCallbacks(sleepRunnable);
+            sleepRunnable = null;
+        }
         if (minutes <= 0) return;
         sleepRunnable = () -> {
             if (mediaPlayer != null && mediaPlayer.isPlaying()) {
@@ -344,6 +347,7 @@ public class AudioPlayerService extends Service {
                 broadcastState();
             }
             stopForeground(false);
+            sleepRunnable = null;
         };
         handler.postDelayed(sleepRunnable, minutes * 1000L);
     }
@@ -464,6 +468,24 @@ public class AudioPlayerService extends Service {
             mediaPlayer = null;
         }
         isPlaying = false;
+    }
+
+    // Lấy tốc độ phát hiện tại (Mặc định là 1.0f)
+    public static float getCurrentSpeed() {
+        if (instance != null && instance.mediaPlayer != null) {
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    return instance.mediaPlayer.getPlaybackParams().getSpeed();
+                }
+            } catch (Exception ignored) {}
+        }
+        return 1.0f; // Trả về tốc độ chuẩn nếu có lỗi
+    }
+
+    // Kiểm tra xem có đang hẹn giờ hay không
+    public static boolean isTimerActive() {
+        // Biến sleepRunnable là biến bạn đã dùng trong hàm setSleepTimer()
+        return instance != null && instance.sleepRunnable != null;
     }
 
     @Override

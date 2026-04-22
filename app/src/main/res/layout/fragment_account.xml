@@ -90,14 +90,6 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_insights"
-                style="@style/Widget.Melodix.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="16dp"
-                android:text="Open Music Insights" />
-
-            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_request_artist"
                 style="@style/Widget.MaterialComponents.Button"
                 android:layout_width="match_parent"
@@ -369,18 +361,6 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Offline mode"
-                        android:textColor="@color/mdx_text_secondary"
-                        android:textSize="16sp" />
-
-                    <Switch
-                        android:id="@+id/switch_offline_mode"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
                 </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
