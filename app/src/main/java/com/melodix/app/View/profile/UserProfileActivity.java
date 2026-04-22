@@ -238,13 +238,13 @@ public class UserProfileActivity extends AppCompatActivity {
     private void updateFollowerCountUI() {
         String displayCount = followerCount >= 1000 ?
                 String.format(java.util.Locale.US, "%.1fK", followerCount / 1000f) : String.valueOf(followerCount);
-        tvFollowerCount.setText(displayCount + " người theo dõi");
+        tvFollowerCount.setText(displayCount + " follower(s)");
     }
 
     private void updateFollowingCountUI() {
         String displayCount = followingCount >= 1000 ?
                 String.format(java.util.Locale.US, "%.1fK", followingCount / 1000f) : String.valueOf(followingCount);
-        tvFollowingCount.setText(displayCount + " đang theo dõi");
+        tvFollowingCount.setText(displayCount + " following ");
     }
 
     private void checkCurrentFollowStatus() {
@@ -263,10 +263,10 @@ public class UserProfileActivity extends AppCompatActivity {
 
     private void updateFollowButtonUI() {
         if (isFollowing) {
-            btnFollow.setText("Đang theo dõi");
+            btnFollow.setText("Following");
             btnFollow.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#535353"))); // Màu xám
         } else {
-            btnFollow.setText("Theo dõi");
+            btnFollow.setText("Follow");
             btnFollow.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1DB954"))); // Màu xanh Spotify
         }
     }

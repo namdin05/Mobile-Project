@@ -150,8 +150,8 @@ public class UploadSongActivity extends AppCompatActivity {
                 com.bumptech.glide.Glide.with(this).load(existingCoverUrl).into(imgCoverPreview);
             }
 
-            tvAudioTitle.setText("Đã có file âm thanh gốc");
-            tvAudioStatus.setText("Chỉ chọn lại nếu muốn thay file MP3 khác");
+            tvAudioTitle.setText("Original audio attached");
+            tvAudioStatus.setText("Select only if you want to replace the current MP3");
         }
 
         btnSelectAlbum.setOnClickListener(v -> openAlbumDialog());
@@ -166,19 +166,28 @@ public class UploadSongActivity extends AppCompatActivity {
     // HÀM DÙNG CHUNG ĐỂ UPLOAD BẤT KỲ FILE NÀO (DRY Principle)
     // =================================================================================
     private void uploadFileToSupabase(Uri fileUri, String bucketName, String fileName, String mimeType, Callback<ResponseBody> callback) {
-        byte[] fileBytes = readBytesFromUri(fileUri);
-        if (fileBytes == null) {
-            showError("Không đọc được file!");
-            return;
-        }
+        // Tạo RequestBody dùng cơ chế stream trực tiếp (Okio)
+        RequestBody requestBody = new RequestBody() {
+            @Override
+            public MediaType contentType() {
+                return MediaType.parse(mimeType);
+            }
 
-        RequestBody requestBody = RequestBody.create(MediaType.parse(mimeType), fileBytes);
+            @Override
+            public void writeTo(okio.BufferedSink sink) throws java.io.IOException {
+                // Mở luồng đọc file và bơm thẳng vào luồng mạng (sink)
+                try (InputStream is = getContentResolver().openInputStream(fileUri)) {
+                    if (is != null) {
+                        sink.writeAll(okio.Okio.source(is));
+                    }
+                }
+            }
+        };
 
-        // Thay thế dấu "/" để tránh lỗi path của Retrofit
+        // Gửi file đi
         storageService.uploadFileToStorage(mimeType, "true", bucketName.replace("/", ""), fileName, requestBody)
                 .enqueue(callback);
     }
-
     private void startUploadProcess() {
         String songTitle = edtSongTitle.getText().toString().trim();
 
@@ -198,8 +207,7 @@ public class UploadSongActivity extends AppCompatActivity {
         }
 
         btnSubmitUpload.setEnabled(false);
-        btnSubmitUpload.setText(isEditMode ? "ĐANG CẬP NHẬT..." : "ĐANG XỬ LÝ (1/3)...");
-
+        btnSubmitUpload.setText(isEditMode ? "UPDATING..." : "UPLOADING (1/3)...");
         // BƯỚC 1: Xử lý Ảnh bìa
         if (coverUri != null) {
             String coverFileName = "cover_" + System.currentTimeMillis() + ".jpg";
@@ -212,7 +220,7 @@ public class UploadSongActivity extends AppCompatActivity {
                         uploadAudioStep(newCoverUrl, songTitle); // Chuyển sang bước Up nhạc
                     } else {
                         logErrorBody("UPLOAD_COVER_ERROR", response);
-                        showError("Upload ảnh bìa thất bại");
+                        showError("Fail Uploading");
                     }
                 }
                 @Override
@@ -228,10 +236,9 @@ public class UploadSongActivity extends AppCompatActivity {
     private void uploadAudioStep(String finalCoverUrl, String songTitle) {
         // BƯỚC 2: Xử lý File Nhạc
         if (audioUri != null) {
-            btnSubmitUpload.setText("ĐANG TẢI NHẠC (2/3)...");
+            btnSubmitUpload.setText("Uploading (2/3)...");
             String slugTitle = generateSlug(songTitle);
             String audioFileName = slugTitle + ".mp3";
-            byte[] audioBytes = readBytesFromUri(audioUri);
 
             uploadFileToSupabase(audioUri, Constants.SONG_AUDIO_BUCKET, audioFileName, "audio/mpeg", new Callback<ResponseBody>() {
                 @Override
@@ -316,26 +323,6 @@ public class UploadSongActivity extends AppCompatActivity {
         }
     }
 
-    private byte[] readBytesFromUri(Uri uri) {
-        try (InputStream inputStream = getContentResolver().openInputStream(uri);
-             ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream()) {
-
-            if (inputStream == null) return null;
-
-            int bufferSize = 1024;
-            byte[] buffer = new byte[bufferSize];
-            int len;
-
-            while ((len = inputStream.read(buffer)) != -1) {
-                byteBuffer.write(buffer, 0, len);
-            }
-            return byteBuffer.toByteArray();
-
-        } catch (Exception e) {
-            android.util.Log.e("READ_FILE_ERROR", "Không đọc được file: " + e.getMessage(), e);
-            return null;
-        }
-    }
 
     private void logErrorBody(String tag, Response<?> response) {
         try {
@@ -349,7 +336,7 @@ public class UploadSongActivity extends AppCompatActivity {
     private void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         btnSubmitUpload.setEnabled(true);
-        btnSubmitUpload.setText(isEditMode ? "CẬP NHẬT TÁC PHẨM" : "PHÁT HÀNH TÁC PHẨM");
+        btnSubmitUpload.setText(isEditMode ? "UPDATE" : "RELEASE");
     }
 
     private int getAudioDuration(Uri audioUri) {

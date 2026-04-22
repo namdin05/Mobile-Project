@@ -53,7 +53,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
             if(repository != null){
                 TextView tvTitle = findViewById(R.id.tv_title);
                 String albumName = tvTitle.getText().toString();
-                if (!albumName.equals("Đang tải...")){
+                if (!albumName.equals("Uploading...")){
                     com.melodix.app.Utils.ShareUtils.shareContent(
                             AlbumDetailActivity.this,
                             "album",

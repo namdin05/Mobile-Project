@@ -31,19 +31,15 @@ public class AccountFragment extends Fragment {
     private Switch dark;
     private LinearLayout cardArtistCenter, btnArtistUpload, btnArtistAlbums, btnArtistStats;
 
-    // Giao diện Nút Xin Nghệ Sĩ
     private com.google.android.material.button.MaterialButton btnRequestArtist, btnLogOut;
-
-    // 👇 Thêm biến cho vòng xoay làm mới 👇
     private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefresh;
 
-    private SharedPreferences sharedPreferences;
-
     private com.melodix.app.ViewModel.ProfileViewModel profileViewModel;
-    private static final String PREF_NAME = "MelodixSettings";
+
+    // Tách biệt cài đặt App (Dark Mode) ra một két sắt riêng
+    private static final String PREF_SETTINGS = "MelodixSettings";
     private static final String KEY_DARK_MODE = "dark_mode_enabled";
 
-    // Biến trạng thái: Nhớ xem user có đang chờ duyệt không
     private boolean isRequestPending = false;
 
     @Nullable
@@ -51,7 +47,6 @@ public class AccountFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_account, container, false);
         repository = AppRepository.getInstance(requireContext());
-        sharedPreferences = requireContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
 
         avatar = view.findViewById(R.id.img_avatar);
         name = view.findViewById(R.id.tv_name);
@@ -62,38 +57,28 @@ public class AccountFragment extends Fragment {
         btnArtistAlbums = view.findViewById(R.id.btn_artist_albums);
         btnArtistStats = view.findViewById(R.id.btn_artist_stats);
         btnLogOut = view.findViewById(R.id.btn_logout);
+        btnRequestArtist = view.findViewById(R.id.btn_request_artist);
 
         profileViewModel = new androidx.lifecycle.ViewModelProvider(this).get(com.melodix.app.ViewModel.ProfileViewModel.class);
 
-        // 2. Bắt sự kiện bấm nút Đăng xuất
-        btnLogOut.setOnClickListener(v -> {
-            profileViewModel.performLogout();
-        });
+        btnLogOut.setOnClickListener(v -> profileViewModel.performLogout());
 
-        // 3. Lắng nghe trạng thái và chuyển trang an toàn
         profileViewModel.getLogoutStatus().observe(getViewLifecycleOwner(), isLoggedOut -> {
             if (isLoggedOut != null && isLoggedOut) {
                 Intent intent = new Intent(requireActivity(), com.melodix.app.View.auth.LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
-                requireActivity().finish(); // Đóng hoàn toàn màn hình chứa Fragment
+                requireActivity().finish();
             }
         });
 
-        // Ánh xạ Nút Xin Nghệ Sĩ
-        btnRequestArtist = view.findViewById(R.id.btn_request_artist);
-
-        // 👇 ÁNH XẠ VÀ CÀI ĐẶT SWIPE REFRESH 👇
         swipeRefresh = view.findViewById(R.id.swipe_refresh);
         if (swipeRefresh != null) {
-            // Set màu xanh Spotify cho vòng xoay
             swipeRefresh.setColorSchemeColors(android.graphics.Color.parseColor("#1DB954"));
-
-            // Sự kiện khi vuốt màn hình
             swipeRefresh.setOnRefreshListener(() -> {
-                String myId = SessionManager.getInstance(getContext()).getUserId();
+                // ĐÃ SỬA: Gọi trực tiếp SessionManager
+                String myId = SessionManager.getInstance(requireContext()).getUserId();
                 if (myId != null) {
-                    // Chạy ngầm 2 hàm kiểm tra
                     checkRequestStatus(myId);
                     syncProfileRoleSilently(myId);
                 } else {
@@ -102,11 +87,12 @@ public class AccountFragment extends Fragment {
             });
         }
 
-        // 1. TÍNH NĂNG DARK MODE
+        // 1. TÍNH NĂNG DARK MODE (Dùng file Setting riêng)
+        SharedPreferences settingsPrefs = requireContext().getSharedPreferences(PREF_SETTINGS, Context.MODE_PRIVATE);
         dark = view.findViewById(R.id.switch_dark_mode);
-        dark.setChecked(sharedPreferences.getBoolean(KEY_DARK_MODE, false));
+        dark.setChecked(settingsPrefs.getBoolean(KEY_DARK_MODE, false));
         dark.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            sharedPreferences.edit().putBoolean(KEY_DARK_MODE, isChecked).apply();
+            settingsPrefs.edit().putBoolean(KEY_DARK_MODE, isChecked).apply();
             AppCompatDelegate.setDefaultNightMode(isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
         });
 
@@ -114,10 +100,11 @@ public class AccountFragment extends Fragment {
         view.findViewById(R.id.btn_speed).setOnClickListener(v -> AppUiUtils.showSpeedDialog(requireContext()));
         view.findViewById(R.id.btn_sleep_timer).setOnClickListener(v -> AppUiUtils.showSleepTimerDialog(requireContext()));
         btnArtistUpload.setOnClickListener(v -> startActivity(new Intent(getContext(), ManageSongActivity.class)));
-// 👇 Sếp copy dòng này dán đè lên dòng cũ ở dòng 91 nhé:
         btnArtistAlbums.setOnClickListener(v -> startActivity(new Intent(requireContext(), com.melodix.app.View.artist.ManageAlbumActivity.class)));
+
         btnArtistStats.setOnClickListener(v -> {
-            String userId = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE).getString("USER_ID", null);
+            // ĐÃ SỬA: Lấy ID từ SessionManager
+            String userId = SessionManager.getInstance(requireContext()).getUserId();
             if (userId != null) {
                 Intent intent = new Intent(requireContext(), com.melodix.app.View.artist.ArtistAnalyticsActivity.class);
                 intent.putExtra(com.melodix.app.View.artist.ArtistAnalyticsActivity.EXTRA_ARTIST_ID, userId);
@@ -126,18 +113,19 @@ public class AccountFragment extends Fragment {
         });
 
         view.findViewById(R.id.btn_share_profile).setOnClickListener(v -> {
+            // ĐÃ SỬA: Lấy thông tin từ Session và MelodixPrefs
+            String myId = SessionManager.getInstance(requireContext()).getUserId();
             SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
-            String myId = prefs.getString("USER_ID", null);
             String myName = prefs.getString("USER_NAME", "Người dùng");
             if (myId != null) com.melodix.app.Utils.ShareUtils.shareContent(requireContext(), "user", myId, myName);
         });
 
-        // 3. SỰ KIỆN BẤM VÀO NÚT (CÔNG TẮC 2 CHIỀU)
         btnRequestArtist.setOnClickListener(v -> {
-            String myId = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE).getString("USER_ID", null);
+            // ĐÃ SỬA: Gọi SessionManager
+            String myId = SessionManager.getInstance(requireContext()).getUserId();
             if (myId == null) return;
 
-            btnRequestArtist.setEnabled(false); // Khóa tạm thời tránh bấm đúp
+            btnRequestArtist.setEnabled(false);
 
             if (isRequestPending) {
                 cancelArtistRequest(myId);
@@ -146,24 +134,28 @@ public class AccountFragment extends Fragment {
             }
         });
 
-        String myId = sharedPreferences.getString("USER_ID", null);
+        // KIỂM TRA ĐĂNG NHẬP NGAY TỪ ĐẦU
+        String myId = SessionManager.getInstance(requireContext()).getUserId();
         if (myId != null) {
             syncProfileRoleSilently(myId);
         }
+
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
-        boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
+        SessionManager session = SessionManager.getInstance(requireContext());
 
-        if (isLoggedIn) {
-            String displayName = prefs.getString("USER_NAME", "Người dùng");
-            String avatarUrl = prefs.getString("USER_AVATAR", "");
-            String role = prefs.getString("USER_ROLE", "user");
-            String myId = prefs.getString("USER_ID", null);
+        if (session.hasSession()) {
+            String myId = session.getUserId();
+            String role = session.getRole();
+
+            // Name và Avatar thường được lưu ở bước khác nên ta vẫn đọc từ MelodixPrefs
+            SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+            String displayName = session.getUserName();
+            String avatarUrl = session.getUserAvatar();
 
             name.setText(displayName);
             headline.setText("Melodix Member");
@@ -190,8 +182,7 @@ public class AccountFragment extends Fragment {
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
         if (!hidden) {
-            SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
-            String myId = prefs.getString("USER_ID", null);
+            String myId = SessionManager.getInstance(requireContext()).getUserId();
             if (myId != null) {
                 syncProfileRoleSilently(myId);
             }
@@ -271,26 +262,17 @@ public class AccountFragment extends Fragment {
                     android.content.res.ColorStateList.valueOf(
                             android.graphics.Color.parseColor("#FF9800")
                     )
-            ); // Orange
+            );
         } else {
             btnRequestArtist.setText("Become an Artist 🌟");
             btnRequestArtist.setBackgroundTintList(
                     android.content.res.ColorStateList.valueOf(
                             android.graphics.Color.parseColor("#1DB954")
                     )
-            ); // Spotify green
+            );
         }
     }
 
-    // ========================================================
-    // ĐỒNG BỘ NGẦM VÀ TẮT VÒNG XOAY REFRESH
-    // ========================================================
-// ========================================================
-    // ĐỒNG BỘ NGẦM (HIỆN THẲNG TOAST LÊN MÀN HÌNH ĐỂ TEST)
-    // ========================================================
-// ========================================================
-    // ĐỒNG BỘ NGẦM (HOÀN THIỆN CẢ LÊN CHỨC LẪN GIÁNG CHỨC)
-    // ========================================================
     private void syncProfileRoleSilently(String userId) {
         com.melodix.app.Repository.ProfileRepository profileRepo = new com.melodix.app.Repository.ProfileRepository(getContext());
         profileRepo.getProfileById(userId, new retrofit2.Callback<java.util.List<com.melodix.app.Model.Profile>>() {
@@ -303,18 +285,16 @@ public class AccountFragment extends Fragment {
                     String realRole = response.body().get(0).getRole();
 
                     if (realRole != null) {
-                        // 1. Lưu đè luôn vào trí nhớ không cần hỏi nhiều
-                        SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
-                        prefs.edit().putString("USER_ROLE", realRole).apply();
+                        // Cập nhật lại role mới nhất vào SessionManager thay vì tự mở SharedPreferences
+                        SessionManager.getInstance(requireContext()).updateRole(realRole);
 
-                        // 2. ÉP GIAO DIỆN VẼ LẠI 100%
                         if ("artist".equalsIgnoreCase(realRole)) {
                             cardArtistCenter.setVisibility(View.VISIBLE);
                             btnRequestArtist.setVisibility(View.GONE);
                         } else {
                             cardArtistCenter.setVisibility(View.GONE);
                             btnRequestArtist.setVisibility(View.VISIBLE);
-                            checkRequestStatus(userId); // Vẽ lại màu nút
+                            checkRequestStatus(userId);
                         }
                     }
                 }
@@ -325,4 +305,5 @@ public class AccountFragment extends Fragment {
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
             }
         });
-    }}
+    }
+}

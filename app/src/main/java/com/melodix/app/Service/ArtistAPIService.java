@@ -29,11 +29,11 @@
                 @Body SongRequestUpload body
         );
 
-        @POST("albums")
+        // Đổi "albums" thành "rpc/create_album_with_songs"
+        @POST("rpc/create_album_with_songs")
         Call<ResponseBody> createAlbum(
                 @Body Map<String, Object> albumData
         );
-
         @DELETE("songs")
         Call<Void> deleteSong(@Query("id") String operatorAndId);
 
@@ -63,12 +63,7 @@
         @GET("artist_stats_view?select=*")
         Call<List<ArtistStats>> getArtistStats(@Query("artist_id") String artistIdQuery);
         // NÂNG CẤP: Gọi hàm RPC để tạo album và thêm bài hát cùng lúc
-        @POST("rpc/create_album_with_songs")
-        Call<okhttp3.ResponseBody> createAlbumWithSongs(
-                @Header("apikey") String apiKey,
-                @Header("Authorization") String token,
-                @Body java.util.Map<String, Object> albumData
-        );
+
 
         @retrofit2.http.PATCH("albums")
         Call<okhttp3.ResponseBody> updateAlbum(

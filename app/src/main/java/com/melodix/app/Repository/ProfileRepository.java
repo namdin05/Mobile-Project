@@ -92,10 +92,10 @@ public class ProfileRepository {
     }
 
     public void updateTokenToServer(String token) {
-        // ĐÃ SỬA LỖI: Lấy userId từ biến prefs đã khai báo ở Constructor
         String userId = SessionManager.getInstance(context).getUserId();
 
-        if (userId.isEmpty()) {
+        // ĐÃ SỬA: Chặn luôn trường hợp userId bị null để chống văng app (Crash)
+        if (userId == null || userId.trim().isEmpty()) {
             Log.w("MELODIX_FCM", "Chưa đăng nhập, không lưu Token");
             return;
         }
@@ -105,7 +105,6 @@ public class ProfileRepository {
 
         profileAPIService.updateFcmToken("eq." + userId, body)
                 .enqueue(new Callback<Void>() {
-                    // ... (Giữ nguyên code xử lý response của bạn) ...
                     @Override
                     public void onResponse(Call<Void> call, Response<Void> response) {
                         if (response.isSuccessful()) {
@@ -121,7 +120,6 @@ public class ProfileRepository {
                     }
                 });
     }
-
     // =======================================================
     // 2 HÀM MỚI BỔ SUNG ĐỂ PHỤC VỤ CHO ADMIN (VÀ CẢ USER)
     // =======================================================

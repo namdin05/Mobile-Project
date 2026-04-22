@@ -92,6 +92,7 @@
             <!-- ACTIVITY / View / profile -->
             <activity android:name=".View.profile.AdminProfileActivity"
                 android:exported="false"/>
+        <activity android:name=".View.profile.UserProfileActivity" />
 
         <activity android:name=".View.AlbumDetailActivity" android:exported="false" />
         <activity android:name=".View.ArtistDetailActivity" android:exported="false" />
