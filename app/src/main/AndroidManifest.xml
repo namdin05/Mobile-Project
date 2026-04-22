@@ -48,6 +48,18 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="melodix" android:host="song" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:mimeType="audio/*" />
+                <data android:mimeType="audio/mpeg" />
+                <data android:mimeType="audio/mp3" />
+
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+            </intent-filter>
         </activity>
 
         <activity android:name=".LyricsActivity"
