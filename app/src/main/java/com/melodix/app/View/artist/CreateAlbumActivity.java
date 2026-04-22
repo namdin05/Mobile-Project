@@ -243,13 +243,24 @@ public class CreateAlbumActivity extends AppCompatActivity {
                         Toast.makeText(CreateAlbumActivity.this, "Đã cập nhật Album & Bài hát!", Toast.LENGTH_SHORT).show();
                         finish();
                     } else {
-                        showError("Lỗi cập nhật Album: " + response.code());
+                        // BẮT LỖI CHI TIẾT TỪ SERVER
+                        try {
+                            String errorMsg = response.errorBody() != null ? response.errorBody().string() : "Lỗi không xác định";
+                            // In ra tab Logcat trong Android Studio
+                            android.util.Log.e("UPDATE_ALBUM_ERROR", "Mã HTTP: " + response.code() + ", Chi tiết: " + errorMsg);
+                            // Hiển thị lên màn hình
+                            showError("Lỗi cập nhật (" + response.code() + "): " + errorMsg);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            showError("Lỗi cập nhật Album: HTTP " + response.code());
+                        }
                     }
                 }
 
                 @Override
                 public void onFailure(Call<ResponseBody> call, Throwable t) {
-                    showError("Lỗi kết nối mạng");
+                    android.util.Log.e("UPDATE_ALBUM_FAILURE", "Lỗi kết nối: ", t);
+                    showError("Lỗi kết nối mạng: " + t.getMessage());
                 }
             });
 
@@ -264,24 +275,34 @@ public class CreateAlbumActivity extends AppCompatActivity {
 
             albumData.put("p_existing_song_ids", selectedSongIds);
 
-        ArtistAPIService apiService = RetrofitClient.getClient(getApplicationContext()).create(ArtistAPIService.class);
-        apiService.createAlbum(albumData)
-                .enqueue(new Callback<ResponseBody>() {
-                    @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                        if (response.isSuccessful()) {
-                            Toast.makeText(CreateAlbumActivity.this, "Đã tạo Album thành công!", Toast.LENGTH_LONG).show();
-                            finish();
-                        } else {
-                            showError("Lỗi lưu Database");
+            ArtistAPIService apiService = RetrofitClient.getClient(getApplicationContext()).create(ArtistAPIService.class);
+            apiService.createAlbum(albumData).enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(CreateAlbumActivity.this, "Đã tạo Album thành công!", Toast.LENGTH_LONG).show();
+                        finish();
+                    } else {
+                        // BẮT LỖI CHI TIẾT TỪ SERVER
+                        try {
+                            String errorMsg = response.errorBody() != null ? response.errorBody().string() : "Lỗi không xác định";
+                            // In ra tab Logcat trong Android Studio
+                            android.util.Log.e("CREATE_ALBUM_ERROR", "Mã HTTP: " + response.code() + ", Chi tiết: " + errorMsg);
+                            // Hiển thị lên màn hình
+                            showError("Lỗi DB (" + response.code() + "): " + errorMsg);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            showError("Lỗi lưu Database: HTTP " + response.code());
                         }
                     }
+                }
 
-                        @Override
-                        public void onFailure(Call<ResponseBody> call, Throwable t) {
-                            showError("Lỗi kết nối máy chủ");
-                        }
-                    });
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    android.util.Log.e("CREATE_ALBUM_FAILURE", "Lỗi kết nối: ", t);
+                    showError("Lỗi kết nối máy chủ: " + t.getMessage());
+                }
+            });
         }
     }
 

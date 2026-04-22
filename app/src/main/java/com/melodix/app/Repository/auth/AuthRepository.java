@@ -42,7 +42,7 @@ public class AuthRepository {
                     String token = response.body().getAccessToken();
                     String userId = response.body().getUser().getId();
 
-                    // ĐÃ SỬA: Dùng SessionManager để lưu tạm Token cho Interceptor gọi hàm Profile
+                    // Dùng SessionManager để lưu tạm Token cho Interceptor gọi hàm Profile
                     SessionManager.getInstance(context).updateToken(token);
 
                     fetchUserRoleAndProfile(userId, token, context, result);
@@ -73,12 +73,16 @@ public class AuthRepository {
 
                     Profile profile = response.body().get(0);
                     String role = profile.getRole();
-                    String uid = profile.getId();
 
-                    // ĐÃ SỬA: Gom sạch vào 1 dòng duy nhất của SessionManager
-                    SessionManager.getInstance(context).saveLogInSession(userId, role, token);
+                    // ĐÃ FIX: Lấy trực tiếp tên và avatar
+                    String name = profile.getDisplayName(); // Nhớ check file Profile.java xem hàm này tên gì
+                    String avatar = profile.getAvatarUrl(); // Nhớ check file Profile.java xem hàm này tên gì
 
-                    result.setValue(new LoginResult(true, role, uid));
+                    // ĐÃ FIX: Dùng thẳng biến userId truyền vào từ tham số hàm, bỏ cái profile.getId() đi
+                    SessionManager.getInstance(context).saveLogInSession(userId, role, token, name, avatar);
+
+                    // Trả kết quả về với userId chuẩn
+                    result.setValue(new LoginResult(true, role, userId));
                 } else {
                     Log.e("SOCIAL_LOGIN", "4. LỖI PROFILE: Không tìm thấy dòng nào trong bảng profiles có id=" + userId);
                     result.setValue(new LoginResult(false, "Chưa có Profile trong Database", true));
@@ -121,7 +125,7 @@ public class AuthRepository {
 
         Log.e("SOCIAL_LOGIN", "1. Đã nhận được Token từ Google, chuẩn bị gọi Supabase...");
 
-        // ĐÃ SỬA: Dùng SessionManager để lưu tạm Token cho Interceptor gọi hàm UserInfo
+        // Dùng SessionManager để lưu tạm Token cho Interceptor gọi hàm UserInfo
         SessionManager.getInstance(context).updateToken(accessToken);
 
         apiService.getUserInfo().enqueue(new Callback<okhttp3.ResponseBody>() {

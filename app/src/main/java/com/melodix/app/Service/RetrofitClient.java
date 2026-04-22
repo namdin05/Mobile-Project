@@ -30,7 +30,10 @@ public class RetrofitClient {
         if (sharedHttpClient == null) {
             final Context safeContext = context.getApplicationContext();
 
-            sharedHttpClient = new OkHttpClient.Builder().addInterceptor(new Interceptor() {
+            sharedHttpClient = new OkHttpClient.Builder()
+                    .connectTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                    .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                    .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS).addInterceptor(new Interceptor() {
                 @Override
                 public Response intercept(Chain chain) throws IOException {
                     SessionManager sessionManager = SessionManager.getInstance(safeContext);
