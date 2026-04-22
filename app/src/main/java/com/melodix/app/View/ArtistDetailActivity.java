@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,6 +28,7 @@ import com.melodix.app.Utils.PlaybackUtils;
 import com.melodix.app.View.adapters.SongAdapter;
 import com.melodix.app.View.adapters.AlbumAdapter;
 import com.melodix.app.View.adapters.ArtistAdapter;
+import com.melodix.app.Utils.FollowManager;
 import java.util.ArrayList;
 
 public class ArtistDetailActivity extends AppCompatActivity {
@@ -35,6 +37,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
     private AlbumAdapter albumAdapter;
     private ArtistAdapter artistAdapter;
     private SongAdapter songAdapter;
+    private FollowManager followManager;
 
     private RecyclerView rvSongs, rvAlbums, rvRelated;
     private TextView tvSongsTitle, tvAlbumsTitle, tvRelatedTitle;
@@ -74,7 +77,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.btn_follow).setOnClickListener(v -> Toast.makeText(this, "Đang phát triển", Toast.LENGTH_SHORT).show());
+//        findViewById(R.id.btn_follow).setOnClickListener(v -> Toast.makeText(this, "Đang phát triển", Toast.LENGTH_SHORT).show());
 
         // ==========================================
         // KÍCH HOẠT NÚT "PHÁT TẤT CẢ"
@@ -200,6 +203,17 @@ public class ArtistDetailActivity extends AppCompatActivity {
                     }
                     @Override public void onError(String message) {}
                 });
+                //LẤY SỐ LƯỢNG FOLLOW
+                repository.getFollowerCount(artistId, count -> {
+                    if (isFinishing() || isDestroyed()) return;
+                    tvFollowerCount.setVisibility(View.VISIBLE);
+                    String displayCount = count >= 1000 ?
+                            String.format(java.util.Locale.US, "%.1fK", count / 1000f) :
+                            String.valueOf(count);
+                    tvFollowerCount.setText(displayCount + " follower(s)");
+
+                    if (followManager != null) followManager.setFollowerCount(count);
+                });
 
                 // LẤY NGHỆ SĨ LIÊN QUAN
                 repository.getRelatedArtists(artistId, new AppRepository.ArtistListCallback() {
@@ -217,7 +231,11 @@ public class ArtistDetailActivity extends AppCompatActivity {
                 if (!isFinishing() && !isDestroyed()) finish();
             }
         });
-
+        // Khởi tạo FollowManager
+        Button btnFollow = findViewById(R.id.btn_follow);
+        TextView tvFollowerCountView = findViewById(R.id.tv_follower_count);
+        followManager = new FollowManager(this, artistId, btnFollow, tvFollowerCountView);
+        followManager.init();
         // THÊM: Khởi tạo MiniPlayer Controller
         miniPlayerController = new com.melodix.app.Model.MiniPlayerController(this);
     }
