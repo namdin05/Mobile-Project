@@ -238,7 +238,7 @@ public class UserProfileActivity extends AppCompatActivity {
     private void updateFollowerCountUI() {
         String displayCount = followerCount >= 1000 ?
                 String.format(java.util.Locale.US, "%.1fK", followerCount / 1000f) : String.valueOf(followerCount);
-        tvFollowerCount.setText(displayCount + " người theo dõi");
+        tvFollowerCount.setText(displayCount + " follower(s)");
     }
 
     private void updateFollowingCountUI() {
