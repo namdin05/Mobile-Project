@@ -75,8 +75,12 @@ public class AppUiUtils {
             parent.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         }
 
-        // Lấy thông tin Tốc độ hiện tại & Màu sắc
-        float currentSpeed = AudioPlayerService.getCurrentSpeed();
+        // ==========================================
+        // DÙNG APPLICATION_CONTEXT ĐỂ CHỐNG LỆCH PHA GIỮA CÁC FRAGMENT
+        // ==========================================
+        android.content.SharedPreferences prefs = context.getApplicationContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+        float currentSpeed = prefs.getFloat("saved_speed", 1.0f); // Mặc định là 1.0f
+
         int colorPrimary = androidx.core.content.ContextCompat.getColor(context, R.color.mdx_primary);
         int colorNormal = androidx.core.content.ContextCompat.getColor(context, R.color.mdx_text);
 
@@ -101,8 +105,11 @@ public class AppUiUtils {
 
         android.widget.TextView tv = view.findViewById(viewId);
 
-        // Đổi màu xanh và in đậm nếu đúng tốc độ đang chọn
-        if (currentSpeed == targetSpeed) {
+        // ==========================================
+        // KHẮC PHỤC LỖI SO SÁNH FLOAT TRONG JAVA BẰNG Math.abs
+        // (Kiểm tra xem 2 số trừ đi nhau có gần bằng 0 không)
+        // ==========================================
+        if (Math.abs(currentSpeed - targetSpeed) < 0.01f) {
             tv.setTextColor(colorPrimary);
             tv.setTypeface(null, android.graphics.Typeface.BOLD);
         } else {
@@ -110,8 +117,11 @@ public class AppUiUtils {
             tv.setTypeface(null, android.graphics.Typeface.NORMAL);
         }
 
-        // Gán sự kiện Click
         tv.setOnClickListener(v -> {
+            // LƯU BẰNG APPLICATION CONTEXT
+            android.content.SharedPreferences prefs = context.getApplicationContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+            prefs.edit().putFloat("saved_speed", targetSpeed).apply();
+
             PlaybackUtils.setSpeed(context, targetSpeed);
             toast(context, "Speed set to " + label);
             bottomSheet.dismiss();
