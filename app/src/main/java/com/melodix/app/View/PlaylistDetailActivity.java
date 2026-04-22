@@ -65,6 +65,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     private EditPlaylistDialog currentEditDialog;
     private ActivityResultLauncher<String> editImagePickerLauncher;
     private boolean firstLoad = true;
+    private boolean isDragDropSetup = false;
 
     // THÊM: Biến quản lý Mini Player
     private com.melodix.app.Model.MiniPlayerController miniPlayerController;
@@ -144,10 +145,12 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
         String currentUserId = prefs.getString("USER_ID", null);
 
-        if (currentUserId.equals(currentPlaylist.ownerUserId)) {
+        if (currentPlaylist == null || !currentUserId.equals(currentPlaylist.ownerUserId)) {
             Log.d("DRAG_DROP", "Không phải chủ sở hữu → tắt chức năng kéo thả");
             return;
         }
+
+        Log.d("DRAG_DROP", "Là chủ sở hữu → bật drag and drop");
 
         ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(
                 ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
@@ -247,7 +250,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                                     .into(imgCover);
                         }
 
-                        setupDragAndDrop();
+//                        setupDragAndDrop();
 
                         boolean isOwner = currentPlaylist != null && currentUserId.equals(currentPlaylist.ownerUserId);
                         View btnAddSong = findViewById(R.id.btn_add_song);
@@ -285,9 +288,9 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         songAdapter.notifyDataSetChanged();
                         tvMeta.setText(playlistSongList.size() + " bài hát");
-                        if (firstLoad) {
+                        if (!isDragDropSetup) {
                             setupDragAndDrop();
-                            firstLoad = false;
+                            isDragDropSetup = true;
                         }
                     });
                 } else {
@@ -327,18 +330,32 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
         for (int i = 0; i < playlistSongList.size(); i++) {
             PlaylistSong ps = playlistSongList.get(i);
+            if (ps != null) {
+                ps.orderIndex = i;  // Cập nhật local
+                Log.d("DRAG_DROP", "Cập nhật order local: " + ps.song.getTitle() + " -> index " + i);
+            }
+        }
+
+        // Gửi từng request lên server
+        for (int i = 0; i < playlistSongList.size(); i++) {
+            PlaylistSong ps = playlistSongList.get(i);
             if (ps == null || ps.song == null || ps.song.getId() == null) continue;
 
             final int newOrder = i;
+            final String songId = ps.song.getId();
 
             playlistRepository.updatePlaylistSongOrder(
                     playlistId,
-                    ps.song.getId(),
+                    songId,
                     newOrder,
                     new Callback<ResponseBody>() {
                         @Override
                         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                            // Cập nhật thành công
+                            if (response.isSuccessful()) {
+                                Log.d("DRAG_DROP", "Cập nhật thành công: " + songId + " -> order " + newOrder);
+                            } else {
+                                Log.e("DRAG_DROP", "Cập nhật thất bại cho song: " + songId + " - Code: " + response.code());
+                            }
                         }
                         @Override
                         public void onFailure(Call<ResponseBody> call, Throwable t) {

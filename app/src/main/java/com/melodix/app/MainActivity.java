@@ -278,7 +278,6 @@ public class MainActivity extends AppCompatActivity {
             bottomNav.getMenu().findItem(R.id.nav_home).setEnabled(false);
             bottomNav.getMenu().findItem(R.id.nav_search).setEnabled(false);
 
-            Toast.makeText(this, "Không có kết nối mạng.\nChỉ có thể nghe nhạc đã tải về.", Toast.LENGTH_LONG).show();
         } else {
             bottomNav.getMenu().findItem(R.id.nav_home).setEnabled(true);
             bottomNav.getMenu().findItem(R.id.nav_search).setEnabled(true);
