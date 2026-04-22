@@ -1,13 +1,12 @@
 package com.melodix.app.Utils;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.melodix.app.Model.Playlist;
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
+import com.melodix.app.Service.AudioPlayerService;
 
 import java.util.ArrayList;
 
@@ -61,7 +60,7 @@ public class AppUiUtils {
     }
 
     // ==========================================
-    // ĐÃ BỎ COMMENT: TÍNH NĂNG TỐC ĐỘ PHÁT NHẠC
+    // TÍNH NĂNG TỐC ĐỘ PHÁT NHẠC (ĐÃ THÊM LOGIC ĐỔI MÀU XANH)
     // ==========================================
     public static void showSpeedDialog(Context context) {
         com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet =
@@ -76,11 +75,20 @@ public class AppUiUtils {
             parent.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         }
 
-        bindSpeed(view, bottomSheet, context, R.id.menu_speed_05, 0.5f, "0.5x");
-        bindSpeed(view, bottomSheet, context, R.id.menu_speed_10, 1.0f, "1.0x");
-        bindSpeed(view, bottomSheet, context, R.id.menu_speed_125, 1.25f, "1.25x");
-        bindSpeed(view, bottomSheet, context, R.id.menu_speed_15, 1.5f, "1.5x");
-        bindSpeed(view, bottomSheet, context, R.id.menu_speed_20, 2.0f, "2.0x");
+        // ==========================================
+        // DÙNG APPLICATION_CONTEXT ĐỂ CHỐNG LỆCH PHA GIỮA CÁC FRAGMENT
+        // ==========================================
+        android.content.SharedPreferences prefs = context.getApplicationContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+        float currentSpeed = prefs.getFloat("saved_speed", 1.0f); // Mặc định là 1.0f
+
+        int colorPrimary = androidx.core.content.ContextCompat.getColor(context, R.color.mdx_primary);
+        int colorNormal = androidx.core.content.ContextCompat.getColor(context, R.color.mdx_text);
+
+        bindSpeed(view, bottomSheet, context, R.id.menu_speed_05, 0.5f, "0.5x", currentSpeed, colorPrimary, colorNormal);
+        bindSpeed(view, bottomSheet, context, R.id.menu_speed_10, 1.0f, "1.0x", currentSpeed, colorPrimary, colorNormal);
+        bindSpeed(view, bottomSheet, context, R.id.menu_speed_125, 1.25f, "1.25x", currentSpeed, colorPrimary, colorNormal);
+        bindSpeed(view, bottomSheet, context, R.id.menu_speed_15, 1.5f, "1.5x", currentSpeed, colorPrimary, colorNormal);
+        bindSpeed(view, bottomSheet, context, R.id.menu_speed_20, 2.0f, "2.0x", currentSpeed, colorPrimary, colorNormal);
 
         bottomSheet.show();
     }
@@ -89,17 +97,39 @@ public class AppUiUtils {
                                   com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet,
                                   Context context,
                                   int viewId,
-                                  float speed,
-                                  String label) {
-        view.findViewById(viewId).setOnClickListener(v -> {
-            PlaybackUtils.setSpeed(context, speed);
+                                  float targetSpeed,
+                                  String label,
+                                  float currentSpeed,
+                                  int colorPrimary,
+                                  int colorNormal) {
+
+        android.widget.TextView tv = view.findViewById(viewId);
+
+        // ==========================================
+        // KHẮC PHỤC LỖI SO SÁNH FLOAT TRONG JAVA BẰNG Math.abs
+        // (Kiểm tra xem 2 số trừ đi nhau có gần bằng 0 không)
+        // ==========================================
+        if (Math.abs(currentSpeed - targetSpeed) < 0.01f) {
+            tv.setTextColor(colorPrimary);
+            tv.setTypeface(null, android.graphics.Typeface.BOLD);
+        } else {
+            tv.setTextColor(colorNormal);
+            tv.setTypeface(null, android.graphics.Typeface.NORMAL);
+        }
+
+        tv.setOnClickListener(v -> {
+            // LƯU BẰNG APPLICATION CONTEXT
+            android.content.SharedPreferences prefs = context.getApplicationContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+            prefs.edit().putFloat("saved_speed", targetSpeed).apply();
+
+            PlaybackUtils.setSpeed(context, targetSpeed);
             toast(context, "Speed set to " + label);
             bottomSheet.dismiss();
         });
     }
 
     // ==========================================
-    // ĐÃ BỎ COMMENT: TÍNH NĂNG HẸN GIỜ TẮT NHẠC
+    // TÍNH NĂNG HẸN GIỜ TẮT NHẠC
     // ==========================================
     public static void showSleepTimerDialog(Context context) {
         com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet =
@@ -134,6 +164,4 @@ public class AppUiUtils {
             bottomSheet.dismiss();
         });
     }
-
-    // (Hàm showCreatePlaylistDialog mình tạm thời vẫn giữ comment như bản gốc của bạn để tránh lỗi nếu bạn chưa thiết kế xong Layout nhé)
 }

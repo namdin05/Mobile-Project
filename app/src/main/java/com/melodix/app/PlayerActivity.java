@@ -98,6 +98,7 @@ public class PlayerActivity extends AppCompatActivity {
                 boolean playing = AudioPlayerService.isPlaying();
                 updatePlaybackUi(position, duration, playing);
             }
+            updateControlButtons();
             progressHandler.postDelayed(this, 100); // dong nay lap vo tan, k huy tao memory leak
         }
     };
@@ -109,7 +110,7 @@ public class PlayerActivity extends AppCompatActivity {
             if (songId != null && (currentSong == null || !songId.equals(currentSong.getId()))) {
                 loadSong(songId);
             }
-            updateLoopButton();
+            updateControlButtons();
         }
     };
 
@@ -290,9 +291,9 @@ public class PlayerActivity extends AppCompatActivity {
         ImageButton btnLoop = findViewById(R.id.btn_loop);
         btnLoop.setOnClickListener(v -> {
             AudioPlayerService.toggleLoop();
-            updateLoopButton();
+            updateControlButtons();
         });
-        updateLoopButton();
+        updateControlButtons();
 
         androidx.recyclerview.widget.RecyclerView rvLyrics = findViewById(R.id.rv_lyrics);
         rvLyrics.setItemAnimator(null);
@@ -606,17 +607,23 @@ public class PlayerActivity extends AppCompatActivity {
         return null;
     }
 
-    private void updateLoopButton() {
+    private void updateControlButtons() {
+        // 1. Nút Loop (Giữ nguyên)
         ImageButton btnLoop = findViewById(R.id.btn_loop);
         boolean looping = AudioPlayerService.isLoopMode();
-
-        int tint = ContextCompat.getColor(
-                this,
-                looping ? R.color.mdx_primary : R.color.mdx_text
-        );
-
-        btnLoop.setColorFilter(tint);
+        btnLoop.setColorFilter(ContextCompat.getColor(this, looping ? R.color.mdx_primary : R.color.mdx_text));
         btnLoop.setAlpha(looping ? 1f : 0.65f);
+
+        // 2. Nút Tốc độ (TRẢ VỀ MẶC ĐỊNH)
+        ImageButton btnSpeed = findViewById(R.id.btn_speed);
+        btnSpeed.setColorFilter(ContextCompat.getColor(this, R.color.mdx_text));
+        btnSpeed.setAlpha(0.65f); // Hoặc 1f tùy thiết kế ban đầu của bạn
+
+        // 3. Nút Hẹn giờ (Giữ nguyên)
+        ImageButton btnTimer = findViewById(R.id.btn_timer);
+        boolean isTimerRunning = AudioPlayerService.isTimerActive();
+        btnTimer.setColorFilter(ContextCompat.getColor(this, isTimerRunning ? R.color.mdx_primary : R.color.mdx_text));
+        btnTimer.setAlpha(isTimerRunning ? 1f : 0.65f);
     }
 
 
@@ -625,7 +632,7 @@ public class PlayerActivity extends AppCompatActivity {
         super.onResume();
         ContextCompat.registerReceiver(this, stateReceiver, new IntentFilter(AudioPlayerService.ACTION_STATE_CHANGED), ContextCompat.RECEIVER_NOT_EXPORTED);
         progressHandler.post(progressRunnable);
-        updateLoopButton();
+        updateControlButtons();
     }
 
     @Override

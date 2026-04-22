@@ -278,7 +278,6 @@ public class MainActivity extends AppCompatActivity {
             bottomNav.getMenu().findItem(R.id.nav_home).setEnabled(false);
             bottomNav.getMenu().findItem(R.id.nav_search).setEnabled(false);
 
-            Toast.makeText(this, "Không có kết nối mạng.\nChỉ có thể nghe nhạc đã tải về.", Toast.LENGTH_LONG).show();
         } else {
             bottomNav.getMenu().findItem(R.id.nav_home).setEnabled(true);
             bottomNav.getMenu().findItem(R.id.nav_search).setEnabled(true);
@@ -335,45 +334,52 @@ public class MainActivity extends AppCompatActivity {
 
     // Hàm Lễ tân phân loại link
 // Lễ tân phân loại link
+// Lễ tân phân loại link
     private void handleDeepLink(android.content.Intent intent) {
         if (intent != null && android.content.Intent.ACTION_VIEW.equals(intent.getAction())) {
             android.net.Uri data = intent.getData();
 
-            // 👇 SỬA ĐÚNG DÒNG NÀY ĐỂ BẮT CẢ 2 ĐƯỜNG 👇
-            if (data != null && ("giabaocode.github.io".equals(data.getHost()) || "redirect".equals(data.getHost()))) {
+            // 👇 BẮT CẢ SCHEME (melodix) HOẶC HOST CŨ (giabaocode.github.io)
+            if (data != null) {
+                boolean isMyScheme = "melodix".equals(data.getScheme()) && "redirect".equals(data.getHost());
+                boolean isMyWeb = "giabaocode.github.io".equals(data.getHost());
 
-                String type = data.getQueryParameter("type");
-                String id = data.getQueryParameter("id");
+                if (isMyScheme || isMyWeb) {
+                    String type = data.getQueryParameter("type");
+                    String id = data.getQueryParameter("id");
 
-                if (type != null && id != null) {
-                    android.content.Intent nextIntent = null;
+                    if (type != null && id != null) {
+                        android.content.Intent nextIntent = null;
 
-                    switch (type) {
-                        case "user":
-                            nextIntent = new android.content.Intent(this, com.melodix.app.View.profile.UserProfileActivity.class);
-                            nextIntent.putExtra(com.melodix.app.View.profile.UserProfileActivity.EXTRA_USER_ID, id);
-                            break;
-                        case "playlist":
-                            nextIntent = new android.content.Intent(this, com.melodix.app.View.PlaylistDetailActivity.class);
-                            nextIntent.putExtra(com.melodix.app.View.PlaylistDetailActivity.EXTRA_PLAYLIST_ID, id);
-                            break;
-                        case "album":
-                            nextIntent = new android.content.Intent(this, com.melodix.app.View.AlbumDetailActivity.class);
-                            nextIntent.putExtra(com.melodix.app.View.AlbumDetailActivity.EXTRA_ALBUM_ID, id);
-                            break;
-                        case "profile": // Dành cho Nghệ sĩ
-                            nextIntent = new android.content.Intent(this, com.melodix.app.View.ArtistDetailActivity.class);
-                            nextIntent.putExtra(com.melodix.app.View.ArtistDetailActivity.EXTRA_ARTIST_ID, id);
-                            break;
-                        case "song":
-                            nextIntent = new android.content.Intent(this, com.melodix.app.PlayerActivity.class);
-                            nextIntent.putExtra(com.melodix.app.PlayerActivity.EXTRA_SONG_ID, id);
-                            // Có thể cần thêm cờ để tự động Play luôn
-                            nextIntent.putExtra("start_playback", true);
-                            break;
-                    }
-                    if (nextIntent != null) {
-                        startActivity(nextIntent);
+                        switch (type.toLowerCase()) { // Thêm toLowerCase() cho an toàn
+                            case "user":
+                                nextIntent = new android.content.Intent(this, com.melodix.app.View.profile.UserProfileActivity.class);
+                                nextIntent.putExtra(com.melodix.app.View.profile.UserProfileActivity.EXTRA_USER_ID, id);
+                                break;
+                            case "playlist":
+                                nextIntent = new android.content.Intent(this, com.melodix.app.View.PlaylistDetailActivity.class);
+                                nextIntent.putExtra(com.melodix.app.View.PlaylistDetailActivity.EXTRA_PLAYLIST_ID, id);
+                                break;
+                            case "album":
+                                nextIntent = new android.content.Intent(this, com.melodix.app.View.AlbumDetailActivity.class);
+                                // Sếp chú ý: Mở trang AlbumDetailActivity nhớ check lại tên biến hằng số EXTRA nhé
+                                nextIntent.putExtra("extra_album_id", id);
+                                break;
+                            case "profile":
+                            case "artist": // Thêm case artist để dự phòng
+                                nextIntent = new android.content.Intent(this, com.melodix.app.View.ArtistDetailActivity.class);
+                                nextIntent.putExtra("extra_artist_id", id);
+                                break;
+                            case "song":
+                                nextIntent = new android.content.Intent(this, com.melodix.app.PlayerActivity.class);
+                                nextIntent.putExtra(com.melodix.app.PlayerActivity.EXTRA_SONG_ID, id);
+                                nextIntent.putExtra("start_playback", true);
+                                break;
+                        }
+
+                        if (nextIntent != null) {
+                            startActivity(nextIntent);
+                        }
                     }
                 }
             }

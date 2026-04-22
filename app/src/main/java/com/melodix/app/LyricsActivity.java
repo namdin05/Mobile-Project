@@ -82,7 +82,7 @@ public class LyricsActivity extends AppCompatActivity {
 
         TextView tvTitle = findViewById(R.id.tv_title);
         if (tvTitle != null) {
-            tvTitle.setText(currentSong.getTitle() + " • Lyrics");
+            tvTitle.setText(currentSong.getTitle());
         }
 
         // --- NÂNG CẤP RECYCLERVIEW LYRICS ---

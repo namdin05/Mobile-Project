@@ -1,109 +1,151 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="32dp"
-    android:gravity="center"
-    android:background="#FFFFFF">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="MELODIX"
-        android:textSize="36sp"
-        android:textStyle="bold"
-        android:textColor="#6200EE"
-        android:layout_marginBottom="40dp" />
-
-    <EditText
-        android:id="@+id/edtEmail"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:hint="Email"
-        android:inputType="textEmailAddress"
-        android:background="#F5F5F5"
-        android:padding="12dp"
-        android:layout_marginBottom="16dp" />
-
-    <EditText
-        android:id="@+id/edtPassword"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:hint="Mật khẩu"
-        android:inputType="textPassword"
-        android:background="#F5F5F5"
-        android:padding="12dp"
-        android:layout_marginBottom="24dp" />
-
-    <Button
-        android:id="@+id/btnLoginEmail"
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:text="Đăng nhập"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#6200EE"
-        android:textStyle="bold"
-        android:layout_marginBottom="24dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="HOẶC ĐĂNG NHẬP BẰNG"
-        android:textSize="12sp"
-        android:textColor="#757575"
-        android:layout_marginBottom="16dp" />
+    android:fillViewport="true"
+    android:background="@color/login_page_bg"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:weightSum="2">
-
-        <Button
-            android:id="@+id/btnLoginGoogle"
-            android:layout_width="0dp"
-            android:layout_height="55dp"
-            android:layout_weight="1"
-            android:text="Google"
-            android:backgroundTint="#DB4437"
-            android:textColor="#FFFFFF"
-            android:layout_marginEnd="8dp" />
-
-        <Button
-            android:id="@+id/btnLoginFacebook"
-            android:layout_width="0dp"
-            android:layout_height="55dp"
-            android:layout_weight="1"
-            android:text="Facebook"
-            android:backgroundTint="#4267B2"
-            android:textColor="#FFFFFF"
-            android:layout_marginStart="8dp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="24dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingStart="28dp"
+        android:paddingTop="56dp"
+        android:paddingEnd="28dp"
+        android:paddingBottom="28dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Don't have an account? "
-            android:textColor="#64748b" />
+            android:layout_marginBottom="12dp"
+            android:letterSpacing="0.05"
+            android:text="MELODIX"
+            android:textColor="#1DB954"
+            android:textSize="44sp"
+            android:textStyle="bold" />
+
         <TextView
-            android:id="@+id/tvGoToRegister"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Register"
+            android:layout_marginBottom="34dp"
+            android:text="Welcome back"
+            android:textColor="@color/login_muted_text"
+            android:textSize="15sp" />
+
+        <EditText
+            android:id="@+id/edtEmail"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:layout_marginBottom="14dp"
+            android:background="@color/login_input_bg"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
+            android:paddingHorizontal="18dp"
+            android:textColor="@color/login_primary_text"
+            android:textColorHint="@color/login_hint_text" />
+
+        <EditText
+            android:id="@+id/edtPassword"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:layout_marginBottom="18dp"
+            android:background="@color/login_input_bg"
+            android:hint="Password"
+            android:inputType="textPassword"
+            android:paddingHorizontal="18dp"
+            android:textColor="@color/login_primary_text"
+            android:textColorHint="@color/login_hint_text" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLoginEmail"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginBottom="28dp"
+            android:text="Sign In"
+            android:textAllCaps="false"
+            android:textColor="#000000"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="#1db983"
-            android:clickable="true"
-            android:focusable="true" />
-    </LinearLayout>
+            app:backgroundTint="#1DB954"
+            app:cornerRadius="30dp"
+            app:elevation="0dp" />
 
-</LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            android:letterSpacing="0.08"
+            android:text="OR CONTINUE WITH"
+            android:textColor="@color/login_hint_text"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLoginFacebook"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:layout_marginBottom="14dp"
+            android:text="Continue with Facebook"
+            android:textAllCaps="false"
+            android:textColor="@color/login_primary_text"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:backgroundTint="@color/login_social_bg"
+            app:cornerRadius="29dp"
+            app:elevation="0dp"
+            app:icon="@drawable/ic_facebook"
+            app:iconGravity="textStart"
+            app:iconPadding="12dp"
+            app:iconSize="20dp"
+            app:iconTint="@null" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLoginGoogle"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:layout_marginBottom="28dp"
+            android:text="Continue with Google"
+            android:textAllCaps="false"
+            android:textColor="@color/login_primary_text"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:backgroundTint="@color/login_social_bg"
+            app:cornerRadius="29dp"
+            app:elevation="0dp"
+            app:icon="@drawable/ic_google"
+            app:iconGravity="textStart"
+            app:iconPadding="12dp"
+            app:iconSize="20dp"
+            app:iconTint="@null" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Don’t have an account? "
+                android:textColor="@color/login_hint_text"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvGoToRegister"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="Register"
+                android:textColor="#1DB954"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
