@@ -50,7 +50,6 @@ public class UploadSongActivity extends AppCompatActivity {
 
     private Uri coverUri = null;
     private Uri audioUri = null;
-
     private ArtistAPIService apiService;
     private StorageAPIService storageService; // THÊM STORAGE SERVICE
     private com.google.android.material.chip.ChipGroup chipGroupCollab;

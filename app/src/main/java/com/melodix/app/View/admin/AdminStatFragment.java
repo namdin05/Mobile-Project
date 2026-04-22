@@ -34,7 +34,6 @@ public class AdminStatFragment extends Fragment {
     private MaterialCardView badgeArtistReqs;
     private TextView tvPendingArtistReqs;
     private MaterialCardView cardArtistRequests;
-    private List<ArtistRequest> pendingRequests; // Biến lưu danh sách chờ
 
     private List<ArtistRequest> currentPendingList;
     private BottomSheetDialog currentDialog;
@@ -55,7 +54,7 @@ public class AdminStatFragment extends Fragment {
         MaterialCardView cardSongs = view.findViewById(R.id.cardSongs);
         MaterialCardView cardAlbums = view.findViewById(R.id.cardAlbums);
         MaterialCardView cardGenres = view.findViewById(R.id.cardGenres);
-        MaterialCardView cardPlaylists = view.findViewById(R.id.cardPlaylists);
+        //MaterialCardView cardPlaylists = view.findViewById(R.id.cardPlaylists);
 
 
 
@@ -68,7 +67,7 @@ public class AdminStatFragment extends Fragment {
         tvTotalSongs = view.findViewById(R.id.tvTotalSongs);
         tvTotalAlbums = view.findViewById(R.id.tvTotalAlbums);
         tvTotalGenres = view.findViewById(R.id.tvTotalGenres);
-        tvTotalPlaylists = view.findViewById(R.id.tvTotalPlaylists);
+        //tvTotalPlaylists = view.findViewById(R.id.tvTotalPlaylists);
 
         // 3. Thiết lập sự kiện Click gọi hàm điều hướng
         cardUsersBanner.setOnClickListener(v -> navigateToFragment(new UserManagementFragment()));
@@ -209,8 +208,7 @@ public class AdminStatFragment extends Fragment {
     }
 
     private void showReviewBottomSheet() {
-        com.google.android.material.bottomsheet.BottomSheetDialog dialog =
-                new com.google.android.material.bottomsheet.BottomSheetDialog(requireContext(), R.style.BottomSheetTheme);
+        com.google.android.material.bottomsheet.BottomSheetDialog dialog = new com.google.android.material.bottomsheet.BottomSheetDialog(requireContext());
 
         android.widget.LinearLayout container = new android.widget.LinearLayout(requireContext());
         container.setOrientation(android.widget.LinearLayout.VERTICAL);
@@ -222,7 +220,7 @@ public class AdminStatFragment extends Fragment {
         container.setBackground(bgShape);
 
         TextView title = new TextView(requireContext());
-        title.setText("Duyệt Yêu Cầu (" + pendingRequests.size() + ")");
+        title.setText("Request (" + currentPendingList.size() + ")");
         title.setTextSize(20);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         title.setTextColor(android.graphics.Color.BLACK);
@@ -230,7 +228,14 @@ public class AdminStatFragment extends Fragment {
         container.addView(title);
 
         // Hiển thị từng yêu cầu
-        for (ArtistRequest req : pendingRequests) {
+        for (ArtistRequest req : currentPendingList) {
+            // TẠO MỘT CÁI "HỘP" ĐỂ CHỨA RIÊNG THÔNG TIN CỦA 1 NGƯỜI NÀY
+            android.widget.LinearLayout itemContainer = new android.widget.LinearLayout(requireContext());
+            itemContainer.setOrientation(android.widget.LinearLayout.VERTICAL);
+            itemContainer.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT));
+
             String userName = req.getUserProfile() != null ? req.getUserProfile().getDisplayName() : "User " + req.getUserId().substring(0, 6);
 
             TextView tvName = new TextView(requireContext());
@@ -238,7 +243,7 @@ public class AdminStatFragment extends Fragment {
             tvName.setTextSize(16);
             tvName.setTextColor(android.graphics.Color.DKGRAY);
             tvName.setPadding(0, 0, 0, 20);
-            container.addView(tvName);
+            itemContainer.addView(tvName); // Thêm vào hộp nhỏ
 
             android.widget.LinearLayout btnLayout = new android.widget.LinearLayout(requireContext());
             btnLayout.setOrientation(android.widget.LinearLayout.HORIZONTAL);
@@ -253,41 +258,73 @@ public class AdminStatFragment extends Fragment {
 
             // Nút Reject
             com.google.android.material.button.MaterialButton btnReject = new com.google.android.material.button.MaterialButton(requireContext());
-
-            // 2. Thiết lập chữ
             btnReject.setText("Reject");
             btnReject.setTextColor(android.graphics.Color.RED);
-
-        // 3. Ép nó biến thành Outlined Button (Nền trong suốt, có viền)
-            btnReject.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)); // Xóa màu nền
-            btnReject.setStrokeColor(android.content.res.ColorStateList.valueOf(android.graphics.Color.RED)); // Viền màu đỏ
-            btnReject.setStrokeWidth(3); // Độ dày của viền (Bạn có thể tăng giảm số này)
-
-            // 4. Layout Params
+            btnReject.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
+            btnReject.setStrokeColor(android.content.res.ColorStateList.valueOf(android.graphics.Color.RED));
+            btnReject.setStrokeWidth(3);
             btnReject.setLayoutParams(new android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1));
-            // Bắt sự kiện
+
+            // ========================================================
+            // BẮT SỰ KIỆN: Xóa luôn cái "hộp" (itemContainer) khỏi màn hình
+            // ========================================================
             btnApprove.setOnClickListener(v -> {
-                // ViewModel lo hết, Fragment không cần biết bên trong có gì!
                 viewModel.processRequest(req, "approved");
+                currentPendingList.remove(req);
+                container.removeView(itemContainer); // Xóa ngay lập tức trên UI
+
+                updateDialogState(title, dialog);    // Cập nhật số lượng
             });
+
             btnReject.setOnClickListener(v -> {
                 viewModel.processRequest(req, "rejected");
+                currentPendingList.remove(req);
+                container.removeView(itemContainer); // Xóa ngay lập tức trên UI
+
+                updateDialogState(title, dialog);    // Cập nhật số lượng
             });
+
             btnLayout.addView(btnApprove);
             btnLayout.addView(btnReject);
-            container.addView(btnLayout);
+            itemContainer.addView(btnLayout); // Thêm 2 nút vào hộp nhỏ
 
             View divider = new View(requireContext());
             divider.setBackgroundColor(android.graphics.Color.parseColor("#EEEEEE"));
             android.widget.LinearLayout.LayoutParams divParams = new android.widget.LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 2);
             divParams.setMargins(0, 40, 0, 40);
             divider.setLayoutParams(divParams);
-            container.addView(divider);
+            itemContainer.addView(divider); // Thêm đường kẻ vào hộp nhỏ
+
+            // CUỐI CÙNG: Nhét cái hộp nhỏ này vào container lớn của Dialog
+            container.addView(itemContainer);
         }
 
         dialog.setContentView(container);
         ((View) container.getParent()).setBackgroundColor(android.graphics.Color.TRANSPARENT);
         dialog.show();
+
+        currentDialog = dialog;
+    }
+
+    // Hàm phụ trợ giúp cập nhật cả Dialog lẫn Badge ngoài màn hình chính
+    private void updateDialogState(TextView title, BottomSheetDialog dialog) {
+        int remainingCount = currentPendingList.size();
+
+        if (remainingCount == 0) {
+            // Nếu đã duyệt hết: Đóng dialog và Ẩn luôn cái Badge đỏ ở ngoài
+            dialog.dismiss();
+            if (badgeArtistReqs != null) {
+                badgeArtistReqs.setVisibility(View.GONE);
+            }
+        } else {
+            // Nếu vẫn còn người: Cập nhật tiêu đề Dialog
+            title.setText("Request (" + remainingCount + ")");
+
+            // ĐỒNG THỜI: Cập nhật luôn con số "2 New" ở màn hình ngoài
+            if (tvPendingArtistReqs != null) {
+                tvPendingArtistReqs.setText(remainingCount + " New");
+            }
+        }
     }
 
 

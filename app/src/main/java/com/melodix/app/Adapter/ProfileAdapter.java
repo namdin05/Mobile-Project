@@ -10,6 +10,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.melodix.app.Model.Profile;
 import com.melodix.app.Model.Song;
@@ -53,6 +55,12 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.ProfileH
         String roleStr = user.getRole().substring(0, 1).toUpperCase() + user.getRole().substring(1);
         holder.tvRole.setText(roleStr);
 
+        Glide.with(context)
+                .load(user.getAvatarUrl())
+                .placeholder(R.drawable.ic_launcher_background) // Thay bằng ảnh placeholder của bạn
+                .circleCrop().circleCrop()
+                .into(holder.imgAvatar);
+
         holder.btnMore.setOnClickListener(v -> showMenu(v, user, position));
     }
 
@@ -61,7 +69,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.ProfileH
 
     static class ProfileHolder extends RecyclerView.ViewHolder {
         ImageView imgAvatar;
-        TextView tvName, tvRole, tvEmail;
+        TextView tvName, tvRole;
         ImageButton btnMore;
 
         ProfileHolder(@NonNull View itemView) {
@@ -69,7 +77,6 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.ProfileH
             imgAvatar = itemView.findViewById(R.id.img_avatar);
             tvName = itemView.findViewById(R.id.tv_name);
             tvRole = itemView.findViewById(R.id.tv_role);
-            tvEmail = itemView.findViewById(R.id.tv_email);
             btnMore = itemView.findViewById(R.id.btn_more);
         }
     }

@@ -222,16 +222,16 @@
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardPlaylists"
-                style="@style/MelodixDashCard">
-                <RelativeLayout style="@style/MelodixDashContent">
-                    <ImageView android:id="@+id/iconPlaylists" style="@style/MelodixDashIcon" android:src="@drawable/ic_playlist" />
-                    <TextView style="@style/MelodixDashLabel" android:layout_toEndOf="@id/iconPlaylists" android:text="Playlists" />
-                    <ImageView style="@style/MelodixDashArrow" />
-                    <TextView android:id="@+id/tvTotalPlaylists" style="@style/MelodixDashValue" android:layout_below="@id/iconPlaylists" android:text="..." />
-                </RelativeLayout>
-            </com.google.android.material.card.MaterialCardView>
+<!--            <com.google.android.material.card.MaterialCardView-->
+<!--                android:id="@+id/cardPlaylists"-->
+<!--                style="@style/MelodixDashCard">-->
+<!--                <RelativeLayout style="@style/MelodixDashContent">-->
+<!--                    <ImageView android:id="@+id/iconPlaylists" style="@style/MelodixDashIcon" android:src="@drawable/ic_playlist" />-->
+<!--                    <TextView style="@style/MelodixDashLabel" android:layout_toEndOf="@id/iconPlaylists" android:text="Playlists" />-->
+<!--                    <ImageView style="@style/MelodixDashArrow" />-->
+<!--                    <TextView android:id="@+id/tvTotalPlaylists" style="@style/MelodixDashValue" android:layout_below="@id/iconPlaylists" android:text="..." />-->
+<!--                </RelativeLayout>-->
+<!--            </com.google.android.material.card.MaterialCardView>-->
 
         </GridLayout>
 

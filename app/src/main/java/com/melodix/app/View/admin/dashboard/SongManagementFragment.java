@@ -64,6 +64,15 @@ public class SongManagementFragment extends Fragment {
                 filterSongsByStatus(currentFilter); // Thay bằng hàm lọc của bạn nếu tên khác
             }
         });
+
+        view.findViewById(R.id.btnBack).setOnClickListener(v -> {
+            // Quay lại Fragment trước đó trong BackStack
+            if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                getParentFragmentManager().popBackStack();
+            } else {
+                requireActivity().onBackPressed();
+            }
+        });
     }
 
     @Override

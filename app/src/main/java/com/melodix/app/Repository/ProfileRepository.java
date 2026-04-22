@@ -95,7 +95,8 @@ public class ProfileRepository {
         // ĐÃ SỬA LỖI: Lấy userId từ biến prefs đã khai báo ở Constructor
         String userId = SessionManager.getInstance(context).getUserId();
 
-        if (userId.isEmpty()) {
+        // Đã sửa lại an toàn hơn
+        if (userId == null || userId.trim().isEmpty()) {
             Log.w("MELODIX_FCM", "Chưa đăng nhập, không lưu Token");
             return;
         }
@@ -109,7 +110,8 @@ public class ProfileRepository {
                     @Override
                     public void onResponse(Call<Void> call, Response<Void> response) {
                         if (response.isSuccessful()) {
-                            Log.d("MELODIX_FCM", "Đã lưu Token lên Supabase thành công!");
+                            Log.d("MELODIX_FCM", "Đã lưu Token lên Supabase thành công!" + userId);
+
                         } else {
                             Log.e("MELODIX_FCM", "Lưu Token thất bại, mã lỗi: " + response.code());
                         }
