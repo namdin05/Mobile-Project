@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
+import com.melodix.app.Utils.LoadingDialog;
 import com.melodix.app.Utils.SongActionHelper;
 import com.melodix.app.View.adapters.SongAdapter;
 import com.melodix.app.ViewModel.SongViewModel;
@@ -31,6 +32,7 @@ public class SongManagementFragment extends Fragment {
     private List<Song> fullSongList = new ArrayList<>(); // Chứa toàn bộ bài hát từ API
     private List<Song> currentDisplayList = new ArrayList<>(); // Chứa danh sách ĐANG hiển thị trên màn hình
     private SongViewModel viewModel;
+    private LoadingDialog loadingDialog;
 
     @Nullable
     @Override
@@ -41,6 +43,8 @@ public class SongManagementFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        loadingDialog = new LoadingDialog();
 
         rvAllSongs = view.findViewById(R.id.rvAllSongs);
         actvStatus = view.findViewById(R.id.actvStatus);
@@ -54,7 +58,9 @@ public class SongManagementFragment extends Fragment {
         // 3. Khởi tạo ViewModel và Quan sát (Observe)
         viewModel = new ViewModelProvider(this).get(SongViewModel.class);
 
+        loadingDialog.showLoading(requireActivity());
         viewModel.getAllSong().observe(getViewLifecycleOwner(), songs -> {
+            loadingDialog.hideLoading();
             if (songs != null) {
                 this.fullSongList = songs;
                 this.currentDisplayList = new ArrayList<>(songs);

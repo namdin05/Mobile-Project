@@ -4,6 +4,7 @@ import android.app.Application;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.melodix.app.Model.LoginResult;
 import com.melodix.app.Repository.auth.AuthRepository;
@@ -31,8 +32,27 @@ public class AuthViewModel extends AndroidViewModel {
     }
 
     // Hàm này xử lý Token nhận được từ Google/Facebook
-    public LiveData<LoginResult> handleSocialLoginToken(String token) {
+    public LiveData<LoginResult> handleSocialLoginToken(String accessToken, String refreshToken) {
         // ĐÃ SỬA: Truyền getApplication() xuống để Repo có môi trường gọi SharedPreferences
-        return repository.handleSocialLogin(token, getApplication());
+        return repository.handleSocialLogin(accessToken, refreshToken, getApplication());
+    }
+
+    // Thêm vào AuthViewModel.java
+    public MutableLiveData<String> uploadPendingAvatar(String userId, byte[] imageData, String fullName) {
+        MutableLiveData<String> result = new MutableLiveData<>();
+        repository.uploadPendingAvatarAndProfile(userId, imageData, fullName, result);
+        return result;
+    }
+
+    public LiveData<String> resetPassword(String email) {
+        return repository.resetPassword(email);
+    }
+
+    public LiveData<String> updateNewPassword(String accessToken, String newPassword) {
+        return repository.updateNewPassword(accessToken, newPassword);
+    }
+
+    public LiveData<String> changePassword(String newPassword) {
+        return repository.changePassword(newPassword);
     }
 }

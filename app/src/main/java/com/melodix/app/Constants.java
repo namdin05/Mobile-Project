@@ -16,5 +16,14 @@ public class Constants {
     // Tên các edge function
 
     public static final String SUMMARIZE_COMMENT = "summarize-comments";
+
+
+    // GITHUB PAGE
+    public static final String MELODIX_AUTH = "https://namdin05.github.io/melodix-auth/";
+
+
+
+    // SECURITY
+    public static final int MINIMUM_LENGTH_PASSWORD = 6;
    
 }

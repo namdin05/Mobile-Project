@@ -12,6 +12,7 @@ import retrofit2.http.Header;
 import retrofit2.http.POST;
 import java.util.List;
 import retrofit2.http.GET;
+import retrofit2.http.PUT;
 import retrofit2.http.Query;
 
 public interface AuthAPIService {
@@ -20,6 +21,10 @@ public interface AuthAPIService {
             @Body SignInRequest request
     );
 
+    // Trong AuthAPIService.java
+    @POST("token?grant_type=refresh_token")
+    Call<AuthResponse> refreshToken(@Body java.util.Map<String, String> body);
+
     @POST("signup")
     Call<AuthResponse> signUpWithEmail(
             @Body SignUpRequest request
@@ -27,5 +32,19 @@ public interface AuthAPIService {
 
     @GET("user")
     Call<ResponseBody> getUserInfo(
+    );
+
+    @POST("recover")
+    Call<Void> sendPasswordResetEmail(@Body java.util.Map<String, String> body);
+
+    @PUT("user")
+    Call<Void> updateUserPassword(
+            @Header("Authorization") String token,
+            @Body java.util.Map<String, String> body
+    );
+
+    @PUT("user")
+    Call<Void> changePassword(
+            @Body java.util.Map<String, String> body
     );
 }

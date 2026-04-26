@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -16,6 +17,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
@@ -23,6 +25,8 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.melodix.app.Service.ProfileAPIService;
 import com.melodix.app.Service.RetrofitClient;
 import com.melodix.app.Service.StorageAPIService;
+import com.melodix.app.Utils.SessionManager;
+import com.melodix.app.ViewModel.AuthViewModel;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -41,13 +45,15 @@ public class AdminProfileActivity extends AppCompatActivity {
     private ImageView btnBack, imgProfileAvatar;
     private MaterialButton btnChangeAvatar;
     private TextInputEditText edtDisplayName;
-    private MaterialButton btnSaveChanges;
+    private MaterialButton btnSaveChanges, btnChangePassword;
 
     private String adminUid = "";
     private Uri selectedImageUri = null; // Biến lưu ảnh vừa chọn từ thư viện
 
     // Khai báo công cụ bắt sự kiện chọn ảnh
     private ActivityResultLauncher<Intent> imagePickerLauncher;
+
+    private AuthViewModel authViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,10 +68,11 @@ public class AdminProfileActivity extends AppCompatActivity {
         btnChangeAvatar = findViewById(R.id.btnChangeAvatar);
         edtDisplayName = findViewById(R.id.edtDisplayName);
         btnSaveChanges = findViewById(R.id.btnSaveChanges);
+        btnChangePassword = findViewById(R.id.btnChangePassword);
 
         // Lấy UID của Admin hiện tại
-        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
-        adminUid = prefs.getString("USER_ID", "");
+
+        adminUid = SessionManager.getInstance(getApplicationContext()).getUserId();
 
         // Nhận dữ liệu cũ từ AdminActivity
         String currentName = getIntent().getStringExtra("CURRENT_NAME");
@@ -120,6 +127,10 @@ public class AdminProfileActivity extends AppCompatActivity {
                 updateDatabaseOnly(newName, null);
             }
         });
+
+        btnChangePassword.setOnClickListener(v -> showChangePasswordDialog());
+
+        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
     }
 
     // ==========================================
@@ -145,8 +156,6 @@ public class AdminProfileActivity extends AppCompatActivity {
             String fileName = adminUid + "_" + System.currentTimeMillis() + ".jpg";
 
             StorageAPIService apiService = RetrofitClient.getStorage(getApplicationContext()).create(StorageAPIService.class);
-            String apiKey = BuildConfig.SERVICE_KEY;
-            String token = "Bearer " + BuildConfig.SERVICE_KEY;
 
             // Gọi API ném ảnh lên Supabase
             apiService.uploadFileToStorage(
@@ -221,5 +230,57 @@ public class AdminProfileActivity extends AppCompatActivity {
     private void resetButton() {
         btnSaveChanges.setEnabled(true);
         btnSaveChanges.setText("Save Changes");
+    }
+
+    // Nơi bạn xử lý sự kiện click vào nút Đổi Mật Khẩu (ví dụ trong ProfileFragment hoặc SettingsActivity)
+    private void showChangePasswordDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this); // Dùng requireContext() nếu ở Fragment
+        builder.setTitle("Đổi mật khẩu");
+
+        // Tạo layout gồm 2 ô nhập liệu
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
+
+        final EditText edtNewPass = new EditText(this);
+        edtNewPass.setHint("Mật khẩu mới (Tối thiểu 6 ký tự)");
+        edtNewPass.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        layout.addView(edtNewPass);
+
+        final EditText edtConfirmPass = new EditText(this);
+        edtConfirmPass.setHint("Xác nhận mật khẩu mới");
+        edtConfirmPass.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        layout.addView(edtConfirmPass);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Cập nhật", (dialog, which) -> {
+            String newPass = edtNewPass.getText().toString();
+            String confirmPass = edtConfirmPass.getText().toString();
+
+            if (newPass.length() < 6) {
+                Toast.makeText(this, "Mật khẩu tối thiểu 6 ký tự", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (!newPass.equals(confirmPass)) {
+                Toast.makeText(this, "Mật khẩu xác nhận không khớp!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Toast.makeText(this, "Đang xử lý...", Toast.LENGTH_SHORT).show();
+
+            // Gọi ViewModel
+            authViewModel.changePassword(newPass).observe(this, result -> {
+                if ("SUCCESS".equals(result)) {
+                    Toast.makeText(this, "Đổi mật khẩu thành công!", Toast.LENGTH_SHORT).show();
+                    // Tùy chọn: Có thể ép người dùng đăng xuất để họ login lại bằng MK mới
+                } else {
+                    Toast.makeText(this, result, Toast.LENGTH_LONG).show();
+                }
+            });
+        });
+
+        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.cancel());
+        builder.show();
     }
 }

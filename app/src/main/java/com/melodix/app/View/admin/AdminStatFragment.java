@@ -19,6 +19,7 @@ import com.melodix.app.Model.AppMetric;
 import com.melodix.app.Model.ArtistRequest;
 import com.melodix.app.R;
 import com.melodix.app.Utils.DateHelper;
+import com.melodix.app.Utils.LoadingDialog;
 import com.melodix.app.View.admin.dashboard.AlbumManagementFragment;
 import com.melodix.app.View.admin.dashboard.GenreManagementFragment;
 import com.melodix.app.View.admin.dashboard.SongManagementFragment;
@@ -39,6 +40,7 @@ public class AdminStatFragment extends Fragment {
     private BottomSheetDialog currentDialog;
 
     private AdminStatViewModel viewModel;
+    private LoadingDialog loadingDialog;
 
     public AdminStatFragment() {
         // Required empty public constructor
@@ -48,6 +50,8 @@ public class AdminStatFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_admin_stat, container, false);
+
+        loadingDialog = new LoadingDialog();
 
         // 1. Ánh xạ View cho các Card điều hướng
         MaterialCardView cardUsersBanner = view.findViewById(R.id.cardUsersBanner);
@@ -78,6 +82,8 @@ public class AdminStatFragment extends Fragment {
 
         // 4. Khởi tạo ViewModel và quan sát dữ liệu
         viewModel = new ViewModelProvider(this).get(AdminStatViewModel.class);
+        
+        loadingDialog.showLoading(requireActivity());
         mappingData();
 
         setupArtistRequestCard(view);
@@ -96,6 +102,7 @@ public class AdminStatFragment extends Fragment {
 
     private void mappingData() {
         viewModel.getAllAppMetrics().observe(getViewLifecycleOwner(), appMetrics -> {
+            loadingDialog.hideLoading();
             if (appMetrics == null || appMetrics.isEmpty()) return;
 
             int usersCount = 0;
@@ -177,6 +184,7 @@ public class AdminStatFragment extends Fragment {
 
         // Lắng nghe kết quả bấm Duyệt/Từ chối
         viewModel.getActionSuccess().observe(getViewLifecycleOwner(), isSuccess -> {
+            loadingDialog.hideLoading();
             if (isSuccess != null && isSuccess) {
                 // Nếu thành công -> Load lại danh sách, giao diện sẽ tự động cập nhật
                 viewModel.getPendingArtistRequests();
@@ -269,6 +277,7 @@ public class AdminStatFragment extends Fragment {
             // BẮT SỰ KIỆN: Xóa luôn cái "hộp" (itemContainer) khỏi màn hình
             // ========================================================
             btnApprove.setOnClickListener(v -> {
+                loadingDialog.showLoading(requireActivity());
                 viewModel.processRequest(req, "approved");
                 currentPendingList.remove(req);
                 container.removeView(itemContainer); // Xóa ngay lập tức trên UI
@@ -277,6 +286,7 @@ public class AdminStatFragment extends Fragment {
             });
 
             btnReject.setOnClickListener(v -> {
+                loadingDialog.showLoading(requireActivity());
                 viewModel.processRequest(req, "rejected");
                 currentPendingList.remove(req);
                 container.removeView(itemContainer); // Xóa ngay lập tức trên UI

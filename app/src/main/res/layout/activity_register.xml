@@ -32,7 +32,7 @@
                 android:contentDescription="Back"
                 android:focusable="true"
                 android:padding="6dp"
-                android:src="@android:drawable/ic_menu_revert"
+                android:src="@drawable/ic_back"
                 app:tint="@color/register_primary_text" />
 
             <TextView
@@ -48,35 +48,31 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="30dp"
             android:gravity="center"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
 
-            <ImageView
-                android:layout_width="72dp"
-                android:layout_height="72dp"
-                android:layout_marginBottom="16dp"
-                android:background="@color/register_brand"
-                android:padding="18dp"
-                android:src="@android:drawable/ic_media_play"
-                app:tint="@color/register_brand_icon" />
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                app:cardCornerRadius="50dp"
+                app:strokeColor="@color/black"
+                app:strokeWidth="2dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Join the Beat"
-                android:textColor="@color/register_primary_text"
-                android:textSize="30sp"
-                android:textStyle="bold" />
+                <ImageView
+                    android:id="@+id/imgAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_person" /> </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:gravity="center"
-                android:text="Start your personalized music journey with Melodix."
-                android:textColor="@color/register_secondary_text"
-                android:textSize="14sp" />
+                android:text="Tap to upload avatar"
+                android:textColor="@color/register_hint_text"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <TextView
@@ -93,7 +89,7 @@
             android:layout_height="56dp"
             android:layout_marginBottom="16dp"
             android:background="@color/register_input_bg"
-            android:hint="John Doe"
+            android:hint="Your Full Name"
             android:inputType="textPersonName"
             android:padding="16dp"
             android:textColor="@color/register_primary_text"
@@ -106,6 +102,7 @@
             android:text="Email"
             android:textColor="@color/register_label_text"
             android:textStyle="bold" />
+
         <EditText
             android:id="@+id/edtRegisterEmail"
             android:layout_width="match_parent"
@@ -158,16 +155,19 @@
             android:textColor="@color/register_primary_text"
             android:textColorHint="@color/register_hint_text" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSignUp"
             android:layout_width="match_parent"
-            android:layout_height="58dp"
-            android:layout_marginBottom="24dp"
-            android:backgroundTint="@color/register_brand"
-            android:text="Create Account"
-            android:textColor="@color/register_brand_button_text"
+            android:layout_height="60dp"
+            android:layout_marginBottom="28dp"
+            android:text="SIGN UP"
+            android:textAllCaps="false"
+            android:textColor="#000000"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            app:backgroundTint="#1DB954"
+            app:cornerRadius="30dp"
+            app:elevation="0dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -186,7 +186,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
-                android:text="OR CONTINUE WITH"
+                android:text="OR SIGN UP WITH"
                 android:textColor="@color/register_hint_text"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -198,33 +198,24 @@
                 android:background="@color/register_divider" />
         </LinearLayout>
 
-        <LinearLayout
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLoginGoogle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
-            android:orientation="horizontal"
-            android:weightSum="2">
-
-            <Button
-                android:id="@+id/btnRegisterGoogle"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/register_social_bg"
-                android:text="Google"
-                android:textColor="@color/register_primary_text" />
-
-            <Button
-                android:id="@+id/btnRegisterFacebook"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/register_social_bg"
-                android:text="Facebook"
-                android:textColor="@color/register_primary_text" />
-        </LinearLayout>
+            android:layout_height="58dp"
+            android:layout_marginBottom="28dp"
+            android:text="Continue with Google"
+            android:textAllCaps="false"
+            android:textColor="@color/login_primary_text"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:backgroundTint="@color/login_social_bg"
+            app:cornerRadius="29dp"
+            app:elevation="0dp"
+            app:icon="@drawable/ic_google"
+            app:iconGravity="textStart"
+            app:iconPadding="12dp"
+            app:iconSize="20dp"
+            app:iconTint="@null" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -246,7 +237,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:text="Log In"
-                android:textColor="@color/register_brand"
+                android:textColor="#1DB954"
                 android:textStyle="bold" />
         </LinearLayout>
 

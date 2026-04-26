@@ -47,14 +47,13 @@
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_stats"
-                    app:tint="#4CAF50" />
+                    android:src="@drawable/ic_bot" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="Gemini AI Tóm tắt"
+                    android:text="AI Tóm tắt"
                     android:textColor="#4CAF50"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -119,7 +118,7 @@
                 android:layout_height="48dp"
                 android:src="@drawable/ic_send"
                 android:background="@drawable/bg_circle_primary"
-                android:tint="@color/black"
+                app:tint="@color/black"
                 android:layout_marginStart="8dp"
                 android:scaleType="centerInside"
                 android:padding="12dp" />

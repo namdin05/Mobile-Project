@@ -34,6 +34,7 @@ import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Utils.Constants;
 
+import com.melodix.app.Utils.LoadingDialog;
 import com.melodix.app.Utils.PlaybackUtils;
 import com.melodix.app.View.AlbumDetailActivity;
 import com.melodix.app.View.ArtistDetailActivity;
@@ -55,6 +56,7 @@ public class SearchFragment extends Fragment {
     private androidx.recyclerview.widget.RecyclerView rvBrowse;
     private TextView tvResultsLabel;
     private androidx.recyclerview.widget.RecyclerView rvResults;
+    private LoadingDialog loadingDialog;
 
     private final Handler debounceHandler = new Handler(Looper.getMainLooper());
     private Runnable searchRunnable;
@@ -65,6 +67,7 @@ public class SearchFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
         repository = AppRepository.getInstance(requireContext());
+        loadingDialog = new LoadingDialog();
 
         tvRecentLabel = view.findViewById(R.id.tv_recent_label);
         recentScroll = view.findViewById(R.id.recent_scroll);
@@ -424,15 +427,19 @@ public class SearchFragment extends Fragment {
         recentScroll.setVisibility(View.GONE);
         tvResultsLabel.setVisibility(View.VISIBLE);
         rvResults.setVisibility(View.VISIBLE);
+        
+        loadingDialog.showLoading(requireActivity());
 
         repository.search(keyword, filter, new AppRepository.SearchCallback() {
             @Override
             public void onSuccess(ArrayList<SearchResultItem> results) {
+                loadingDialog.hideLoading();
                 resultAdapter.update(results);
             }
 
             @Override
             public void onError(String message) {
+                loadingDialog.hideLoading();
                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
