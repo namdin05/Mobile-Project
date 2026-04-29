@@ -44,7 +44,8 @@ public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerView
     }
 
     @Override
-    public int getItemCount() { return items.size(); }
+    public int getItemCount() { if(items != null)return items.size();
+    return 0;}
 
     static class BannerViewHolder extends RecyclerView.ViewHolder {
         ImageView image; TextView title; TextView badge;
