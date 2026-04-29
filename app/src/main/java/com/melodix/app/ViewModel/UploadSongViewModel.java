@@ -173,8 +173,18 @@ public class UploadSongViewModel extends AndroidViewModel {
             apiService.updateSong("eq." + editSongId, songData).enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                    if (response.isSuccessful()) uploadSuccess.setValue(true);
-                    else errorMessage.setValue("Cập nhật dữ liệu thất bại!");
+                    if (response.isSuccessful()) {
+                        uploadSuccess.setValue(true);
+                    } else {
+                        // 👇 IN LỖI CHI TIẾT KHI UPDATE 👇
+                        try {
+                            String errorDetail = response.errorBody() != null ? response.errorBody().string() : "Lỗi không xác định";
+                            android.util.Log.e("DB_ERROR_EDIT", "Mã lỗi: " + response.code() + " - Chi tiết: " + errorDetail);
+                            errorMessage.setValue("Lỗi Cập nhật DB (Code " + response.code() + ")");
+                        } catch (Exception e) {
+                            errorMessage.setValue("Cập nhật dữ liệu thất bại!");
+                        }
+                    }
                 }
                 @Override
                 public void onFailure(Call<ResponseBody> call, Throwable t) {
@@ -192,8 +202,20 @@ public class UploadSongViewModel extends AndroidViewModel {
             apiService.submitSongWithArtists(requestBody).enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
-                    if (response.isSuccessful()) uploadSuccess.setValue(true);
-                    else errorMessage.setValue("Lưu bài hát mới thất bại!");
+                    // 👇 PHẢI CÓ CÁI IF NÀY ĐỂ CHIA 2 NGẢ 👇
+                    if (response.isSuccessful()) {
+                        // NGẢ 1: MÃ 200 -> THÀNH CÔNG RỰC RỠ
+                        uploadSuccess.setValue(true);
+                    } else {
+                        // NGẢ 2: MÃ 400, 500 -> THẤT BẠI THÌ MỚI BẮT LỖI
+                        try {
+                            String errorDetail = response.errorBody() != null ? response.errorBody().string() : "Lỗi không xác định";
+                            android.util.Log.e("DB_ERROR_INSERT", "Mã lỗi: " + response.code() + " - Chi tiết: " + errorDetail);
+                            errorMessage.setValue("Lỗi Database: " + errorDetail);
+                        } catch (Exception e) {
+                            errorMessage.setValue("Lưu bài hát mới thất bại!");
+                        }
+                    }
                 }
                 @Override
                 public void onFailure(Call<Void> call, Throwable t) {
