@@ -125,8 +125,8 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         });
 
         bottomSheetView.findViewById(R.id.menu_like).setOnClickListener(v -> {
-            if (listener != null) listener.onMenuClick(song, position, "like");
             bottomSheet.dismiss();
+            handleLikeSong(song, position);
         });
 
         bottomSheetView.findViewById(R.id.menu_add_playlist).setOnClickListener(v -> {
@@ -189,6 +189,44 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             });
             dialog.show(((androidx.fragment.app.FragmentActivity) context).getSupportFragmentManager(), "playlist_selection");
         }
+    }
+
+    private void handleLikeSong(Song song, int position) {
+        // Lấy userId từ SharedPreferences
+        android.content.SharedPreferences prefs = context.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+        String userId = prefs.getString("USER_ID", null);
+
+        if (userId == null) {
+            Toast.makeText(context, "Vui lòng đăng nhập để like bài hát", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        com.melodix.app.Repository.PlaylistRepository playlistRepo =
+                new com.melodix.app.Repository.PlaylistRepository(context);
+
+        // Hiển thị trạng thái đang xử lý
+        Toast.makeText(context, "Đang xử lý...", Toast.LENGTH_SHORT).show();
+
+        playlistRepo.toggleLikeSong(userId, song.getId(), new retrofit2.Callback<Boolean>() {
+            @Override
+            public void onResponse(retrofit2.Call<Boolean> call, retrofit2.Response<Boolean> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    boolean isLiked = response.body();
+                    if (isLiked) {
+                        Toast.makeText(context, "❤️ Đã thích bài hát", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(context, "♡ Đã bỏ thích bài hát", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(context, "Không thể thực hiện", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<Boolean> call, Throwable t) {
+                Toast.makeText(context, "Lỗi mạng: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
