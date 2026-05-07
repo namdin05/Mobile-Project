@@ -17,6 +17,12 @@ public class Profile {
     @SerializedName("role")
     private String role;
 
+    @SerializedName("show_playlists")
+    private boolean showPlaylists = true;
+
+    @SerializedName("show_recent_artists")
+    private boolean showRecentArtists = true;
+
     // Constructor rỗng (Bắt buộc phải có cho Firebase/Supabase/Gson)
     public Profile() {
     }
@@ -62,4 +68,9 @@ public class Profile {
     public void setRole(String role) {
         this.role = role;
     }
+    public boolean isShowPlaylists() { return showPlaylists; }
+    public void setShowPlaylists(boolean showPlaylists) { this.showPlaylists = showPlaylists; }
+
+    public boolean isShowRecentArtists() { return showRecentArtists; }
+    public void setShowRecentArtists(boolean showRecentArtists) { this.showRecentArtists = showRecentArtists; }
 }

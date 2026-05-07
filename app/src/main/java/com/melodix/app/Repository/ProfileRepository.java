@@ -20,6 +20,7 @@ import java.util.Map;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import okhttp3.ResponseBody;
 
 public class ProfileRepository {
     private ProfileAPIService profileAPIService;
@@ -119,6 +120,88 @@ public class ProfileRepository {
                         Log.e("MELODIX_FCM", "Lỗi mạng khi lưu Token: " + t.getMessage());
                     }
                 });
+    }
+    /**
+     * Cập nhật cài đặt quyền riêng tư
+     */
+    public void updatePrivacySettings(String userId, Map<String, Object> updates) {
+        if (userId == null || userId.trim().isEmpty()) {
+            Log.w("PRIVACY_SETTINGS", "UserId rỗng, không thể cập nhật");
+            return;
+        }
+
+        Log.d("PRIVACY_SETTINGS", "Đang cập nhật cài đặt cho user " + userId + ": " + updates);
+
+        ProfileAPIService apiService = RetrofitClient.getClient(context)
+                .create(ProfileAPIService.class);
+
+        apiService.updatePrivacySettings("eq." + userId, updates)
+                .enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                        if (response.isSuccessful()) {
+                            Log.d("PRIVACY_SETTINGS", "✓ Cập nhật thành công!");
+                        } else {
+                            Log.e("PRIVACY_SETTINGS", "✗ Cập nhật thất bại - Code: " + response.code());
+                            try {
+                                if (response.errorBody() != null) {
+                                    Log.e("PRIVACY_SETTINGS", "Error body: " + response.errorBody().string());
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        Log.e("PRIVACY_SETTINGS", "Lỗi mạng: " + t.getMessage(), t);
+                    }
+                });
+    }
+    /**
+     * Cập nhật thông tin Profile (display_name, avatar_url, ...)
+     */
+
+    public void updateProfile(String userId, Map<String, Object> updates) {
+        if (userId == null || userId.trim().isEmpty()) {
+            Log.w("PROFILE_UPDATE", "UserId rỗng, không thể cập nhật");
+            return;
+        }
+
+        Log.d("PROFILE_UPDATE", "Đang cập nhật profile cho user " + userId + ": " + updates);
+
+        ProfileAPIService apiService = RetrofitClient.getClient(context)
+                .create(ProfileAPIService.class);
+
+        apiService.updateProfile("eq." + userId, updates)
+                .enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        if (response.isSuccessful()) {
+                            Log.d("PROFILE_UPDATE", "✓ Cập nhật profile thành công!");
+                        } else {
+                            Log.e("PROFILE_UPDATE", "✗ Cập nhật profile thất bại - Code: " + response.code());
+                            try {
+                                if (response.errorBody() != null) {
+                                    Log.e("PROFILE_UPDATE", "Error body: " + response.errorBody().string());
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        Log.e("PROFILE_UPDATE", "Lỗi mạng khi cập nhật profile: " + t.getMessage(), t);
+                    }
+                });
+    }
+
+    // Interface callback đơn giản
+    public interface OnPrivacyUpdateListener {
+        void onComplete(boolean success);
     }
     // =======================================================
     // 2 HÀM MỚI BỔ SUNG ĐỂ PHỤC VỤ CHO ADMIN (VÀ CẢ USER)
