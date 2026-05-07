@@ -1,5 +1,6 @@
 package com.melodix.app.View.fragments;
 
+import android.net.Uri;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,17 +13,24 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.activity.result.ActivityResultLauncher;
 
+import com.bumptech.glide.Glide;
 import com.melodix.app.R;
+import com.melodix.app.Model.Profile;
 import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Utils.AppUiUtils;
 import com.melodix.app.Utils.SessionManager;
 import com.melodix.app.View.artist.ManageSongActivity;
+import com.melodix.app.View.dialogs.PrivacySettingsBottomSheet;
+import com.melodix.app.View.dialogs.EditProfileDialog;
 
 public class AccountFragment extends Fragment {
     private AppRepository repository;
@@ -30,7 +38,9 @@ public class AccountFragment extends Fragment {
     private TextView name, headline;
     private Switch dark;
     private LinearLayout cardArtistCenter, btnArtistUpload, btnArtistAlbums, btnArtistStats;
-
+    private ImageButton btnPrivacySettings;
+    private ActivityResultLauncher<String> avatarPickerLauncher;
+    private EditProfileDialog currentEditDialog;
     private com.google.android.material.button.MaterialButton btnRequestArtist, btnLogOut;
     private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefresh;
 
@@ -62,7 +72,26 @@ public class AccountFragment extends Fragment {
         profileViewModel = new androidx.lifecycle.ViewModelProvider(this).get(com.melodix.app.ViewModel.ProfileViewModel.class);
 
         btnLogOut.setOnClickListener(v -> profileViewModel.performLogout());
+        btnPrivacySettings = view.findViewById(R.id.btn_privacy_settings);
+        avatarPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null && currentEditDialog != null) {
+                        currentEditDialog.setSelectedAvatarUri(uri);   // ← Sửa ở đây
+                    }
+                });
 
+        // Nút Edit Profile
+        ImageButton btnEditProfile = view.findViewById(R.id.btn_edit_profile);
+        if (btnEditProfile != null) {
+            btnEditProfile.setOnClickListener(v -> showEditProfileDialog());
+        }
+        if (btnPrivacySettings != null) {
+            btnPrivacySettings.setOnClickListener(v -> {
+                PrivacySettingsBottomSheet sheet = PrivacySettingsBottomSheet.newInstance();
+                sheet.show(getParentFragmentManager(), "privacy_settings");
+            });
+        }
         profileViewModel.getLogoutStatus().observe(getViewLifecycleOwner(), isLoggedOut -> {
             if (isLoggedOut != null && isLoggedOut) {
                 Intent intent = new Intent(requireActivity(), com.melodix.app.View.auth.LoginActivity.class);
@@ -305,5 +334,33 @@ public class AccountFragment extends Fragment {
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
             }
         });
+    }
+
+    private void showEditProfileDialog() {
+        String myId = SessionManager.getInstance(requireContext()).getUserId();
+        if (myId == null) return;
+
+        Profile currentProfile = new Profile();
+        currentProfile.setId(myId);
+        currentProfile.setDisplayName(SessionManager.getInstance(requireContext()).getUserName());
+        currentProfile.setAvatarUrl(SessionManager.getInstance(requireContext()).getUserAvatar());
+
+        currentEditDialog = new EditProfileDialog(
+                requireContext(),
+                currentProfile,
+                updatedProfile -> {
+                    // Cập nhật UI ngay lập tức
+                    name.setText(updatedProfile.getDisplayName());
+                    if (updatedProfile.getAvatarUrl() != null && !updatedProfile.getAvatarUrl().isEmpty()) {
+                        Glide.with(requireContext())
+                                .load(updatedProfile.getAvatarUrl())
+                                .circleCrop()
+                                .into(avatar);
+                    }
+                },
+                avatarPickerLauncher
+        );
+
+        currentEditDialog.show();
     }
 }
