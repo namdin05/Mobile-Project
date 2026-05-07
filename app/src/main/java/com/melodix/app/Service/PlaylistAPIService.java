@@ -15,6 +15,8 @@ import retrofit2.http.Header;
 import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
+import retrofit2.http.QueryMap;
+import retrofit2.http.Path;
 
 public interface PlaylistAPIService {
 
@@ -26,7 +28,7 @@ public interface PlaylistAPIService {
 
     @GET("playlists")
     Call<List<Playlist>> getUserPlaylists(
-            @Query("user_id") String userIdFilter
+            @QueryMap Map<String, String> filters
     );
 
     @PATCH("playlists")
@@ -52,10 +54,11 @@ public interface PlaylistAPIService {
             @Query("song_id") String songFilter
     );
 
-    @PATCH("playlist_songs")
+    @PATCH("playlist_songs?playlist_id=eq.{playlistId}&song_id=eq.{songId}")
     Call<ResponseBody> updatePlaylistSongOrder(
-            @Query("playlist_id") String playlistFilter,
-            @Query("song_id") String songFilter,
+            @Header("Prefer") String prefer,
+            @Path("playlistId") String playlistId,
+            @Path("songId") String songId,
             @Body Map<String, Object> data
     );
 

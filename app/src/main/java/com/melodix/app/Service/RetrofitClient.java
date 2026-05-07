@@ -8,6 +8,8 @@ import com.melodix.app.Utils.SessionManager;
 
 import java.io.IOException;
 
+import android.content.Intent;
+
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -68,7 +70,24 @@ public class RetrofitClient {
                         requestBuilder.addHeader("Authorization", "Bearer " + authBearer);
                     }
 
-                    return chain.proceed(requestBuilder.build());
+                    Response response = chain.proceed(requestBuilder.build());
+
+                    // ==================== THÊM ĐOẠN NÀY ĐỂ XỬ LÝ 401 ====================
+                    if (response.code() == 401) {
+                        android.util.Log.e("AUTH_INTERCEPTOR", "Token expired (401) → Đang logout...");
+
+                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                            SessionManager.getInstance(safeContext).clear();
+
+                            Intent intent = new Intent(safeContext, com.melodix.app.View.auth.LoginActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            safeContext.startActivity(intent);
+
+                            // Optional: Toast thông báo
+                            android.widget.Toast.makeText(safeContext, "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", android.widget.Toast.LENGTH_LONG).show();
+                        });
+                    }
+                    return response;
                 }
             }).build();
         }

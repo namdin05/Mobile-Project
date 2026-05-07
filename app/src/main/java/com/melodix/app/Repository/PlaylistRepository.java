@@ -13,6 +13,7 @@ import com.melodix.app.Service.RetrofitClient;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 
 import okhttp3.ResponseBody;
@@ -72,78 +73,52 @@ public class PlaylistRepository {
     }
 
     //Query lại playlist vừa tạo theo user_id và nam
-    private void fetchNewlyCreatedPlaylist(String userId, String playlistName, Callback<List<Playlist>> finalCallback) {
-        if (userId == null) {
-            android.util.Log.e("CREATE_PLAYLIST", "Cannot fetch playlist: userId is null");
-            finalCallback.onFailure(null, new Throwable("User ID is null"));
-            return;
-        }
-
-        // Filter an toàn: lấy theo user_id và name
-        String filter = "user_id=eq." + userId + "&name=eq." + playlistName;
-
-        android.util.Log.d("CREATE_PLAYLIST", "Đang query lại playlist với filter: " + filter);
-
-        apiService.getUserPlaylists(filter)
-                .enqueue(new Callback<List<Playlist>>() {
-                    @Override
-                    public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
-                        android.util.Log.d("CREATE_PLAYLIST", "Query lại thành công - Code: " + response.code()
-                                + " | Số playlist: " + (response.body() != null ? response.body().size() : 0));
-
-                        if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                            Playlist created = response.body().get(0);
-                            android.util.Log.d("CREATE_PLAYLIST", "Playlist mới tạo: ID = " + created.id + " | Name = " + created.name);
-                        }
-
-                        // Trả về kết quả cho callback gốc
-                        finalCallback.onResponse(call, response);
-                    }
-
-                    @Override
-                    public void onFailure(Call<List<Playlist>> call, Throwable t) {
-                        android.util.Log.e("CREATE_PLAYLIST", "Query lại thất bại: " + t.getMessage());
-                        finalCallback.onFailure(call, t);
-                    }
-                });
-    }
+//    private void fetchNewlyCreatedPlaylist(String userId, String playlistName, Callback<List<Playlist>> finalCallback) {
+//        if (userId == null) {
+//            android.util.Log.e("CREATE_PLAYLIST", "Cannot fetch playlist: userId is null");
+//            finalCallback.onFailure(null, new Throwable("User ID is null"));
+//            return;
+//        }
+//
+//        // Filter an toàn: lấy theo user_id và name
+//        String filter = "user_id=eq." + userId + "&name=eq." + playlistName;
+//
+//        android.util.Log.d("CREATE_PLAYLIST", "Đang query lại playlist với filter: " + filter);
+//
+//        apiService.getUserPlaylists(filter)
+//                .enqueue(new Callback<List<Playlist>>() {
+//                    @Override
+//                    public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
+//                        android.util.Log.d("CREATE_PLAYLIST", "Query lại thành công - Code: " + response.code()
+//                                + " | Số playlist: " + (response.body() != null ? response.body().size() : 0));
+//
+//                        if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+//                            Playlist created = response.body().get(0);
+//                            android.util.Log.d("CREATE_PLAYLIST", "Playlist mới tạo: ID = " + created.id + " | Name = " + created.name);
+//                        }
+//
+//                        // Trả về kết quả cho callback gốc
+//                        finalCallback.onResponse(call, response);
+//                    }
+//
+//                    @Override
+//                    public void onFailure(Call<List<Playlist>> call, Throwable t) {
+//                        android.util.Log.e("CREATE_PLAYLIST", "Query lại thất bại: " + t.getMessage());
+//                        finalCallback.onFailure(call, t);
+//                    }
+//                });
+//    }
 
     public void getUserPlaylists(String userId, Callback<List<Playlist>> callback) {
-        if (userId == null || userId.trim().isEmpty()) {
-            Log.e("REPO_DEBUG", "User ID is null");
+        if (userId == null) {
             callback.onFailure(null, new Throwable("User ID is null"));
             return;
         }
 
-        String filter = "eq." + userId;
+        Map<String, String> filters = new HashMap<>();
+        filters.put("user_id", "eq." + userId);
 
-        Log.d("REPO_DEBUG", "=== GET USER PLAYLISTS ===");
-        Log.d("REPO_DEBUG", "User ID: " + userId);
-        Log.d("REPO_DEBUG", "Filter gửi đi: user_id=" + filter);
-
-        apiService.getUserPlaylists(filter)
-                .enqueue(new Callback<List<Playlist>>() {
-                    @Override
-                    public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
-                        Log.d("REPO_DEBUG", "Response code: " + response.code());
-
-                        if (response.isSuccessful() && response.body() != null) {
-                            Log.d("REPO_DEBUG", "✅ THÀNH CÔNG - Số playlist: " + response.body().size());
-                        } else {
-                            try {
-                                String errorBody = response.errorBody() != null ? response.errorBody().string() : "";
-                                Log.e("REPO_DEBUG", "❌ LỖI: " + response.code() + " - " + errorBody);
-                            } catch (Exception ignored) {}
-                        }
-                        callback.onResponse(call, response);
-                    }
-
-                    @Override
-                    public void onFailure(Call<List<Playlist>> call, Throwable t) {
-                        Log.e("REPO_DEBUG", "Lỗi mạng: " + t.getMessage());
-                        callback.onFailure(call, t);
-                    }
-                });
+        apiService.getUserPlaylists(filters).enqueue(callback);
     }
 
     public void updatePlaylist(String playlistId, String name, String coverUrl, Callback<ResponseBody> callback) {
@@ -223,11 +198,57 @@ public class PlaylistRepository {
         Map<String, Object> data = new HashMap<>();
         data.put("order_index", newOrderIndex);
 
+        Log.d("ORDER_UPDATE", "=== CHI TIẾT REQUEST ===");
+        Log.d("ORDER_UPDATE", "URL: playlist_songs");
+        Log.d("ORDER_UPDATE", "Playlist ID: " + playlistId);
+        Log.d("ORDER_UPDATE", "Song ID: " + songId);
+        Log.d("ORDER_UPDATE", "New Order: " + newOrderIndex);
+        Log.d("ORDER_UPDATE", "Filter: playlist_id=eq." + playlistId + "&song_id=eq." + songId);
+
         apiService.updatePlaylistSongOrder(
+                "return=representation",
                 "eq." + playlistId,
                 "eq." + songId,
                 data
-        ).enqueue(callback);
+        ).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                Log.d("ORDER_UPDATE", "=== RESPONSE ===");
+                Log.d("ORDER_UPDATE", "Code: " + response.code());
+                Log.d("ORDER_UPDATE", "Message: " + response.message());
+
+                try {
+                    if (response.isSuccessful() && response.body() != null) {
+                        String body = response.body().string();
+                        Log.d("ORDER_UPDATE", "✅ SUCCESS BODY: " + body);
+
+                        // Kiểm tra xem order_index có thực sự được cập nhật không
+                        if (body.contains("\"order_index\":" + newOrderIndex)) {
+                            Log.d("ORDER_UPDATE", "✅ XÁC NHẬN: order_index đã được cập nhật thành " + newOrderIndex);
+                        } else {
+                            Log.e("ORDER_UPDATE", "❌ order_index KHÔNG được cập nhật! Response: " + body);
+                        }
+                    } else if (response.errorBody() != null) {
+                        String error = response.errorBody().string();
+                        Log.e("ORDER_UPDATE", "❌ ERROR: " + error);
+                    }
+                } catch (Exception e) {
+                    Log.e("ORDER_UPDATE", "Lỗi đọc response: " + e.getMessage());
+                }
+
+                if (callback != null) {
+                    callback.onResponse(call, response);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e("ORDER_UPDATE", "❌ NETWORK ERROR: " + t.getMessage());
+                if (callback != null) {
+                    callback.onFailure(call, t);
+                }
+            }
+        });
     }
 
     public void updatePlaylistOrder(String playlistId, List<Song> songs, Callback<ResponseBody> callback) {
@@ -242,6 +263,7 @@ public class PlaylistRepository {
             data.put("order_index", i);
 
             apiService.updatePlaylistSongOrder(
+                    "return=representation",
                     "eq." + playlistId,
                     "eq." + song.getId(),
                     data
@@ -267,4 +289,143 @@ public class PlaylistRepository {
         String filter = "eq." + playlistId;
         apiService.getPlaylistById(filter).enqueue(callback);
     }
+
+    public void getLikedPlaylist(String userId, Callback<List<Playlist>> callback) {
+        if (userId == null) {
+            callback.onFailure(null, new Throwable("User ID is null"));
+            return;
+        }
+
+        // ✅ Dùng Map để truyền nhiều filter
+        Map<String, String> filters = new HashMap<>();
+        filters.put("user_id", "eq." + userId);
+        filters.put("is_liked_playlist", "eq.true");
+
+        apiService.getUserPlaylists(filters).enqueue(new Callback<List<Playlist>>() {
+            @Override
+            public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    callback.onResponse(call, response);
+                } else {
+                    callback.onFailure(call, new Throwable("No liked playlist found"));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Playlist>> call, Throwable t) {
+                callback.onFailure(call, t);
+            }
+        });
+    }
+    public void toggleLikeSong(String userId, String songId, Callback<Boolean> callback) {
+        Log.d("TOGGLE_LIKE", "🎵 Bắt đầu toggle like cho song: " + songId);
+
+        getLikedPlaylist(userId, new Callback<List<Playlist>>() {
+            @Override
+            public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    String playlistId = response.body().get(0).id;
+                    Log.d("TOGGLE_LIKE", "📝 Playlist liked ID: " + playlistId);
+
+                    // Kiểm tra bài hát đã có trong playlist chưa
+                    checkSongInPlaylist(playlistId, songId, new Callback<Boolean>() {
+                        @Override
+                        public void onResponse(Call<Boolean> checkCall, Response<Boolean> checkResponse) {
+                            if (checkResponse.isSuccessful() && checkResponse.body() != null) {
+                                boolean isLiked = checkResponse.body();
+                                Log.d("TOGGLE_LIKE", "Trạng thái like hiện tại: " + isLiked);
+
+                                if (isLiked) {
+                                    // Unlike: xóa khỏi playlist
+                                    removeSongFromPlaylist(playlistId, songId, new Callback<ResponseBody>() {
+                                        @Override
+                                        public void onResponse(Call<ResponseBody> call3, Response<ResponseBody> response3) {
+                                            if (response3.isSuccessful()) {
+                                                Log.d("TOGGLE_LIKE", "✅ Unlike thành công");
+                                                callback.onResponse(null, Response.success(false));
+                                            } else {
+                                                Log.e("TOGGLE_LIKE", "❌ Unlike thất bại, code: " + response3.code());
+                                                callback.onFailure(null, new Throwable("Unlike failed"));
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<ResponseBody> call3, Throwable t) {
+                                            Log.e("TOGGLE_LIKE", "❌ Unlike thất bại: " + t.getMessage());
+                                            callback.onFailure(null, t);
+                                        }
+                                    });
+                                } else {
+                                    // Like: thêm vào playlist
+                                    addSongToPlaylist(playlistId, songId, 0, new Callback<ResponseBody>() {
+                                        @Override
+                                        public void onResponse(Call<ResponseBody> call3, Response<ResponseBody> response3) {
+                                            if (response3.isSuccessful()) {
+                                                Log.d("TOGGLE_LIKE", "✅ Like thành công");
+                                                callback.onResponse(null, Response.success(true));
+                                            } else {
+                                                Log.e("TOGGLE_LIKE", "❌ Like thất bại, code: " + response3.code());
+                                                callback.onFailure(null, new Throwable("Like failed"));
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<ResponseBody> call3, Throwable t) {
+                                            Log.e("TOGGLE_LIKE", "❌ Like thất bại: " + t.getMessage());
+                                            callback.onFailure(null, t);
+                                        }
+                                    });
+                                }
+                            } else {
+                                Log.e("TOGGLE_LIKE", "❌ Kiểm tra trạng thái thất bại");
+                                callback.onFailure(null, new Throwable("Cannot check like status"));
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<Boolean> checkCall, Throwable t) {
+                            Log.e("TOGGLE_LIKE", "❌ Kiểm tra thất bại: " + t.getMessage());
+                            callback.onFailure(null, t);
+                        }
+                    });
+                } else {
+                    Log.e("TOGGLE_LIKE", "❌ Không tìm thấy playlist liked");
+                    callback.onFailure(null, new Throwable("Cannot find liked playlist"));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Playlist>> call, Throwable t) {
+                Log.e("TOGGLE_LIKE", "❌ Lỗi: " + t.getMessage());
+                callback.onFailure(null, t);
+            }
+        });
+    }
+    private void checkSongInPlaylist(String playlistId, String songId, Callback<Boolean> callback) {
+        getPlaylistSongs(playlistId, new Callback<List<PlaylistSong>>() {
+            @Override
+            public void onResponse(Call<List<PlaylistSong>> call, Response<List<PlaylistSong>> response) {
+                boolean exists = false;
+                if (response.isSuccessful() && response.body() != null) {
+                    for (PlaylistSong ps : response.body()) {
+                        if (ps.song != null && songId.equals(ps.song.getId())) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                }
+                Log.d("CHECK_SONG", "Bài hát " + songId + " tồn tại trong playlist? " + exists);
+
+                // ✅ Giải pháp: truyền null - callback không thực sự cần dùng đến call
+                callback.onResponse(null, Response.success(exists));
+            }
+
+            @Override
+            public void onFailure(Call<List<PlaylistSong>> call, Throwable t) {
+                Log.e("CHECK_SONG", "Lỗi kiểm tra: " + t.getMessage());
+                callback.onFailure(null, t);
+            }
+        });
+    }
+
 }
