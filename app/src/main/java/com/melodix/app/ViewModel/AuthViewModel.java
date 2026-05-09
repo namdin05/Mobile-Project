@@ -7,7 +7,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.melodix.app.Model.LoginResult;
-import com.melodix.app.Repository.auth.AuthRepository;
+import com.melodix.app.Repository.AuthRepository;
 
 import org.jetbrains.annotations.NotNull;
 

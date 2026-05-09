@@ -3,19 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:clipChildren="true"
-    android:clipToPadding="true"
-    app:cardCornerRadius="24dp"
-    app:cardElevation="0dp"
-    app:cardBackgroundColor="@color/mdx_surface">
+    android:layout_margin="16dp"
+    app:cardBackgroundColor="@color/mdx_card"
+    app:cardCornerRadius="22dp"
+    app:cardElevation="8dp"
+    app:strokeColor="@color/mdx_line"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:clipChildren="true"
-        android:clipToPadding="true">
+        android:padding="24dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -41,7 +40,9 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="12dp"
             android:text="Chọn ảnh bìa"
+            android:textColor="@color/mdx_primary"
             app:icon="@drawable/ic_camera"
+            app:iconTint="@color/mdx_primary"
             style="@style/Widget.MaterialComponents.Button.TextButton" />
 
         <com.google.android.material.textfield.TextInputLayout
@@ -50,18 +51,19 @@
             android:layout_marginTop="24dp"
             android:hint="Tên playlist"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusBottomEnd="12dp"
-            android:clipChildren="true"
-            android:clipToPadding="true">
+            app:boxCornerRadiusTopStart="16dp"
+            app:boxCornerRadiusTopEnd="16dp"
+            app:boxCornerRadiusBottomStart="16dp"
+            app:boxCornerRadiusBottomEnd="16dp"
+            app:boxStrokeColor="@color/mdx_primary"
+            app:hintTextColor="@color/mdx_primary">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edt_playlist_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPersonName" />
+                android:inputType="textPersonName"
+                android:textColor="@color/mdx_text" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <LinearLayout
@@ -77,6 +79,10 @@
                 android:layout_height="52dp"
                 android:layout_weight="1"
                 android:text="Hủy"
+                android:textColor="@color/mdx_text"
+                app:strokeColor="@color/mdx_line"
+                app:strokeWidth="1dp"
+                app:cornerRadius="16dp"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_marginEnd="8dp" />
 
@@ -86,6 +92,9 @@
                 android:layout_height="52dp"
                 android:layout_weight="1"
                 android:text="Tạo"
+                android:textColor="@color/black"
+                app:backgroundTint="@color/mdx_primary"
+                app:cornerRadius="16dp"
                 android:layout_marginStart="8dp" />
         </LinearLayout>
 

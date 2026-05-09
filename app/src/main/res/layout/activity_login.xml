@@ -51,31 +51,49 @@
 
         </LinearLayout>
 
-
-
-        <EditText
-            android:id="@+id/edtEmail"
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
-            android:layout_height="58dp"
-            android:layout_marginBottom="14dp"
-            android:background="@color/login_input_bg"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             android:hint="Email"
-            android:inputType="textEmailAddress"
-            android:paddingHorizontal="18dp"
-            android:textColor="@color/login_primary_text"
-            android:textColorHint="@color/login_hint_text" />
+            app:boxCornerRadiusBottomEnd="16dp"
+            app:boxCornerRadiusBottomStart="16dp"
+            app:boxCornerRadiusTopEnd="16dp"
+            app:boxCornerRadiusTopStart="16dp"
+            app:boxStrokeColor="@color/mdx_primary"
+            app:hintTextColor="@color/mdx_primary">
 
-        <EditText
-            android:id="@+id/edtPassword"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress"
+                android:textColor="@color/login_primary_text" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
-            android:layout_height="58dp"
-            android:layout_marginBottom="18dp"
-            android:background="@color/login_input_bg"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
             android:hint="Password"
-            android:inputType="textPassword"
-            android:paddingHorizontal="18dp"
-            android:textColor="@color/login_primary_text"
-            android:textColorHint="@color/login_hint_text" />
+            app:boxCornerRadiusBottomEnd="16dp"
+            app:boxCornerRadiusBottomStart="16dp"
+            app:boxCornerRadiusTopEnd="16dp"
+            app:boxCornerRadiusTopStart="16dp"
+            app:boxStrokeColor="@color/mdx_primary"
+            app:hintTextColor="@color/mdx_primary"
+            app:endIconMode="password_toggle"
+            app:endIconTint="@color/login_hint_text">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:textColor="@color/login_primary_text" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:id="@+id/tvForgotPassword"
@@ -103,8 +121,6 @@
             app:backgroundTint="#1DB954"
             app:cornerRadius="30dp"
             app:elevation="0dp" />
-
-
 
         <TextView
             android:layout_width="wrap_content"

@@ -1,4 +1,4 @@
-package com.melodix.app.Repository.admin;
+package com.melodix.app.Repository;
 
 import android.content.Context;
 import android.util.Log;

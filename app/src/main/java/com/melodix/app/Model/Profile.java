@@ -4,7 +4,6 @@ import com.google.gson.annotations.SerializedName;
 
 public class Profile {
 
-    // Ánh xạ chính xác tên cột trong database Supabase
     @SerializedName("id")
     private String id;
 
@@ -17,19 +16,18 @@ public class Profile {
     @SerializedName("role")
     private String role;
 
-    // Constructor rỗng (Bắt buộc phải có cho Firebase/Supabase/Gson)
+    @SerializedName("banned_until")
+    private String bannedUntil;
+
     public Profile() {
     }
 
-    // Constructor có tham số
     public Profile(String id, String displayName, String avatarUrl, String role) {
         this.id = id;
         this.displayName = displayName;
         this.avatarUrl = avatarUrl;
         this.role = role;
     }
-
-    // --- CÁC HÀM GETTER & SETTER ---
 
     public String getId() {
         return id;
@@ -61,5 +59,17 @@ public class Profile {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getBannedUntil() {
+        return bannedUntil;
+    }
+
+    public void setBannedUntil(String bannedUntil) {
+        this.bannedUntil = bannedUntil;
+    }
+
+    public boolean isBanned() {
+        return bannedUntil != null && !bannedUntil.equalsIgnoreCase("none");
     }
 }

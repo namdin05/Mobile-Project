@@ -83,17 +83,26 @@
             android:textColor="@color/register_label_text"
             android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/edtFullName"
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:background="@color/register_input_bg"
             android:hint="Your Full Name"
-            android:inputType="textPersonName"
-            android:padding="16dp"
-            android:textColor="@color/register_primary_text"
-            android:textColorHint="@color/register_hint_text" />
+            app:boxCornerRadiusBottomEnd="16dp"
+            app:boxCornerRadiusBottomStart="16dp"
+            app:boxCornerRadiusTopEnd="16dp"
+            app:boxCornerRadiusTopStart="16dp"
+            app:boxStrokeColor="@color/mdx_primary"
+            app:hintTextColor="@color/mdx_primary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtFullName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:textColor="@color/register_primary_text" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -103,17 +112,26 @@
             android:textColor="@color/register_label_text"
             android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/edtRegisterEmail"
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:background="@color/register_input_bg"
             android:hint="example@email.com"
-            android:inputType="textEmailAddress"
-            android:padding="16dp"
-            android:textColor="@color/register_primary_text"
-            android:textColorHint="@color/register_hint_text" />
+            app:boxCornerRadiusBottomEnd="16dp"
+            app:boxCornerRadiusBottomStart="16dp"
+            app:boxCornerRadiusTopEnd="16dp"
+            app:boxCornerRadiusTopStart="16dp"
+            app:boxStrokeColor="@color/mdx_primary"
+            app:hintTextColor="@color/mdx_primary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtRegisterEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress"
+                android:textColor="@color/register_primary_text" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -123,17 +141,28 @@
             android:textColor="@color/register_label_text"
             android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/edtRegisterPassword"
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:background="@color/register_input_bg"
             android:hint="••••••••"
-            android:inputType="textPassword"
-            android:padding="16dp"
-            android:textColor="@color/register_primary_text"
-            android:textColorHint="@color/register_hint_text" />
+            app:boxCornerRadiusBottomEnd="16dp"
+            app:boxCornerRadiusBottomStart="16dp"
+            app:boxCornerRadiusTopEnd="16dp"
+            app:boxCornerRadiusTopStart="16dp"
+            app:boxStrokeColor="@color/mdx_primary"
+            app:hintTextColor="@color/mdx_primary"
+            app:endIconMode="password_toggle"
+            app:endIconTint="@color/register_hint_text">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtRegisterPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:textColor="@color/register_primary_text" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -143,17 +172,28 @@
             android:textColor="@color/register_label_text"
             android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/edtConfirmPassword"
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:background="@color/register_input_bg"
             android:hint="••••••••"
-            android:inputType="textPassword"
-            android:padding="16dp"
-            android:textColor="@color/register_primary_text"
-            android:textColorHint="@color/register_hint_text" />
+            app:boxCornerRadiusBottomEnd="16dp"
+            app:boxCornerRadiusBottomStart="16dp"
+            app:boxCornerRadiusTopEnd="16dp"
+            app:boxCornerRadiusTopStart="16dp"
+            app:boxStrokeColor="@color/mdx_primary"
+            app:hintTextColor="@color/mdx_primary"
+            app:endIconMode="password_toggle"
+            app:endIconTint="@color/register_hint_text">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtConfirmPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:textColor="@color/register_primary_text" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSignUp"

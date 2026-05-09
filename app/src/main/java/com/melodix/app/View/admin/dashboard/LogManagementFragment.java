@@ -1,11 +1,9 @@
-package com.melodix.app.View.admin;
+package com.melodix.app.View.admin.dashboard;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,24 +13,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.melodix.app.Adapter.AdminLogAdapter;
-import com.melodix.app.Adapter.ProfileAdapter;
-import com.melodix.app.BuildConfig;
 import com.melodix.app.Model.AuditLog;
-import com.melodix.app.Model.Profile;
 import com.melodix.app.R;
-import com.melodix.app.Service.AdminAPIService;
-import com.melodix.app.Service.RetrofitClient;
-import com.melodix.app.Utils.ProfileActionHelper;
 import com.melodix.app.ViewModel.admin.AdminLogViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
-public class AdminLogFragment extends Fragment {
+public class LogManagementFragment extends Fragment {
 
     private RecyclerView rvAuditLogs;
     private AdminLogAdapter logAdapter;
@@ -91,6 +79,15 @@ public class AdminLogFragment extends Fragment {
                         viewModel.loadMoreLogs();
                     }
                 }
+            }
+        });
+
+        view.findViewById(R.id.btnBack).setOnClickListener(v -> {
+            // Quay lại Fragment trước đó trong BackStack
+            if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                getParentFragmentManager().popBackStack();
+            } else {
+                requireActivity().onBackPressed();
             }
         });
     }

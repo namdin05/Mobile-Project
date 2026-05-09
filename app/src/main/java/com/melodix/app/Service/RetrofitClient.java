@@ -59,11 +59,14 @@ public class RetrofitClient {
                                 apikey = BuildConfig.SERVICE_KEY;
 
                                 // PHÂN LUỒNG THÔNG MINH CHO ADMIN
-                                if (path.startsWith("/auth/")) {
-                                    // Gọi API Đăng nhập/Đổi mật khẩu -> Bắt buộc dùng Token cá nhân
+                                if (path.startsWith("/auth/v1/admin/")) {
+                                    // 1. Nhánh gọi API quản trị User (như Ban/Unban) -> Bắt buộc dùng Service Key
+                                    authBearer = BuildConfig.SERVICE_KEY;
+                                } else if (path.startsWith("/auth/")) {
+                                    // 2. Gọi API Đăng nhập/Đổi mật khẩu cá nhân -> Dùng Token cá nhân
                                     authBearer = (userToken != null && !userToken.isEmpty()) ? userToken : BuildConfig.SERVICE_KEY;
                                 } else {
-                                    // Gọi Database (rest) hoặc Storage -> Dùng Service Key để phá vỡ RLS
+                                    // 3. Gọi Database (rest) hoặc Storage -> Dùng Service Key để phá vỡ RLS
                                     authBearer = BuildConfig.SERVICE_KEY;
                                 }
                             } else {

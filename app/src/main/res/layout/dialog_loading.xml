@@ -12,30 +12,32 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="@color/register_input_bg"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="8dp">
+        app:cardBackgroundColor="@color/mdx_card"
+        app:cardCornerRadius="22dp"
+        app:cardElevation="8dp"
+        app:strokeColor="@color/mdx_line"
+        app:strokeWidth="1dp">
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="32dp">
 
             <ProgressBar
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:indeterminateTint="#1DB954" />
+                android:indeterminateTint="@color/mdx_primary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Loading..."
-                android:textColor="@color/register_primary_text"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:text="Đang xử lý..."
+                android:textColor="@color/mdx_text"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-medium" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 </LinearLayout>

@@ -26,6 +26,7 @@ import com.melodix.app.Service.ProfileAPIService;
 import com.melodix.app.Service.RetrofitClient;
 import com.melodix.app.Service.StorageAPIService;
 import com.melodix.app.Utils.SessionManager;
+import com.melodix.app.View.dialogs.ChangePasswordDialog;
 import com.melodix.app.ViewModel.AuthViewModel;
 
 import java.io.ByteArrayOutputStream;
@@ -128,7 +129,10 @@ public class AdminProfileActivity extends AppCompatActivity {
             }
         });
 
-        btnChangePassword.setOnClickListener(v -> showChangePasswordDialog());
+        // ĐÃ CẬP NHẬT: Gọi ChangePasswordDialog mới
+        btnChangePassword.setOnClickListener(v -> {
+            ChangePasswordDialog.newInstance().show(getSupportFragmentManager(), "change_password");
+        });
 
         authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
     }
@@ -230,57 +234,5 @@ public class AdminProfileActivity extends AppCompatActivity {
     private void resetButton() {
         btnSaveChanges.setEnabled(true);
         btnSaveChanges.setText("Save Changes");
-    }
-
-    // Nơi bạn xử lý sự kiện click vào nút Đổi Mật Khẩu (ví dụ trong ProfileFragment hoặc SettingsActivity)
-    private void showChangePasswordDialog() {
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this); // Dùng requireContext() nếu ở Fragment
-        builder.setTitle("Đổi mật khẩu");
-
-        // Tạo layout gồm 2 ô nhập liệu
-        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
-        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
-        layout.setPadding(50, 40, 50, 10);
-
-        final EditText edtNewPass = new EditText(this);
-        edtNewPass.setHint("Mật khẩu mới (Tối thiểu 6 ký tự)");
-        edtNewPass.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        layout.addView(edtNewPass);
-
-        final EditText edtConfirmPass = new EditText(this);
-        edtConfirmPass.setHint("Xác nhận mật khẩu mới");
-        edtConfirmPass.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        layout.addView(edtConfirmPass);
-
-        builder.setView(layout);
-
-        builder.setPositiveButton("Cập nhật", (dialog, which) -> {
-            String newPass = edtNewPass.getText().toString();
-            String confirmPass = edtConfirmPass.getText().toString();
-
-            if (newPass.length() < 6) {
-                Toast.makeText(this, "Mật khẩu tối thiểu 6 ký tự", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (!newPass.equals(confirmPass)) {
-                Toast.makeText(this, "Mật khẩu xác nhận không khớp!", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            Toast.makeText(this, "Đang xử lý...", Toast.LENGTH_SHORT).show();
-
-            // Gọi ViewModel
-            authViewModel.changePassword(newPass).observe(this, result -> {
-                if ("SUCCESS".equals(result)) {
-                    Toast.makeText(this, "Đổi mật khẩu thành công!", Toast.LENGTH_SHORT).show();
-                    // Tùy chọn: Có thể ép người dùng đăng xuất để họ login lại bằng MK mới
-                } else {
-                    Toast.makeText(this, result, Toast.LENGTH_LONG).show();
-                }
-            });
-        });
-
-        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.cancel());
-        builder.show();
     }
 }

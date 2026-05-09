@@ -22,6 +22,7 @@ import com.melodix.app.Utils.DateHelper;
 import com.melodix.app.Utils.LoadingDialog;
 import com.melodix.app.View.admin.dashboard.AlbumManagementFragment;
 import com.melodix.app.View.admin.dashboard.GenreManagementFragment;
+import com.melodix.app.View.admin.dashboard.LogManagementFragment;
 import com.melodix.app.View.admin.dashboard.SongManagementFragment;
 import com.melodix.app.View.admin.dashboard.UserManagementFragment;
 import com.melodix.app.ViewModel.admin.AdminStatViewModel;
@@ -58,7 +59,7 @@ public class AdminStatFragment extends Fragment {
         MaterialCardView cardSongs = view.findViewById(R.id.cardSongs);
         MaterialCardView cardAlbums = view.findViewById(R.id.cardAlbums);
         MaterialCardView cardGenres = view.findViewById(R.id.cardGenres);
-        //MaterialCardView cardPlaylists = view.findViewById(R.id.cardPlaylists);
+        MaterialCardView cardLogs = view.findViewById(R.id.cardLog);
 
 
 
@@ -78,7 +79,7 @@ public class AdminStatFragment extends Fragment {
         cardSongs.setOnClickListener(v -> navigateToFragment(new SongManagementFragment()));
         cardAlbums.setOnClickListener(v -> navigateToFragment(new AlbumManagementFragment()));
         cardGenres.setOnClickListener(v -> navigateToFragment(new GenreManagementFragment()));
-        // cardPlaylists.setOnClickListener(v -> navigateToFragment(new PlaylistManagementFragment()));
+        cardLogs.setOnClickListener(v -> navigateToFragment(new LogManagementFragment()));
 
         // 4. Khởi tạo ViewModel và quan sát dữ liệu
         viewModel = new ViewModelProvider(this).get(AdminStatViewModel.class);
@@ -145,9 +146,6 @@ public class AdminStatFragment extends Fragment {
                             break;
                         case "total_genres":
                             if (tvTotalGenres != null) tvTotalGenres.setText(value);
-                            break;
-                        case "total_playlists":
-                            if (tvTotalPlaylists != null) tvTotalPlaylists.setText(value);
                             break;
                     }
                 } catch (NumberFormatException e) {

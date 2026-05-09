@@ -8,6 +8,37 @@
         <item name="android:navigationBarColor">@color/mdx_bg</item>
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        
+        <!-- Material Dialog Theme -->
+        <item name="materialAlertDialogTheme">@style/Melodix.MaterialAlertDialog</item>
+        <item name="bottomSheetDialogTheme">@style/Melodix.BottomSheetDialog</item>
+    </style>
+
+    <style name="Melodix.MaterialAlertDialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.Melodix.Dialog</item>
+        <item name="android:background">@color/mdx_card</item>
+    </style>
+
+    <style name="Melodix.BottomSheetDialog" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Melodix.BottomSheetStyle</item>
+    </style>
+
+    <style name="Melodix.BottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="backgroundTint">@color/mdx_card</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.Melodix.BottomSheet</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.Melodix.Dialog" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">22dp</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.Melodix.BottomSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">22dp</item>
+        <item name="cornerSizeTopRight">22dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
     </style>
 
     <style name="Theme.Melodix.Splash" parent="Theme.Melodix">
@@ -53,6 +84,8 @@
     <style name="TextAppearance.Melodix.Body" parent="TextAppearance.MaterialComponents.Body1">
         <item name="android:textColor">@color/mdx_text_secondary</item>
     </style>
+    
+    <!-- FIX: Chỉnh lại style của BottomSheet để không bị ép trong suốt -->
     <style name="BottomSheetDialogTheme" parent="Theme.Design.Light.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/BottomSheetStyle</item>
     </style>
@@ -62,7 +95,8 @@
     </style>
 
     <style name="BottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
-        <item name="android:background">@android:color/transparent</item>
+        <!-- Đã gỡ bỏ: android:background = transparent -->
+        <item name="android:background">@color/mdx_card</item>
     </style>
 
     <style name="ShapeAppearanceOverlay.Melodix.Cover.Small">
@@ -145,7 +179,5 @@
         <item name="android:textSize">22sp</item>
         <item name="android:textStyle">bold</item>
     </style>
-
-
 
 </resources>

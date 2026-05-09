@@ -1,7 +1,6 @@
 package com.melodix.app.Service;
 
 import com.melodix.app.Model.AuthResponse;
-import com.melodix.app.Model.Profile;
 import com.melodix.app.Model.SignInRequest;
 import com.melodix.app.Model.SignUpRequest;
 
@@ -10,10 +9,9 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
-import java.util.List;
 import retrofit2.http.GET;
 import retrofit2.http.PUT;
-import retrofit2.http.Query;
+import retrofit2.http.Path;
 
 public interface AuthAPIService {
     @POST("token?grant_type=password")
@@ -21,7 +19,6 @@ public interface AuthAPIService {
             @Body SignInRequest request
     );
 
-    // Trong AuthAPIService.java
     @POST("token?grant_type=refresh_token")
     Call<AuthResponse> refreshToken(@Body java.util.Map<String, String> body);
 
@@ -31,8 +28,7 @@ public interface AuthAPIService {
     );
 
     @GET("user")
-    Call<ResponseBody> getUserInfo(
-    );
+    Call<ResponseBody> getUserInfo();
 
     @POST("recover")
     Call<Void> sendPasswordResetEmail(@Body java.util.Map<String, String> body);
@@ -47,4 +43,14 @@ public interface AuthAPIService {
     Call<Void> changePassword(
             @Body java.util.Map<String, String> body
     );
+
+    @PUT("admin/users/{uid}")
+    Call<Void> updateUserAdminStatus(
+            @Path("uid") String uid,
+            @Body java.util.Map<String, Object> body
+    );
+
+    // Lấy thông tin chi tiết user (bao gồm banned_until) - Quyền Admin
+    @GET("admin/users/{uid}")
+    Call<ResponseBody> getUserAdminDetails(@Path("uid") String uid);
 }
