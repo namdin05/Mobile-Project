@@ -21,5 +21,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "Melodix"
 include(":app")
-include(":app-admin")
-include(":core-lib")

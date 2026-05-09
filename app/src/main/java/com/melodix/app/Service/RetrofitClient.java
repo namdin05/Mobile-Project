@@ -1,6 +1,7 @@
 package com.melodix.app.Service;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.melodix.app.BuildConfig;
 import com.melodix.app.Model.AuthResponse; // Đảm bảo import đúng đường dẫn
@@ -51,6 +52,8 @@ public class RetrofitClient {
                             Request original = chain.request();
                             String path = original.url().encodedPath();
 
+                            Log.e("RetrofitClient", "path: " + path);
+
                             String apikey;
                             String authBearer;
                             String userToken = sessionManager.getAccessToken();
@@ -62,9 +65,10 @@ public class RetrofitClient {
                                 if (path.startsWith("/auth/v1/admin/")) {
                                     // 1. Nhánh gọi API quản trị User (như Ban/Unban) -> Bắt buộc dùng Service Key
                                     authBearer = BuildConfig.SERVICE_KEY;
-                                } else if (path.startsWith("/auth/")) {
+                                } else if (path.startsWith("/auth")) {
                                     // 2. Gọi API Đăng nhập/Đổi mật khẩu cá nhân -> Dùng Token cá nhân
                                     authBearer = (userToken != null && !userToken.isEmpty()) ? userToken : BuildConfig.SERVICE_KEY;
+                                    Log.e("RetrofitClient", "userToken: " + authBearer);
                                 } else {
                                     // 3. Gọi Database (rest) hoặc Storage -> Dùng Service Key để phá vỡ RLS
                                     authBearer = BuildConfig.SERVICE_KEY;

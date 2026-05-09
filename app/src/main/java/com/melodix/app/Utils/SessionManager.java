@@ -9,7 +9,7 @@ public class SessionManager {
     private static final String KEY_USER_ID = "USER_ID";
     private static final String KEY_ROLE = "USER_ROLE";
     private static final String KEY_ACCESS_TOKEN = "ACCESS_TOKEN";
-    private static final String KEY_REFRESH_TOKEN = "ACCESS_TOKEN";
+    private static final String KEY_REFRESH_TOKEN = "REFRESH_TOKEN";
     private static final String KEY_IS_LOGGED_IN = "IS_LOGGED_IN";
 
     // 👇 THÊM 2 KEY MỚI 👇
@@ -84,12 +84,9 @@ public class SessionManager {
 
     // Hàm 2: Cập nhật thẻ mới khi Authenticator xin thành công
     public void updateTokens(String newAccessToken, String newRefreshToken) {
-        SharedPreferences.Editor editor = preferences.edit();
-
-        // Lưu ý: "ACCESS_TOKEN" và "REFRESH_TOKEN" phải khớp với các key bạn đang dùng trong file
-        editor.putString("KEY_ACCESS_TOKEN", newAccessToken);
-        editor.putString("KEY_REFRESH_TOKEN", newRefreshToken);
-
-        editor.apply(); // Dùng apply() để lưu ngầm cho mượt, không dùng commit()
+        preferences.edit()
+                .putString(KEY_ACCESS_TOKEN, newAccessToken)
+                .putString(KEY_REFRESH_TOKEN, newRefreshToken)
+                .apply();
     }
 }
