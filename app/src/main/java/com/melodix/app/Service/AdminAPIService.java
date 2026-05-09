@@ -3,10 +3,6 @@ package com.melodix.app.Service;
 import com.melodix.app.Model.AppMetric;
 import com.melodix.app.Model.ArtistRequest;
 import com.melodix.app.Model.AuditLog;
-import com.melodix.app.Model.Genre;
-import com.melodix.app.Model.Profile;
-import com.melodix.app.Model.Song;
-import com.melodix.app.Model.StatusUpdateRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -15,9 +11,7 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
-import retrofit2.http.Header;
 import retrofit2.http.PATCH;
-import retrofit2.http.POST;
 import retrofit2.http.Query;
 
 public interface AdminAPIService {

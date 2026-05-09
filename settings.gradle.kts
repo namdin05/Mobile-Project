@@ -20,6 +20,8 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Melodix"
-include(":app")
+include(":app-user")
+project(":app-user").projectDir = file("app")
 include(":app-admin")
-include(":core-lib")
+include(":core")
+project(":core").projectDir = file("core-lib")
