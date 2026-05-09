@@ -6,10 +6,11 @@ public class AuthResponse {
     @SerializedName("access_token")
     private String accessToken;
 
+    @SerializedName("refresh_token")
+    private String refreshToken;
+
     public String getAccessToken() { return accessToken; }
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
+    public String getRefreshToken() { return refreshToken; }
     @SerializedName("user")
     private Profile user;
 

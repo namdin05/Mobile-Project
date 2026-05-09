@@ -7,7 +7,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.melodix.app.Model.AuditLog;
-import com.melodix.app.Repository.admin.AdminRepository;
+import com.melodix.app.Repository.AdminRepository;
 
 import org.jetbrains.annotations.NotNull;
 

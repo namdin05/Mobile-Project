@@ -28,6 +28,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.melodix.app.Adapter.AdminGenreAdapter;
 import com.melodix.app.Model.Genre;
 import com.melodix.app.R;
+import com.melodix.app.Utils.LoadingDialog;
 import com.melodix.app.ViewModel.GenreViewModel;
 
 import java.io.ByteArrayOutputStream;
@@ -41,6 +42,7 @@ public class GenreManagementFragment extends Fragment {
     private AdminGenreAdapter genreAdapter;
     private List<Genre> genreList;
     private GenreViewModel viewModel;
+    private LoadingDialog loadingDialog;
 
     // Biến cho Dialog
     private AlertDialog currentDialog;
@@ -71,6 +73,8 @@ public class GenreManagementFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        loadingDialog = new LoadingDialog();
+
         rvAllGenres = view.findViewById(R.id.rvGenres);
         btnAddGenre = view.findViewById(R.id.btnAddGenre);
 
@@ -84,6 +88,7 @@ public class GenreManagementFragment extends Fragment {
 
         // 2. Observe Kết quả Trạng thái (Thêm/Sửa/Xóa thành công hay không)
         viewModel.getActionSuccess().observe(getViewLifecycleOwner(), isSuccess -> {
+            loadingDialog.hideLoading();
             if (isSuccess != null) {
                 if (isSuccess) {
                     // Thành công -> Đóng Dialog (nếu đang mở) và Load lại danh sách
@@ -122,7 +127,9 @@ public class GenreManagementFragment extends Fragment {
     }
 
     private void observeGenreList() {
+        loadingDialog.showLoading(requireActivity());
         viewModel.getAllGenres().observe(getViewLifecycleOwner(), genres -> {
+            loadingDialog.hideLoading();
             if (genres != null) {
                 genreList.clear();
                 genreList.addAll(genres);
@@ -220,6 +227,8 @@ public class GenreManagementFragment extends Fragment {
 
             btnSaveCurrent.setEnabled(false);
             btnSaveCurrent.setText("Đang xử lý...");
+            
+            loadingDialog.showLoading(requireActivity());
 
             byte[] imageBytes = null;
             if (selectedImageUri != null) {
@@ -241,7 +250,10 @@ public class GenreManagementFragment extends Fragment {
         new AlertDialog.Builder(getContext())
                 .setTitle("Xác nhận xóa")
                 .setMessage("Ẩn thể loại " + genre.getName() + " ?")
-                .setPositiveButton("Xóa", (dialog, which) -> viewModel.deleteGenre(genre.getId()))
+                .setPositiveButton("Xóa", (dialog, which) -> {
+                    loadingDialog.showLoading(requireActivity());
+                    viewModel.deleteGenre(genre.getId());
+                })
                 .setNegativeButton("Hủy", null)
                 .show();
     }
@@ -251,6 +263,7 @@ public class GenreManagementFragment extends Fragment {
                 .setTitle("Xác nhận khôi phục")
                 .setMessage("Khôi phục hiển thị thể loại " + genre.getName() + " ?")
                 .setPositiveButton("Khôi phục", (dialog, which) -> {
+                    loadingDialog.showLoading(requireActivity());
                     // Gọi hàm cập nhật trong ViewModel (Ví dụ: truyền cờ true để mở lại)
                     // Tùy theo cách bạn viết API, có thể là viewModel.restoreGenre(...) hoặc viewModel.updateVisibility(...)
                     viewModel.restoreGenre(genre.getId());

@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -16,6 +17,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
@@ -23,6 +25,9 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.melodix.app.Service.ProfileAPIService;
 import com.melodix.app.Service.RetrofitClient;
 import com.melodix.app.Service.StorageAPIService;
+import com.melodix.app.Utils.SessionManager;
+import com.melodix.app.View.dialogs.ChangePasswordDialog;
+import com.melodix.app.ViewModel.AuthViewModel;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -41,13 +46,15 @@ public class AdminProfileActivity extends AppCompatActivity {
     private ImageView btnBack, imgProfileAvatar;
     private MaterialButton btnChangeAvatar;
     private TextInputEditText edtDisplayName;
-    private MaterialButton btnSaveChanges;
+    private MaterialButton btnSaveChanges, btnChangePassword;
 
     private String adminUid = "";
     private Uri selectedImageUri = null; // Biến lưu ảnh vừa chọn từ thư viện
 
     // Khai báo công cụ bắt sự kiện chọn ảnh
     private ActivityResultLauncher<Intent> imagePickerLauncher;
+
+    private AuthViewModel authViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,10 +69,11 @@ public class AdminProfileActivity extends AppCompatActivity {
         btnChangeAvatar = findViewById(R.id.btnChangeAvatar);
         edtDisplayName = findViewById(R.id.edtDisplayName);
         btnSaveChanges = findViewById(R.id.btnSaveChanges);
+        btnChangePassword = findViewById(R.id.btnChangePassword);
 
         // Lấy UID của Admin hiện tại
-        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
-        adminUid = prefs.getString("USER_ID", "");
+
+        adminUid = SessionManager.getInstance(getApplicationContext()).getUserId();
 
         // Nhận dữ liệu cũ từ AdminActivity
         String currentName = getIntent().getStringExtra("CURRENT_NAME");
@@ -120,6 +128,13 @@ public class AdminProfileActivity extends AppCompatActivity {
                 updateDatabaseOnly(newName, null);
             }
         });
+
+        // ĐÃ CẬP NHẬT: Gọi ChangePasswordDialog mới
+        btnChangePassword.setOnClickListener(v -> {
+            ChangePasswordDialog.newInstance().show(getSupportFragmentManager(), "change_password");
+        });
+
+        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
     }
 
     // ==========================================
@@ -145,8 +160,6 @@ public class AdminProfileActivity extends AppCompatActivity {
             String fileName = adminUid + "_" + System.currentTimeMillis() + ".jpg";
 
             StorageAPIService apiService = RetrofitClient.getStorage(getApplicationContext()).create(StorageAPIService.class);
-            String apiKey = BuildConfig.SERVICE_KEY;
-            String token = "Bearer " + BuildConfig.SERVICE_KEY;
 
             // Gọi API ném ảnh lên Supabase
             apiService.uploadFileToStorage(

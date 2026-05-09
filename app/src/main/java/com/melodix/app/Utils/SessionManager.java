@@ -9,6 +9,7 @@ public class SessionManager {
     private static final String KEY_USER_ID = "USER_ID";
     private static final String KEY_ROLE = "USER_ROLE";
     private static final String KEY_ACCESS_TOKEN = "ACCESS_TOKEN";
+    private static final String KEY_REFRESH_TOKEN = "REFRESH_TOKEN";
     private static final String KEY_IS_LOGGED_IN = "IS_LOGGED_IN";
 
     // 👇 THÊM 2 KEY MỚI 👇
@@ -30,11 +31,12 @@ public class SessionManager {
     }
 
     // 👇 SỬA HÀM NÀY: Nhận thêm userName và userAvatar 👇
-    public void saveLogInSession(String userId, String role, String token, String userName, String userAvatar) {
+    public void saveLogInSession(String userId, String role, String access_token, String refresh_token, String userName, String userAvatar) {
         preferences.edit()
                 .putString(KEY_USER_ID, userId)
                 .putString(KEY_ROLE, role)
-                .putString(KEY_ACCESS_TOKEN, token)
+                .putString(KEY_ACCESS_TOKEN, access_token)
+                .putString(KEY_REFRESH_TOKEN, refresh_token)
                 .putString(KEY_USER_NAME, userName)       // Lưu tên
                 .putString(KEY_USER_AVATAR, userAvatar)   // Lưu avatar
                 .putBoolean(KEY_IS_LOGGED_IN, true)
@@ -56,6 +58,7 @@ public class SessionManager {
                 .remove(KEY_USER_ID)
                 .remove(KEY_ROLE)
                 .remove(KEY_ACCESS_TOKEN)
+                .remove(KEY_REFRESH_TOKEN)
                 .remove(KEY_USER_NAME)      // 👇 Xóa khi đăng xuất
                 .remove(KEY_USER_AVATAR)    // 👇 Xóa khi đăng xuất
                 .putBoolean(KEY_IS_LOGGED_IN, false)
@@ -65,6 +68,7 @@ public class SessionManager {
     public String getUserId() { return preferences.getString(KEY_USER_ID, null); }
     public String getRole() { return preferences.getString(KEY_ROLE, null); }
     public String getAccessToken() { return preferences.getString(KEY_ACCESS_TOKEN, null); }
+    public String getRefreshToken() { return preferences.getString(KEY_REFRESH_TOKEN, null); }
 
     // 👇 THÊM 2 HÀM GETTER NÀY 👇
     public String getUserName() { return preferences.getString(KEY_USER_NAME, "Người dùng"); }
@@ -74,5 +78,15 @@ public class SessionManager {
         return preferences.getBoolean(KEY_IS_LOGGED_IN, false)
                 && getUserId() != null
                 && getAccessToken() != null;
+    }
+
+    // Hàm 1: Lấy Refresh Token từ két sắt
+
+    // Hàm 2: Cập nhật thẻ mới khi Authenticator xin thành công
+    public void updateTokens(String newAccessToken, String newRefreshToken) {
+        preferences.edit()
+                .putString(KEY_ACCESS_TOKEN, newAccessToken)
+                .putString(KEY_REFRESH_TOKEN, newRefreshToken)
+                .apply();
     }
 }

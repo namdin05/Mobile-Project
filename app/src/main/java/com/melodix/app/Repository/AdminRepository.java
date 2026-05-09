@@ -1,4 +1,4 @@
-package com.melodix.app.Repository.admin;
+package com.melodix.app.Repository;
 
 import android.content.Context;
 import android.util.Log;
@@ -28,7 +28,6 @@ public class AdminRepository {
     }
 
     public void fetchAuditLogsPaged(int limit, int offset, Callback<List<AuditLog>> callback) {
-        // Truyền thẳng callback của ViewModel vào để xử lý
         apiService.getAuditLogs(limit, offset).enqueue(callback);
     }
 

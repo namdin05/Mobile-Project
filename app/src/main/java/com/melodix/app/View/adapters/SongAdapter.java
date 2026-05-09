@@ -27,19 +27,21 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     private final Context context;
     private final List<Song> songs;
     private final OnSongActionListener listener;
+    private boolean isAnalyticsMode = false;
+    private boolean isAdminMode = false; // Thêm biến kiểm soát chế độ Admin
 
     public interface OnSongActionListener {
         void onSongClick(Song song, int position);
         void onMenuClick(Song song, int position, String actionId);
     }
 
-
-
-    private boolean isAnalyticsMode = false; // Mặc định là TẮT
-
-    // Thêm hàm này để BẬT công tắc từ bên ngoài vào
     public void setAnalyticsMode(boolean isAnalyticsMode) {
         this.isAnalyticsMode = isAnalyticsMode;
+    }
+
+    // Hàm để bật/tắt chế độ Admin (ẩn nút More)
+    public void setAdminMode(boolean isAdminMode) {
+        this.isAdminMode = isAdminMode;
     }
 
     public SongAdapter(Context context, List<Song> songs, OnSongActionListener listener) {
@@ -104,21 +106,23 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             if (listener != null) listener.onSongClick(song, position);
         });
 
-        holder.more.setOnClickListener(v -> showMenu(v, song, position));
+        // XỬ LÝ HIỂN THỊ NÚT MORE
+        if (isAdminMode) {
+            holder.more.setVisibility(View.GONE);
+        } else {
+            holder.more.setVisibility(View.VISIBLE);
+            holder.more.setOnClickListener(v -> showMenu(v, song, position));
+        }
     }
+
     private void showMenu(View anchor, Song song, int position) {
         com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet =
                 new com.google.android.material.bottomsheet.BottomSheetDialog(context, R.style.BottomSheetTheme);
         View bottomSheetView = LayoutInflater.from(context).inflate(R.layout.dialog_song_menu, null);
         bottomSheet.setContentView(bottomSheetView);
 
-        // Xử lý nền trong suốt để viền bo góc của bg_card hiện ra
-        View parent = (View) bottomSheetView.getParent();
-        if (parent != null) {
-            parent.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-        }
+        // ĐÃ XÓA: Phần ép nền trong suốt gây lỗi hiển thị
 
-        // Gắn sự kiện click cho từng dòng menu
         bottomSheetView.findViewById(R.id.menu_play).setOnClickListener(v -> {
             if (listener != null) listener.onMenuClick(song, position, "play");
             bottomSheet.dismiss();
@@ -151,10 +155,8 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
                     Toast.makeText(context, "Không thể tải bài hát này", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
                 DownloadRepository repo = new DownloadRepository(context);
                 repo.enqueueDownload(song);
-
             } catch (Exception e) {
                 Log.e("DOWNLOAD_CRASH", "Lỗi khi gọi download", e);
                 Toast.makeText(context, "Lỗi tải xuống: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -172,7 +174,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             menuRemove.setVisibility(View.GONE);
         }
 
-
         bottomSheet.show();
     }
 
@@ -182,6 +183,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             commentsBottomSheet.show(((FragmentActivity) context).getSupportFragmentManager(), "comments_bottom_sheet");
         }
     }
+
     private void showPlaylistSelectionDialog(Song song) {
         if (context instanceof androidx.fragment.app.FragmentActivity) {
             PlaylistSelectionDialog dialog = PlaylistSelectionDialog.newInstance(song.getId());
@@ -193,9 +195,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
 
     @Override
     public int getItemCount() {
-        if(songs != null) return songs.size();
-
-        return 0;
+        return songs != null ? songs.size() : 0;
     }
 
     static class SongHolder extends RecyclerView.ViewHolder {
@@ -211,8 +211,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     }
 
     public void update(ArrayList<Song> newSongs) {
-        if (newSongs != null)
-        {
+        if (newSongs != null) {
             this.songs.clear();
             this.songs.addAll(newSongs);
             notifyDataSetChanged();

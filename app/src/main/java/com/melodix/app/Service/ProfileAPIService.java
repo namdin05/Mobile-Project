@@ -40,6 +40,13 @@ public interface ProfileAPIService  {
             @Query(value = "id", encoded = true) String idFilter, // THÊM encoded = true VÀO ĐÂY
             @Body Map<String, Object> bodyData
     );
+
+    @GET("profiles")
+    Call<List<Profile>> getProfileByEmail(
+            @Query("username") String emailFilter
+    );
+
+
     @retrofit2.http.HEAD("follows")
     Call<Void> getFollowerCount(
             @retrofit2.http.Header("Prefer") String preferCount, // Bắt buộc truyền "count=exact"

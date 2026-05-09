@@ -66,6 +66,7 @@
 
             <!-- ACTIVITY / View / auth -->
             <activity android:name=".View.auth.RegisterActivity" />
+            <activity android:name=".View.auth.ResetPasswordActivity" />
             <activity
                 android:name=".View.auth.LoginActivity"
                 android:exported="true"
@@ -75,15 +76,34 @@
                     <category android:name="android.intent.category.LAUNCHER" />
                 </intent-filter>
 
-                <intent-filter>
+                <intent-filter android:autoVerify="true">
                     <action android:name="android.intent.action.VIEW" />
                     <category android:name="android.intent.category.DEFAULT" />
                     <category android:name="android.intent.category.BROWSABLE" />
                     <data
-                        android:host="callback"
-                        android:scheme="melodix" />
+                        android:scheme="https"
+                        android:host="namdin05.github.io"
+                        android:pathPrefix="/melodix-auth/" />
                 </intent-filter>
+
+                <intent-filter android:autoVerify="true">
+                    <action android:name="android.intent.action.VIEW" />
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <category android:name="android.intent.category.BROWSABLE" />
+                    <data android:scheme="https" android:host="namdin05.github.io" android:pathPrefix="/melodix-auth" />
+                </intent-filter>
+
+                <intent-filter>
+                    <action android:name="android.intent.action.VIEW" />
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <category android:name="android.intent.category.BROWSABLE" />
+                    <data android:scheme="melodix" android:host="auth" />
+                </intent-filter>
+
+
             </activity>
+
+
 
 
 

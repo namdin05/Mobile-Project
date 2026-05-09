@@ -24,6 +24,7 @@ import com.melodix.app.Model.Song;
 import com.melodix.app.R;
 import com.melodix.app.Service.RetrofitClient;
 import com.melodix.app.Service.SongAPIService;
+import com.melodix.app.Utils.LoadingDialog;
 import com.melodix.app.Utils.PlaybackUtils;
 import com.melodix.app.Utils.SongActionHelper;
 import com.melodix.app.View.adapters.SongAdapter;
@@ -52,6 +53,7 @@ public class AlbumDetailFragment extends Fragment {
     private SongAdapter songAdapter;
     private List<Song> songList;
     private AlbumViewModel viewModel;
+    private LoadingDialog loadingDialog;
 
     @Nullable
     @Override
@@ -62,6 +64,8 @@ public class AlbumDetailFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        loadingDialog = new LoadingDialog();
 
         if (getArguments() != null) {
             albumId = getArguments().getString("ALBUM_ID", "");
@@ -96,13 +100,25 @@ public class AlbumDetailFragment extends Fragment {
         com.bumptech.glide.Glide.with(requireContext()).load(albumCover).into(imgAlbumCover);
 
         // XỬ LÝ NÚT APPROVE / REJECT
-        btnApprove.setOnClickListener(v -> viewModel.updateAlbumStatus(albumId, "approved"));
-        btnReject.setOnClickListener(v -> viewModel.updateAlbumStatus(albumId, "rejected"));
+        btnApprove.setOnClickListener(v -> {
+            loadingDialog.showLoading(requireActivity());
+            viewModel.updateAlbumStatus(albumId, "approved");
+        });
+        btnReject.setOnClickListener(v -> {
+            loadingDialog.showLoading(requireActivity());
+            viewModel.updateAlbumStatus(albumId, "rejected");
+        });
 
         if ("hide".equalsIgnoreCase(albumStatus)) {
-            btnHide.setOnClickListener(v -> viewModel.updateAlbumStatus(albumId, "approved"));
+            btnHide.setOnClickListener(v -> {
+                loadingDialog.showLoading(requireActivity());
+                viewModel.updateAlbumStatus(albumId, "approved");
+            });
         } else {
-            btnHide.setOnClickListener(v -> viewModel.updateAlbumStatus(albumId, "hide"));
+            btnHide.setOnClickListener(v -> {
+                loadingDialog.showLoading(requireActivity());
+                viewModel.updateAlbumStatus(albumId, "hide");
+            });
         }
 
         // 3. SETUP RECYCLER VIEW (Sau khi đã có rvAlbumSongs)
@@ -111,7 +127,10 @@ public class AlbumDetailFragment extends Fragment {
 
         if (!albumId.isEmpty()) {
             viewModel = new ViewModelProvider(this).get(AlbumViewModel.class);
+            
+            loadingDialog.showLoading(requireActivity());
             viewModel.getSongsByAlbumId(albumId).observe(getViewLifecycleOwner(), songs -> {
+                loadingDialog.hideLoading();
                 if (songs != null) {
                     songList.clear();
                     songList.addAll(songs);
@@ -123,6 +142,7 @@ public class AlbumDetailFragment extends Fragment {
             });
 
             viewModel.getUpdateStatusResult().observe(getViewLifecycleOwner(), result -> {
+                loadingDialog.hideLoading();
                 if (result != null) {
                     if (result.equals("error")) {
                         Toast.makeText(requireContext(), "Lỗi cập nhật trạng thái Album!", Toast.LENGTH_SHORT).show();

@@ -24,6 +24,7 @@ import com.melodix.app.Model.Album;
 import com.melodix.app.R;
 import com.melodix.app.Service.AlbumAPIService;
 import com.melodix.app.Service.RetrofitClient;
+import com.melodix.app.Utils.LoadingDialog;
 import com.melodix.app.ViewModel.AlbumViewModel;
 
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ public class AlbumManagementFragment extends Fragment {
     private List<Album> displayList = new ArrayList<>();
 
     private AlbumViewModel viewModel;
+    private LoadingDialog loadingDialog;
 
     @Nullable
     @Override
@@ -54,6 +56,8 @@ public class AlbumManagementFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        loadingDialog = new LoadingDialog();
+
         rvAlbums = view.findViewById(R.id.rvAlbums);
         albumList = new ArrayList<>();
         actvStatus = view.findViewById(R.id.actvStatus);
@@ -62,7 +66,10 @@ public class AlbumManagementFragment extends Fragment {
         setupStatusFilter();
 
         viewModel = new ViewModelProvider(this).get(AlbumViewModel.class);
+        
+        loadingDialog.showLoading(requireActivity());
         viewModel.getAllAlbums().observe(getViewLifecycleOwner(), albums -> {
+            loadingDialog.hideLoading();
             if (albums != null) {
                 // Đổ dữ liệu vào list gốc
                 fullAlbumList.clear();

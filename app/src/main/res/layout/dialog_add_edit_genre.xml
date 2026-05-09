@@ -5,10 +5,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="16dp"
-    app:cardBackgroundColor="@color/melodix_card_bg"
-    app:cardCornerRadius="24dp"
+    app:cardBackgroundColor="@color/mdx_card"
+    app:cardCornerRadius="22dp"
     app:cardElevation="8dp"
-    app:strokeWidth="0dp">
+    app:strokeColor="@color/mdx_line"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,7 +23,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="Add Genre"
-            android:textColor="@android:color/white"
+            android:textColor="@color/mdx_text"
             android:textSize="22sp"
             android:textStyle="bold" />
 
@@ -32,7 +33,7 @@
             android:layout_marginTop="4dp"
             android:gravity="center"
             android:text="Enter details for the music genre"
-            android:textColor="#8E8E93"
+            android:textColor="@color/mdx_text_secondary"
             android:textSize="14sp" />
 
         <FrameLayout
@@ -80,14 +81,14 @@
             app:boxCornerRadiusBottomStart="16dp"
             app:boxCornerRadiusTopEnd="16dp"
             app:boxCornerRadiusTopStart="16dp"
-            app:boxStrokeColor="@color/mdx_main_color"
-            app:hintTextColor="@color/mdx_main_color">
+            app:boxStrokeColor="@color/mdx_primary"
+            app:hintTextColor="@color/mdx_primary">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edtGenreName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@android:color/white" />
+                android:textColor="@color/mdx_text" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <LinearLayout
@@ -105,10 +106,10 @@
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="Delete"
-                android:textColor="#FF3B30"
+                android:textColor="@color/mdx_danger"
                 android:visibility="gone"
                 app:cornerRadius="16dp"
-                app:strokeColor="#FF3B30"
+                app:strokeColor="@color/mdx_danger"
                 app:strokeWidth="1dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -117,8 +118,8 @@
                 android:layout_height="56dp"
                 android:layout_weight="1"
                 android:text="Save Changes"
-                android:textColor="@android:color/black"
-                app:backgroundTint="@color/mdx_main_color"
+                android:textColor="@color/black"
+                app:backgroundTint="@color/mdx_primary"
                 app:cornerRadius="16dp" />
         </LinearLayout>
 
