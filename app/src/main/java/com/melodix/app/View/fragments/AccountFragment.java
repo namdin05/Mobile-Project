@@ -17,12 +17,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+
+
 
 import com.melodix.app.R;
 import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Utils.AppUiUtils;
 import com.melodix.app.Utils.SessionManager;
+import com.melodix.app.View.admin.AdminActivity;
 import com.melodix.app.View.artist.ManageSongActivity;
+import com.melodix.app.View.dialogs.ChangePasswordDialog;
+import com.melodix.app.View.profile.AdminProfileActivity;
 
 public class AccountFragment extends Fragment {
     private AppRepository repository;
@@ -120,6 +126,13 @@ public class AccountFragment extends Fragment {
             if (myId != null) com.melodix.app.Utils.ShareUtils.shareContent(requireContext(), "user", myId, myName);
         });
 
+        view.findViewById(R.id.btn_edit_profile).setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), AdminProfileActivity.class);
+            intent.putExtra("CURRENT_NAME", SessionManager.getInstance(requireContext()).getUserName());
+            intent.putExtra("CURRENT_AVATAR", SessionManager.getInstance(requireContext()).getUserAvatar());
+            startActivity(intent);
+        });
+
         btnRequestArtist.setOnClickListener(v -> {
             // ĐÃ SỬA: Gọi SessionManager
             String myId = SessionManager.getInstance(requireContext()).getUserId();
@@ -142,6 +155,7 @@ public class AccountFragment extends Fragment {
 
         return view;
     }
+
 
     @Override
     public void onResume() {
