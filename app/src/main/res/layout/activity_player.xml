@@ -64,24 +64,68 @@
                 android:scaleType="centerCrop"
                 app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Melodix.Cover.Large" />
 
-            <TextView
-                android:id="@+id/tv_title"
-                android:layout_width="wrap_content"
+            <!-- Title + Action Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
-                android:text="Song title"
-                android:textColor="@color/mdx_text"
-                android:textSize="30sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/tv_subtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="Artist • Album"
-                android:textColor="@color/mdx_primary"
-                android:textSize="18sp" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Song title"
+                        android:textColor="@color/mdx_text"
+                        android:textSize="30sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_subtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Artist • Album"
+                        android:textColor="@color/mdx_primary"
+                        android:textSize="18sp" />
+                </LinearLayout>
+
+                <!-- Nút Like và Add to Playlist -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <!-- Nút Like -->
+                    <ImageButton
+                        android:id="@+id/btn_like"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/ic_heart"
+                        android:scaleType="centerInside"
+                        app:tint="@color/mdx_text" />
+
+                    <!-- Nút Add to Playlist -->
+                    <ImageButton
+                        android:id="@+id/btn_add_to_playlist"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/ic_add_playlist"
+                        android:scaleType="centerInside"
+                        app:tint="@color/mdx_text" />
+                </LinearLayout>
+            </LinearLayout>
 
             <SeekBar
                 android:id="@+id/seek_bar"

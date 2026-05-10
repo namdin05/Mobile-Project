@@ -54,11 +54,20 @@ public interface PlaylistAPIService {
             @Query("song_id") String songFilter
     );
 
-    @PATCH("playlist_songs?playlist_id=eq.{playlistId}&song_id=eq.{songId}")
+    @PATCH("playlist_songs")
     Call<ResponseBody> updatePlaylistSongOrder(
             @Header("Prefer") String prefer,
-            @Path("playlistId") String playlistId,
-            @Path("songId") String songId,
+            @Query("playlist_id") String playlistFilter,  // "eq.xxx"
+            @Query("song_id") String songFilter,          // "eq.yyy"
+            @Body Map<String, Object> data
+    );
+
+    @PATCH("playlist_songs")
+    Call<ResponseBody> updatePlaylistSongOrderWithAuth(
+            @Header("Authorization") String auth,  // 👈 Thêm header này
+            @Header("Prefer") String prefer,
+            @Query("playlist_id") String playlistFilter,
+            @Query("song_id") String songFilter,
             @Body Map<String, Object> data
     );
 

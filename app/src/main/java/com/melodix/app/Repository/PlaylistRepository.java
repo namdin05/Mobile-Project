@@ -194,59 +194,77 @@ public class PlaylistRepository {
                 });
     }
 
+    private String getStoredToken() {
+        SharedPreferences prefs = context.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+        return prefs.getString("ACCESS_TOKEN", null);
+    }
+
     public void updatePlaylistSongOrder(String playlistId, String songId, int newOrderIndex, Callback<ResponseBody> callback) {
         Map<String, Object> data = new HashMap<>();
         data.put("order_index", newOrderIndex);
 
-        Log.d("ORDER_UPDATE", "=== CHI TIẾT REQUEST ===");
-        Log.d("ORDER_UPDATE", "URL: playlist_songs");
-        Log.d("ORDER_UPDATE", "Playlist ID: " + playlistId);
-        Log.d("ORDER_UPDATE", "Song ID: " + songId);
-        Log.d("ORDER_UPDATE", "New Order: " + newOrderIndex);
-        Log.d("ORDER_UPDATE", "Filter: playlist_id=eq." + playlistId + "&song_id=eq." + songId);
+        String playlistFilter = "eq." + playlistId;
+        String songFilter = "eq." + songId;
 
-        apiService.updatePlaylistSongOrder(
+        Log.d("ORDER_UPDATE", "Gọi PATCH: playlist=" + playlistFilter + ", song=" + songFilter + ", order=" + newOrderIndex);
+
+        String token = getStoredToken();
+        if (token == null || token.isEmpty()) {
+            Log.e("ORDER_UPDATE", "❌ Không có token! Kiểm lại SharedPreferences");
+            // Debug thêm
+            SharedPreferences prefs = context.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+            Log.e("ORDER_UPDATE", "ACCESS_TOKEN: " + (prefs.getString("ACCESS_TOKEN", null) != null ? "exists" : "NULL"));
+            Log.e("ORDER_UPDATE", "AUTH_TOKEN: " + (prefs.getString("AUTH_TOKEN", null) != null ? "exists" : "NULL"));
+            callback.onFailure(null, new Throwable("No auth token"));
+            return;
+        }
+
+        Log.d("ORDER_UPDATE", "✅ Có token, length=" + token.length());
+
+        apiService.updatePlaylistSongOrderWithAuth(
+                "Bearer " + token,  // 👈 Header Authorization
                 "return=representation",
-                "eq." + playlistId,
-                "eq." + songId,
+                playlistFilter,
+                songFilter,
                 data
-        ).enqueue(new Callback<ResponseBody>() {
+        ).enqueue(callback);
+    }
+
+    public void isSongLiked(String userId, String songId, retrofit2.Callback<Boolean> callback) {
+        getLikedPlaylist(userId, new Callback<List<Playlist>>() {
             @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                Log.d("ORDER_UPDATE", "=== RESPONSE ===");
-                Log.d("ORDER_UPDATE", "Code: " + response.code());
-                Log.d("ORDER_UPDATE", "Message: " + response.message());
+            public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    String likedPlaylistId = response.body().get(0).id;
 
-                try {
-                    if (response.isSuccessful() && response.body() != null) {
-                        String body = response.body().string();
-                        Log.d("ORDER_UPDATE", "✅ SUCCESS BODY: " + body);
-
-                        // Kiểm tra xem order_index có thực sự được cập nhật không
-                        if (body.contains("\"order_index\":" + newOrderIndex)) {
-                            Log.d("ORDER_UPDATE", "✅ XÁC NHẬN: order_index đã được cập nhật thành " + newOrderIndex);
-                        } else {
-                            Log.e("ORDER_UPDATE", "❌ order_index KHÔNG được cập nhật! Response: " + body);
+                    getPlaylistSongs(likedPlaylistId, new Callback<List<PlaylistSong>>() {
+                        @Override
+                        public void onResponse(Call<List<PlaylistSong>> call2, Response<List<PlaylistSong>> response2) {
+                            boolean liked = false;
+                            if (response2.isSuccessful() && response2.body() != null) {
+                                for (PlaylistSong ps : response2.body()) {
+                                    if (ps.song != null && songId.equals(ps.song.getId())) {
+                                        liked = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            callback.onResponse(null, retrofit2.Response.success(liked));
                         }
-                    } else if (response.errorBody() != null) {
-                        String error = response.errorBody().string();
-                        Log.e("ORDER_UPDATE", "❌ ERROR: " + error);
-                    }
-                } catch (Exception e) {
-                    Log.e("ORDER_UPDATE", "Lỗi đọc response: " + e.getMessage());
-                }
 
-                if (callback != null) {
-                    callback.onResponse(call, response);
+                        @Override
+                        public void onFailure(Call<List<PlaylistSong>> call2, Throwable t) {
+                            callback.onFailure(null, t);
+                        }
+                    });
+                } else {
+                    callback.onResponse(null, retrofit2.Response.success(false));
                 }
             }
 
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.e("ORDER_UPDATE", "❌ NETWORK ERROR: " + t.getMessage());
-                if (callback != null) {
-                    callback.onFailure(call, t);
-                }
+            public void onFailure(Call<List<Playlist>> call, Throwable t) {
+                callback.onFailure(null, t);
             }
         });
     }
