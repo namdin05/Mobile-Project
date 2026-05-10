@@ -1,15 +1,11 @@
 package com.melodix.app.View.profile;
 
-import com.melodix.app.BuildConfig;
 import com.melodix.app.Constants;
 import com.melodix.app.R;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -127,6 +123,8 @@ public class AdminProfileActivity extends AppCompatActivity {
                 // Nếu chỉ đổi tên, không đổi ảnh -> Cập nhật Database luôn
                 updateDatabaseOnly(newName, null);
             }
+
+
         });
 
         // ĐÃ CẬP NHẬT: Gọi ChangePasswordDialog mới
@@ -176,6 +174,8 @@ public class AdminProfileActivity extends AppCompatActivity {
 
                                 String newImageUrl = Constants.STORAGE_BASE_URL + Constants.AVATAR_BUCKET + fileName;
 
+                                SessionManager.getInstance(getApplicationContext()).updateAvatar(newImageUrl);
+
                                 updateDatabaseOnly(newName, newImageUrl);
                             } else {
                                 Toast.makeText(AdminProfileActivity.this, "Lỗi tải ảnh lên Storage", Toast.LENGTH_SHORT).show();
@@ -215,6 +215,8 @@ public class AdminProfileActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
+                    SessionManager.getInstance(getApplicationContext()).updateDisplayName(newName);
+
                     Toast.makeText(AdminProfileActivity.this, "Lưu thông tin thành công!", Toast.LENGTH_SHORT).show();
                     finish(); // Thành công thì đóng màn hình
                 } else {

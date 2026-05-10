@@ -25,7 +25,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTask"
+            android:launchMode="singleTop"
             tools:ignore="AppLinkUrlError">
 
             <intent-filter android:autoVerify="true">

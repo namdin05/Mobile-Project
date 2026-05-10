@@ -10,14 +10,10 @@ public class SongRequestUpload {
 
     @SerializedName("p_duration_seconds") private int durationSeconds;
     @SerializedName("p_album_id") private String albumId; // Nếu không có, truyền null
-    // Đổi từ "p_lyrics_url" thành "p_lyrics_lrc_url" cho khớp với DB của sếp
-    // Sếp đổi từ "p_lyrics_lrc_url" về lại "p_lyrics_url" nhé!
-    @SerializedName("p_lyrics_url")
-    private String lyricsUrl;
+    @SerializedName("p_lyrics_url") private String lyricsUrl; // Tạm truyền null
+
     @SerializedName("p_artist_ids") private List<String> artistIds;
     @SerializedName("p_genre_ids") private List<Integer> genreIds; // ID thể loại (VD: 1, 2)
-    // Đổi từ "p_lyrics_url" thành "p_lyrics_lrc_url" cho khớp với DB của sếp
-
 
     public SongRequestUpload(String songTitle, String coverUrl, String audioUrl, int durationSeconds, String albumId, String lyricsUrl, List<String> artistIds, List<Integer> genreIds) {
         this.songTitle = songTitle;
