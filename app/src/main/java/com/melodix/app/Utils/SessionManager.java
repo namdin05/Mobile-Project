@@ -89,4 +89,12 @@ public class SessionManager {
                 .putString(KEY_REFRESH_TOKEN, newRefreshToken)
                 .apply();
     }
+
+    public void updateDisplayName(String newName) {
+        preferences.edit().putString(KEY_USER_NAME, newName).apply();
+    }
+
+    public void updateAvatar(String newAvatar) {
+        preferences.edit().putString(KEY_USER_AVATAR, newAvatar).apply();
+    }
 }

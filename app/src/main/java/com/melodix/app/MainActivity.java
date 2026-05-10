@@ -201,6 +201,8 @@ public class MainActivity extends AppCompatActivity {
         });
         handleDeepLink(getIntent());
         checkNetworkAndSwitchTab();
+
+        handleNotificationIntent(getIntent());
     }
 
     // ==========================================
@@ -217,7 +219,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(android.content.Intent intent) {
         super.onNewIntent(intent);
+        setIntent(intent); // Cập nhật lại cái "balo" mới nhất
         handleDeepLink(intent);
+
+        handleNotificationIntent(intent);
     }
 
     private int getTabIdx(int id){
@@ -384,5 +389,32 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-    }}
+    }
+
+    // ==========================================
+    // LỄ TÂN ĐÓN KHÁCH TỪ PUSH NOTIFICATION
+    // ==========================================
+    private void handleNotificationIntent(android.content.Intent intent) {
+        if (intent != null && intent.getExtras() != null) {
+            // Lấy dữ liệu từ "balo" Extras do Firebase nhét vào
+            String action = intent.getStringExtra("action");
+            String songId = intent.getStringExtra("song_id");
+
+            if ("OPEN_SONG_DETAIL".equals(action) && songId != null) {
+                Log.d("MELODIX_FCM", "Mở bài hát từ thông báo: " + songId);
+
+                // Dùng chung logic mở PlayerActivity giống như Deep Link của bạn
+                android.content.Intent nextIntent = new android.content.Intent(this, com.melodix.app.PlayerActivity.class);
+                nextIntent.putExtra(com.melodix.app.PlayerActivity.EXTRA_SONG_ID, songId);
+                nextIntent.putExtra("start_playback", true);
+                startActivity(nextIntent);
+
+                // Xóa dữ liệu để tránh bị mở lại bài hát nếu người dùng xoay màn hình
+                intent.removeExtra("action");
+                intent.removeExtra("song_id");
+            }
+        }
+    }
+}
+
 
