@@ -4,7 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -44,45 +44,50 @@ public class PlaylistSelectAdapter extends RecyclerView.Adapter<PlaylistSelectAd
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Playlist playlist = playlists.get(position);
+        boolean isSelected = selectedPlaylistIds.contains(playlist.id);
 
-        boolean isSelected = selectedPlaylistIds != null && selectedPlaylistIds.contains(playlist.id);
-
-        // Tên playlist
-        holder.tvName.setText(playlist.name != null ? playlist.name : "Không có tên");
-
-        // Số bài hát - Sửa lỗi hiển thị 0 bài hát
-        String songCountText;
-        if (playlist.songCount == 0) {
-            songCountText = "0 bài hát";
-        } else if (playlist.songCount == 1) {
-            songCountText = "1 bài hát";
+        // Xử lý tên playlist đặc biệt
+        if (playlist.isLikedPlaylist) {
+            holder.tvName.setText("Bài hát đã thích");
         } else {
-            songCountText = playlist.songCount + " bài hát";
+            holder.tvName.setText(playlist.name != null ? playlist.name : "Playlist");
         }
-        holder.tvSongCount.setText(songCountText);
 
-        // CheckBox trạng thái
-        holder.checkSelected.setChecked(isSelected);
+        holder.tvSongCount.setText(playlist.songCount + " bài hát");
 
         // Load ảnh bìa
         if (playlist.coverRes != null && !playlist.coverRes.isEmpty()) {
-            Glide.with(context)
-                    .load(playlist.coverRes)
+            Glide.with(context).load(playlist.coverRes)
                     .placeholder(R.drawable.ic_music_placeholder)
-                    .error(R.drawable.ic_music_placeholder)
                     .into(holder.imgCover);
         } else {
             holder.imgCover.setImageResource(R.drawable.ic_music_placeholder);
         }
 
-        // Click vào item để chọn/bỏ chọn
-        holder.itemView.setOnClickListener(v -> {
-            boolean newState = !holder.checkSelected.isChecked();
-            holder.checkSelected.setChecked(newState);
+        // Xử lý icon toggle
+        if (playlist.isLikedPlaylist) {
+            holder.btnToggle.setImageResource(isSelected ?
+                    R.drawable.ic_check: R.drawable.ic_add_playlist);
+        } else {
+            holder.btnToggle.setImageResource(isSelected ?
+                    R.drawable.ic_check : R.drawable.ic_add_playlist);
+        }
+
+        holder.btnToggle.setOnClickListener(v -> {
+            boolean newState = !isSelected;
+            if (newState) {
+                selectedPlaylistIds.add(playlist.id);
+            } else {
+                selectedPlaylistIds.remove(playlist.id);
+            }
+            notifyItemChanged(position);
+
             if (listener != null) {
                 listener.onPlaylistClick(playlist, newState);
             }
         });
+
+        holder.itemView.setOnClickListener(v -> holder.btnToggle.performClick());
     }
 
     @Override
@@ -93,14 +98,14 @@ public class PlaylistSelectAdapter extends RecyclerView.Adapter<PlaylistSelectAd
     static class ViewHolder extends RecyclerView.ViewHolder {
         ShapeableImageView imgCover;
         TextView tvName, tvSongCount;
-        CheckBox checkSelected;
+        ImageButton btnToggle;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             imgCover = itemView.findViewById(R.id.img_cover);
             tvName = itemView.findViewById(R.id.tv_name);
             tvSongCount = itemView.findViewById(R.id.tv_song_count);
-            checkSelected = itemView.findViewById(R.id.check_selected);
+            btnToggle = itemView.findViewById(R.id.btn_toggle);
         }
     }
 }

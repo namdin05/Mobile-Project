@@ -53,6 +53,17 @@ public class SessionManager {
         preferences.edit().putString(KEY_ACCESS_TOKEN, newToken).apply();
     }
 
+    public void updateProfileInfo(String displayName, String avatarUrl) {
+        SharedPreferences.Editor editor = preferences.edit();
+        if (displayName != null) {
+            editor.putString(KEY_USER_NAME, displayName);
+        }
+        if (avatarUrl != null) {
+            editor.putString(KEY_USER_AVATAR, avatarUrl);
+        }
+        editor.apply();
+    }
+
     public void clear() {
         preferences.edit()
                 .remove(KEY_USER_ID)

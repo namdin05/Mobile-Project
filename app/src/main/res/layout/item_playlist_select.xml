@@ -40,11 +40,14 @@
             android:textSize="12sp" />
     </LinearLayout>
 
-    <CheckBox
-        android:id="@+id/check_selected"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:clickable="false"
-        android:focusable="false" />
+    <!-- Nút toggle like -->
+    <ImageButton
+        android:id="@+id/btn_toggle"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:background="@android:color/transparent"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_add_playlist"
+        android:padding="6dp" />
 
 </LinearLayout>

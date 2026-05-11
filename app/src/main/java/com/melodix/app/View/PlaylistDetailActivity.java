@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;        // ← THÊM DÒNG NÀY
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.LayoutInflater;
@@ -13,6 +15,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -141,16 +144,11 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     }
 
     private void setupDragAndDrop() {
-        // Chỉ chủ sở hữu mới được kéo thả
-        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
-        String currentUserId = prefs.getString("USER_ID", null);
-
-        if (currentPlaylist == null || !currentUserId.equals(currentPlaylist.ownerUserId)) {
-            Log.d("DRAG_DROP", "Không phải chủ sở hữu → tắt chức năng kéo thả");
+        if (isDragDropSetup) return;
+        if (!isCurrentUserOwner()) {
+            Log.d("DRAG_DROP", "Không phải chủ playlist → tắt drag & drop");
             return;
         }
-
-        Log.d("DRAG_DROP", "Là chủ sở hữu → bật drag and drop");
 
         ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(
                 ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
@@ -163,37 +161,48 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                 int fromPos = viewHolder.getAdapterPosition();
                 int toPos = target.getAdapterPosition();
 
-                if (fromPos < 0 || toPos < 0 ||
-                        fromPos >= playlistSongList.size() || toPos >= playlistSongList.size()) {
-                    return false;
-                }
+                if (fromPos < 0 || toPos < 0 || fromPos == toPos) return false;
 
-                // Hoán đổi dữ liệu
                 PlaylistSong moved = playlistSongList.remove(fromPos);
                 playlistSongList.add(toPos, moved);
 
                 Song movedPlayback = songListForPlayback.remove(fromPos);
                 songListForPlayback.add(toPos, movedPlayback);
 
-                // Gọi hàm moveItem của adapter
                 songAdapter.moveItem(fromPos, toPos);
-
                 return true;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                // Không dùng
             }
 
             @Override
             public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
                 super.clearView(recyclerView, viewHolder);
-                Log.d("DRAG_DROP", "Thả tay → lưu thứ tự mới");
-                saveNewOrderToDatabase();
-            }
 
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {}
+                Log.d("DRAG_DROP", "Thả tay → Chuẩn bị lưu thứ tự");
+
+                // Delay nhẹ và chạy an toàn trên Main Thread
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    if (!isFinishing() && !isDestroyed()) {
+                        saveNewOrderToDatabase();
+                    }
+                }, 200);
+            }
         };
 
         new ItemTouchHelper(callback).attachToRecyclerView(rvSongs);
-        Log.d("DRAG_DROP", "Drag & Drop đã được kích hoạt thành công cho owner");
+        isDragDropSetup = true;
+    }
+    private boolean isCurrentUserOwner() {
+        if (currentPlaylist == null) return false;
+
+        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
+        String myUserId = prefs.getString("USER_ID", null);
+
+        return myUserId != null && myUserId.equals(currentPlaylist.ownerUserId);
     }
 
     private void setupMoreMenu() {
@@ -206,8 +215,8 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         popup.getMenuInflater().inflate(R.menu.menu_playlist_options, popup.getMenu());
 
         boolean isOwner = currentPlaylist != null && currentUserId.equals(currentPlaylist.ownerUserId);
-
-        if (!isOwner) {
+        boolean isLikedPlaylist = currentPlaylist != null && currentPlaylist.isLikedPlaylist;
+        if (!isOwner || isLikedPlaylist) {
             popup.getMenu().removeItem(R.id.action_edit);
             popup.getMenu().removeItem(R.id.action_delete);
         }
@@ -215,9 +224,17 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         popup.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
             if (id == R.id.action_edit) {
+                if (isLikedPlaylist) {
+                    Toast.makeText(this, "Không thể chỉnh sửa playlist 'Bài hát đã thích'", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
                 showEditPlaylistDialog();
                 return true;
             } else if (id == R.id.action_delete) {
+                if (isLikedPlaylist) {
+                    Toast.makeText(this, "Không thể xóa playlist 'Bài hát đã thích'", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
                 showDeleteConfirmationDialog();
                 return true;
             } else if (id == R.id.action_share) {
@@ -328,40 +345,40 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     private void saveNewOrderToDatabase() {
         if (playlistSongList == null || playlistSongList.isEmpty()) return;
 
+        Log.d("DRAG_DROP", "Bắt đầu lưu thứ tự mới cho " + playlistSongList.size() + " bài hát");
+
         for (int i = 0; i < playlistSongList.size(); i++) {
-            PlaylistSong ps = playlistSongList.get(i);
-            if (ps != null) {
-                ps.orderIndex = i;  // Cập nhật local
-                Log.d("DRAG_DROP", "Cập nhật order local: " + ps.song.getTitle() + " -> index " + i);
-            }
-        }
+            try {
+                PlaylistSong ps = playlistSongList.get(i);
+                if (ps == null || ps.song == null || ps.song.getId() == null) continue;
 
-        // Gửi từng request lên server
-        for (int i = 0; i < playlistSongList.size(); i++) {
-            PlaylistSong ps = playlistSongList.get(i);
-            if (ps == null || ps.song == null || ps.song.getId() == null) continue;
+                ps.orderIndex = i;
+                final int newOrder = i;
+                final String songId = ps.song.getId();
 
-            final int newOrder = i;
-            final String songId = ps.song.getId();
-
-            playlistRepository.updatePlaylistSongOrder(
-                    playlistId,
-                    songId,
-                    newOrder,
-                    new Callback<ResponseBody>() {
-                        @Override
-                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                            if (response.isSuccessful()) {
-                                Log.d("DRAG_DROP", "Cập nhật thành công: " + songId + " -> order " + newOrder);
-                            } else {
-                                Log.e("DRAG_DROP", "Cập nhật thất bại cho song: " + songId + " - Code: " + response.code());
+                playlistRepository.updatePlaylistSongOrder(
+                        playlistId,
+                        songId,
+                        newOrder,
+                        new Callback<ResponseBody>() {
+                            @Override
+                            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                                if (response.isSuccessful()) {
+                                    Log.d("DRAG_DROP", "✓ OK: " + songId + " → " + newOrder);
+                                } else {
+                                    Log.e("DRAG_DROP", "✗ Fail: " + songId + " code=" + response.code());
+                                }
                             }
-                        }
-                        @Override
-                        public void onFailure(Call<ResponseBody> call, Throwable t) {
-                            Log.e("DRAG_DROP", "Lỗi mạng khi cập nhật order: " + t.getMessage());
-                        }
-                    });
+
+                            @Override
+                            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                                Log.e("DRAG_DROP", "✗ Lỗi mạng: " + songId + " - " + t.getMessage());
+                            }
+                        });
+
+            } catch (Exception e) {
+                Log.e("DRAG_DROP", "Exception khi xử lý bài thứ " + i, e);
+            }
         }
     }
 
@@ -385,9 +402,10 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             bottomSheet.dismiss();
         });
 
+        // LIKE - SỬA THÀNH CHỨC NĂNG THẬT
         bottomSheetView.findViewById(R.id.menu_like).setOnClickListener(v -> {
-            Toast.makeText(this, "Tính năng Like đang phát triển", Toast.LENGTH_SHORT).show();
             bottomSheet.dismiss();
+            handleLikeSong(song);   // Gọi hàm like thật
         });
 
         // Add to playlist
@@ -497,6 +515,40 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                 .setPositiveButton("Xóa", (dialog, which) -> deletePlaylist())
                 .setNegativeButton("Hủy", null)
                 .show();
+    }
+
+    private void handleLikeSong(Song song) {
+        if (song == null || song.getId() == null) return;
+
+        android.content.SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
+        String userId = prefs.getString("USER_ID", null);
+
+        if (userId == null) {
+            Toast.makeText(this, "Vui lòng đăng nhập để like bài hát", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        com.melodix.app.Repository.PlaylistRepository playlistRepo =
+                new com.melodix.app.Repository.PlaylistRepository(this);
+
+        playlistRepo.toggleLikeSong(userId, song.getId(), new retrofit2.Callback<Boolean>() {
+            @Override
+            public void onResponse(retrofit2.Call<Boolean> call, retrofit2.Response<Boolean> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    boolean isLiked = response.body();
+                    Toast.makeText(PlaylistDetailActivity.this,
+                            isLiked ? "❤️ Đã thích bài hát" : "♡ Đã bỏ thích bài hát",
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(PlaylistDetailActivity.this, "Không thể thực hiện", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<Boolean> call, Throwable t) {
+                Toast.makeText(PlaylistDetailActivity.this, "Lỗi mạng: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void deletePlaylist() {
