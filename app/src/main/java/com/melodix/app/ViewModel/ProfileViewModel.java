@@ -28,16 +28,12 @@ public class ProfileViewModel extends AndroidViewModel {
         return logoutStatus;
     }
 
-    // ĐÃ SỬA 1: Hàm getProfile() giờ đây chỉ làm đúng 1 việc là trả về LiveData
-    // Tuyệt đối không gọi API ở hàm này để tuân thủ chuẩn MVVM
     public LiveData<Profile> getProfile() {
         return profile;
     }
 
-    // ĐÃ SỬA 2: Đưa toàn bộ logic gọi mạng vào đây.
     public void loadProfileInfo() {
         String uid = repository.getCurrentUserId();
-        Log.e("DEBUG_PROFILE", "0. UID lấy từ bộ nhớ máy là: [" + uid + "]");
 
         if (!uid.isEmpty()) {
             LiveData<Profile> repoLiveData = repository.fetchProfileById(uid);

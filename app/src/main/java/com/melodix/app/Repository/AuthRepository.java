@@ -186,7 +186,7 @@ public class AuthRepository {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful() || response.code() == 409) {
-                    String avatarUrl = com.melodix.app.BuildConfig.BASE_URL + "storage/v1/object/public/avatars/" + fileName;
+                    String avatarUrl = Constants.STORAGE_BASE_URL + Constants.AVATAR_BUCKET + fileName;
                     Map<String, Object> body = new HashMap<>();
                     body.put("display_name", fullName);
                     body.put("avatar_url", avatarUrl);

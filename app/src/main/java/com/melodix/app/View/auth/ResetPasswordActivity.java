@@ -47,7 +47,7 @@ public class ResetPasswordActivity extends AppCompatActivity {
             authViewModel.updateNewPassword(recoveryToken, newPass).observe(this, result -> {
                 if ("SUCCESS".equals(result)) {
                     Toast.makeText(this, "Đổi mật khẩu thành công! Hãy đăng nhập lại.", Toast.LENGTH_LONG).show();
-                    finish(); // Đóng màn hình, trở về Login
+                    finish();
                 } else {
                     Toast.makeText(this, result, Toast.LENGTH_SHORT).show();
                 }

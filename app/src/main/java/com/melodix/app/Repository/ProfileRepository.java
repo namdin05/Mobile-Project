@@ -31,7 +31,6 @@ public class ProfileRepository {
     }
 
     public MutableLiveData<List<Profile>> fetchAllProfiles() {
-        // ... (Giữ nguyên code của bạn) ...
         MutableLiveData<List<Profile>> profile = new MutableLiveData<>();
         profileAPIService.getAllProfiles().enqueue(new Callback<List<Profile>>() {
             @Override
@@ -55,16 +54,12 @@ public class ProfileRepository {
     public MutableLiveData<Profile> fetchProfileById(String id) {
         MutableLiveData<Profile> profile = new MutableLiveData<>();
 
-        Log.e("DEBUG_PROFILE", "1. Đang gọi API lấy Profile cho UID: " + id);
-
         profileAPIService.getProfileById("eq." + id).enqueue(new Callback<List<Profile>>() {
             @Override
             public void onResponse(Call<List<Profile>> call, Response<List<Profile>> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    Log.e("DEBUG_PROFILE", "2. Lấy Profile thành công!");
                     profile.setValue(response.body().get(0));
                 } else {
-                    Log.e("DEBUG_PROFILE", "2. LỖI API! Mã lỗi: " + response.code());
                     try {
                         if (response.errorBody() != null) {
                             Log.e("DEBUG_PROFILE", "Chi tiết lỗi từ Supabase: " + response.errorBody().string());
@@ -74,7 +69,7 @@ public class ProfileRepository {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    profile.setValue(null); // API lỗi nên trả về null
+                    profile.setValue(null);
                 }
             }
 
@@ -95,8 +90,6 @@ public class ProfileRepository {
     public void updateTokenToServer(String token) {
         String userId = SessionManager.getInstance(context).getUserId();
 
-        // Đã sửa lại an toàn hơn
-        // ĐÃ SỬA: Chặn luôn trường hợp userId bị null để chống văng app (Crash)
         if (userId == null || userId.trim().isEmpty()) {
             Log.w("MELODIX_FCM", "Chưa đăng nhập, không lưu Token");
             return;
@@ -209,12 +202,10 @@ public class ProfileRepository {
     // 2 HÀM MỚI BỔ SUNG ĐỂ PHỤC VỤ CHO ADMIN (VÀ CẢ USER)
     // =======================================================
 
-    // Lấy ID người dùng đang đăng nhập hiện tại
     public String getCurrentUserId() {
         return SessionManager.getInstance(context).getUserId();
     }
 
-    // Xóa bộ nhớ đệm khi Đăng xuất
     public void clearSession() {
         SessionManager.getInstance(context).clear();
     }

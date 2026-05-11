@@ -60,12 +60,10 @@ public class MessageService extends FirebaseMessagingService {
     // HÀM TỰ DỰNG THÔNG BÁO VÀ NHÉT DỮ LIỆU NGẦM
     // ==========================================
     private void sendNotification(String title, String messageBody, Map<String, String> dataPayload) {
-        // Tạo chuyến xe chở khách về MainActivity
         Intent intent = new Intent(this, MainActivity.class);
-        // Cờ này giúp tái sử dụng MainActivity đang mở thay vì đẻ ra 1 màn hình mới
+
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
-        // 3. ĐỌC DỮ LIỆU NGẦM TỪ FIREBASE VÀ NHÉT VÀO BALO (EXTRAS)
         if (dataPayload != null && !dataPayload.isEmpty()) {
             String songId = dataPayload.get("song_id");
             String action = dataPayload.get("action");
@@ -74,17 +72,13 @@ public class MessageService extends FirebaseMessagingService {
             intent.putExtra("action", action);
         }
 
-        // 4. Bọc Intent bằng PendingIntent (tấm vé đưa cho hệ điều hành giữ dùm)
-        // Dùng FLAG_UPDATE_CURRENT để đảm bảo dữ liệu song_id mới nhất đè lên dữ liệu cũ
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
-        // 5. Trang trí hình thức của thông báo (Icon, Âm thanh, Rung...)
         NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(this, CHANNEL_ID)
-                        // BẠN CÓ THỂ ĐỔI ICON Ở ĐÂY. KHUYẾN CÁO DÙNG ICON TRONG SUỐT (PNG)
                         .setSmallIcon(R.drawable.ic_logo)
                         .setContentTitle(title)
                         .setContentText(messageBody)
@@ -96,7 +90,6 @@ public class MessageService extends FirebaseMessagingService {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        // 6. Xây dựng Notification Channel (BẮT BUỘC cho Android 8.0 trở lên)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
                     "Thông báo hệ thống Melodix",
@@ -105,8 +98,6 @@ public class MessageService extends FirebaseMessagingService {
             notificationManager.createNotificationChannel(channel);
         }
 
-        // 7. Bấm nút "Phát" thông báo ra màn hình
-        // Dùng thời gian hiện tại làm ID để các thông báo không đè mất nhau
         int notificationId = (int) System.currentTimeMillis();
         notificationManager.notify(notificationId, notificationBuilder.build());
     }
