@@ -15,11 +15,15 @@ import com.melodix.app.Model.SearchResultItem;
 import com.melodix.app.Model.Song;
 import com.melodix.app.Service.RetrofitClient;
 import com.melodix.app.Utils.Constants;
+import android.util.Log;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import retrofit2.Call;
@@ -31,6 +35,7 @@ import com.melodix.app.Service.AlbumAPIService;
 import com.melodix.app.Service.ArtistAPIService;
 import com.melodix.app.Service.ProfileAPIService;
 import com.melodix.app.Service.SearchAPIService;
+import com.melodix.app.Service.SongAPIService;
 
 public class AppRepository {
     private static final String KEY_RECENT_SEARCHES = "recent_searches_json";
@@ -550,7 +555,98 @@ public class AppRepository {
                 android.util.Log.e("PLAY_COUNT", "❌ Lỗi mạng: " + t.getMessage());
             }
         });
-    }    public String getAiSummaryForSong(String songId) {
+        Log.d("PLAY_COUNT", "Calling upsertListenHistory...");
+        upsertListenHistory(songId, userId);
+        Log.d("PLAY_COUNT", "upsertListenHistory finished");
+    }
+
+    // Trong AppRepository.java
+    private void upsertListenHistory(String songId, String userId) {
+        Log.d("LISTEN_HISTORY", "=== upsertListenHistory START ===");
+        Log.d("LISTEN_HISTORY", "SongId: " + songId);
+        Log.d("LISTEN_HISTORY", "UserId: " + userId);
+
+        if (songId == null) {
+            Log.e("LISTEN_HISTORY", "SongId is NULL!");
+            return;
+        }
+
+        if (userId == null || userId.isEmpty()) {
+            Log.e("LISTEN_HISTORY", "UserId is NULL or empty!");
+            // Vẫn cố gắng gọi với userId null
+        }
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("p_user_id", userId);
+        body.put("p_song_id", songId);
+
+        Log.d("LISTEN_HISTORY", "Body: " + body.toString());
+
+        SongAPIService apiService = RetrofitClient.getClient(appContext)
+                .create(SongAPIService.class);
+
+        Log.d("LISTEN_HISTORY", "Calling API...");
+
+        apiService.upsertListenHistory(body).enqueue(new retrofit2.Callback<Void>() {
+            @Override
+            public void onResponse(retrofit2.Call<Void> call, retrofit2.Response<Void> response) {
+                Log.d("LISTEN_HISTORY", "onResponse - Code: " + response.code());
+                if (response.isSuccessful()) {
+                    Log.d("LISTEN_HISTORY", "✅ Upsert thành công");
+                } else {
+                    try {
+                        String error = response.errorBody() != null ? response.errorBody().string() : "";
+                        Log.e("LISTEN_HISTORY", "❌ Upsert thất bại: " + response.code() + " - " + error);
+                    } catch (Exception e) {
+                        Log.e("LISTEN_HISTORY", "Error reading error body", e);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<Void> call, Throwable t) {
+                Log.e("LISTEN_HISTORY", "❌ Lỗi mạng: " + t.getMessage(), t);
+            }
+        });
+    }
+    private void insertListenHistory(String songId, String userId) {
+        if (songId == null) return;
+
+        try {
+            java.util.Map<String, Object> historyBody = new java.util.HashMap<>();
+            historyBody.put("song_id", songId);
+            if (userId != null && !userId.isEmpty()) {
+                historyBody.put("user_id", userId);
+            }
+
+            // Gọi trực tiếp bảng listen_history
+            com.melodix.app.Service.SongAPIService apiService =
+                    com.melodix.app.Service.RetrofitClient.getClient(appContext)
+                            .create(com.melodix.app.Service.SongAPIService.class);
+
+            // Bạn cần thêm method này vào SongAPIService.java
+            apiService.insertListenHistory(historyBody)
+                    .enqueue(new retrofit2.Callback<Void>() {
+                        @Override
+                        public void onResponse(retrofit2.Call<Void> call, retrofit2.Response<Void> response) {
+                            if (response.isSuccessful()) {
+                                android.util.Log.d("LISTEN_HISTORY", "✅ Đã lưu vào listen_history thành công");
+                            } else {
+                                android.util.Log.e("LISTEN_HISTORY", "❌ Lưu listen_history thất bại, code: " + response.code());
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(retrofit2.Call<Void> call, Throwable t) {
+                            android.util.Log.e("LISTEN_HISTORY", "❌ Lỗi khi lưu listen_history: " + t.getMessage());
+                        }
+                    });
+
+        } catch (Exception e) {
+            android.util.Log.e("LISTEN_HISTORY", "Exception khi ghi lịch sử", e);
+        }
+    }
+    public String getAiSummaryForSong(String songId) {
         return "AI Summary đang phân tích hàng ngàn bình luận... Bài hát này hiện đang được stream trực tiếp từ hệ thống Supabase!";
     }
 

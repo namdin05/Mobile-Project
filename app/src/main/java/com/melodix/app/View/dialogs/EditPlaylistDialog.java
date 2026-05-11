@@ -62,6 +62,10 @@ public class EditPlaylistDialog {
     public void show() {
         View dialogView = View.inflate(context, R.layout.dialog_edit_playlist, null);
 
+        if (currentPlaylist.isLikedPlaylist) {
+            Toast.makeText(context, "Không thể chỉnh sửa playlist 'Bài hát đã thích'", Toast.LENGTH_SHORT).show();
+            return;
+        }
         EditText edtName = dialogView.findViewById(R.id.edt_playlist_name);
         imgPreview = dialogView.findViewById(R.id.img_cover_preview);
         Button btnPickCover = dialogView.findViewById(R.id.btn_pick_cover);

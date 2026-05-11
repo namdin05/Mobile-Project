@@ -15,6 +15,8 @@ import retrofit2.http.Header;
 import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
+import retrofit2.http.QueryMap;
+import retrofit2.http.Path;
 
 public interface PlaylistAPIService {
 
@@ -26,7 +28,7 @@ public interface PlaylistAPIService {
 
     @GET("playlists")
     Call<List<Playlist>> getUserPlaylists(
-            @Query("user_id") String userIdFilter
+            @QueryMap Map<String, String> filters
     );
 
     @PATCH("playlists")
@@ -54,6 +56,16 @@ public interface PlaylistAPIService {
 
     @PATCH("playlist_songs")
     Call<ResponseBody> updatePlaylistSongOrder(
+            @Header("Prefer") String prefer,
+            @Query("playlist_id") String playlistFilter,  // "eq.xxx"
+            @Query("song_id") String songFilter,          // "eq.yyy"
+            @Body Map<String, Object> data
+    );
+
+    @PATCH("playlist_songs")
+    Call<ResponseBody> updatePlaylistSongOrderWithAuth(
+            @Header("Authorization") String auth,  // 👈 Thêm header này
+            @Header("Prefer") String prefer,
             @Query("playlist_id") String playlistFilter,
             @Query("song_id") String songFilter,
             @Body Map<String, Object> data

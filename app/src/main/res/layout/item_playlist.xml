@@ -44,12 +44,12 @@
             android:layout_marginTop="2dp" />
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/btn_more"
-        android:layout_width="38dp"
-        android:layout_height="38dp"
-        android:background="@android:color/transparent"
-        app:srcCompat="@drawable/ic_more"
-        android:scaleType="centerInside"
-        android:padding="8dp" />
+<!--    <ImageButton-->
+<!--        android:id="@+id/btn_more"-->
+<!--        android:layout_width="38dp"-->
+<!--        android:layout_height="38dp"-->
+<!--        android:background="@android:color/transparent"-->
+<!--        app:srcCompat="@drawable/ic_more"-->
+<!--        android:scaleType="centerInside"-->
+<!--        android:padding="8dp" />-->
 </LinearLayout>
