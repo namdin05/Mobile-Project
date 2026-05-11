@@ -81,20 +81,7 @@ public class LoginActivity extends AppCompatActivity {
                         String role = loginResult.getRole();
                         String userId = loginResult.getUserId();
 
-                        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
-                        String pendingAvatarBase64 = prefs.getString("PENDING_AVATAR", null);
-                        String pendingFullName = prefs.getString("PENDING_FULL_NAME", null);
-
-                        if (pendingAvatarBase64 != null && pendingFullName != null) {
-                            byte[] imageBytes = android.util.Base64.decode(pendingAvatarBase64, android.util.Base64.DEFAULT);
-                            authViewModel.uploadPendingAvatar(userId, imageBytes, pendingFullName).observe(this, uploadResult -> {
-                                prefs.edit().remove("PENDING_AVATAR").remove("PENDING_FULL_NAME").apply();
-                                navigateToNextScreen(role);
-                            });
-                        } else {
-                            navigateToNextScreen(role);
-                        }
-                        finish();
+                        checkAndUploadPendingProfile(email, role, userId);
                     } else {
                         loadingDialog.hideLoading();
                         Toast.makeText(LoginActivity.this, loginResult.getErrorMessage(), Toast.LENGTH_LONG).show();
@@ -127,6 +114,45 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
         }
         loadingDialog.hideLoading();
+        finish();
+    }
+
+    private void checkAndUploadPendingProfile(String email, String role, String userId) {
+        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
+        // Vì Deep Link có thể không biết email lúc đăng ký, ta rà soát tất cả các key
+        String pendingAvatarBase64 = prefs.getString("PENDING_AVATAR" + email, null);
+        String pendingFullName = prefs.getString("PENDING_FULL_NAME" + email, null);
+
+        if (pendingAvatarBase64 != null && pendingFullName != null) {
+            byte[] imageBytes = android.util.Base64.decode(pendingAvatarBase64, android.util.Base64.DEFAULT);
+            authViewModel.uploadPendingAvatar(userId, imageBytes, pendingFullName).observe(this, uploadResult -> {
+                if (uploadResult != null && !uploadResult.startsWith("Lỗi")) {
+                    // 1. Xóa rác SharedPrefs
+                    prefs.edit().remove("PENDING_AVATAR" + email).remove("PENDING_FULL_NAME" + email).apply();
+
+                    // 2. CẬP NHẬT "KÉT SẮT" NGAY LẬP TỨC
+                    // Chúng ta lấy uploadResult (chính là avatarUrl) để lưu đè vào Session
+                    SessionManager session = SessionManager.getInstance(LoginActivity.this);
+                    session.saveLogInSession(
+                            userId,
+                            role,
+                            session.getAccessToken(),
+                            session.getRefreshToken(),
+                            pendingFullName, // Tên mới
+                            uploadResult     // Link ảnh mới vừa upload xong
+                    );
+
+                    // 3. BÂY GIỜ MỚI CHUYỂN MÀN HÌNH
+                    navigateToNextScreen(role);
+                } else {
+                    // Nếu upload lỗi thì vẫn cho vào app nhưng báo lỗi
+                    Toast.makeText(this, "Lỗi upload ảnh, bạn có thể cập nhật sau", Toast.LENGTH_SHORT).show();
+                    navigateToNextScreen(role);
+                }
+            });
+        } else {
+            navigateToNextScreen(role);
+        }
     }
 
     private void socialLogin(String provider) {
@@ -164,7 +190,6 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 }
 
-                // XỬ LÝ LỖI TRƯỚC (Ví dụ: Bị ban)
                 if (errorDescription != null) {
                     try {
                         String decodedError = URLDecoder.decode(errorDescription, "UTF-8").replace("+", " ");
@@ -186,13 +211,15 @@ public class LoginActivity extends AppCompatActivity {
                         resetIntent.putExtra("RECOVERY_TOKEN", accessToken);
                         startActivity(resetIntent);
                         return;
+                    } else if ("signup".equals(type)) {
+                        Toast.makeText(this, "Xác thực Email thành công! Vui lòng đăng nhập.", Toast.LENGTH_LONG).show();
+                        return;
                     }
 
                     loadingDialog.showLoading(this);
                     authViewModel.handleSocialLoginToken(accessToken, refreshToken).observe(this, loginResult -> {
                         if (loginResult.isSuccess()) {
                             navigateToNextScreen(loginResult.getRole());
-                            finish();
                         } else {
                             loadingDialog.hideLoading();
                             Toast.makeText(LoginActivity.this, loginResult.getErrorMessage(), Toast.LENGTH_LONG).show();

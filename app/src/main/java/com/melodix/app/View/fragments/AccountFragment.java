@@ -34,6 +34,7 @@ import com.melodix.app.Utils.SessionManager;
 import com.melodix.app.View.admin.AdminActivity;
 import com.melodix.app.View.artist.ManageSongActivity;
 import com.melodix.app.View.dialogs.ChangePasswordDialog;
+import com.melodix.app.View.dialogs.PrivacySettingsBottomSheet;
 import com.melodix.app.View.profile.AdminProfileActivity;
 
 public class AccountFragment extends Fragment {
@@ -44,7 +45,6 @@ public class AccountFragment extends Fragment {
     private LinearLayout cardArtistCenter, btnArtistUpload, btnArtistAlbums, btnArtistStats;
     private ImageButton btnPrivacySettings;
     private ActivityResultLauncher<String> avatarPickerLauncher;
-    private EditProfileDialog currentEditDialog;
     private com.google.android.material.button.MaterialButton btnRequestArtist, btnLogOut;
     private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefresh;
 
@@ -77,13 +77,7 @@ public class AccountFragment extends Fragment {
 
         btnLogOut.setOnClickListener(v -> profileViewModel.performLogout());
         btnPrivacySettings = view.findViewById(R.id.btn_privacy_settings);
-        avatarPickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.GetContent(),
-                uri -> {
-                    if (uri != null && currentEditDialog != null) {
-                        currentEditDialog.setSelectedAvatarUri(uri);   // ← Sửa ở đây
-                    }
-                });
+
 
         if (btnPrivacySettings != null) {
             btnPrivacySettings.setOnClickListener(v -> {
@@ -341,33 +335,5 @@ public class AccountFragment extends Fragment {
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
             }
         });
-    }
-
-    private void showEditProfileDialog() {
-        String myId = SessionManager.getInstance(requireContext()).getUserId();
-        if (myId == null) return;
-
-        Profile currentProfile = new Profile();
-        currentProfile.setId(myId);
-        currentProfile.setDisplayName(SessionManager.getInstance(requireContext()).getUserName());
-        currentProfile.setAvatarUrl(SessionManager.getInstance(requireContext()).getUserAvatar());
-
-        currentEditDialog = new EditProfileDialog(
-                requireContext(),
-                currentProfile,
-                updatedProfile -> {
-                    // Cập nhật UI ngay lập tức
-                    name.setText(updatedProfile.getDisplayName());
-                    if (updatedProfile.getAvatarUrl() != null && !updatedProfile.getAvatarUrl().isEmpty()) {
-                        Glide.with(requireContext())
-                                .load(updatedProfile.getAvatarUrl())
-                                .circleCrop()
-                                .into(avatar);
-                    }
-                },
-                avatarPickerLauncher
-        );
-
-        currentEditDialog.show();
     }
 }

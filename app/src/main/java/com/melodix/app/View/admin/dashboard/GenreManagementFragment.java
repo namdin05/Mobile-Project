@@ -264,8 +264,6 @@ public class GenreManagementFragment extends Fragment {
                 .setMessage("Khôi phục hiển thị thể loại " + genre.getName() + " ?")
                 .setPositiveButton("Khôi phục", (dialog, which) -> {
                     loadingDialog.showLoading(requireActivity());
-                    // Gọi hàm cập nhật trong ViewModel (Ví dụ: truyền cờ true để mở lại)
-                    // Tùy theo cách bạn viết API, có thể là viewModel.restoreGenre(...) hoặc viewModel.updateVisibility(...)
                     viewModel.restoreGenre(genre.getId());
                 })
                 .setNegativeButton("Hủy", null)

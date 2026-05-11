@@ -182,28 +182,36 @@ public class AuthRepository {
     public void uploadPendingAvatarAndProfile(String userId, byte[] imageData, String fullName, MutableLiveData<String> result) {
         String fileName = userId + "_" + System.currentTimeMillis() + ".jpg";
         RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpeg"), imageData);
-        storageAPIService.uploadFileToStorage("image/jpeg", "true", Constants.AVATAR_BUCKET.replace("/", ""), fileName, requestBody).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful() || response.code() == 409) {
-                    String avatarUrl = Constants.STORAGE_BASE_URL + Constants.AVATAR_BUCKET + fileName;
-                    Map<String, Object> body = new HashMap<>();
-                    body.put("display_name", fullName);
-                    body.put("avatar_url", avatarUrl);
-                    profileAPISerivce.updateProfile("eq." + userId, body).enqueue(new Callback<ResponseBody>() {
-                        @Override
-                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                            if (response.isSuccessful()) result.setValue("SUCCESS_UPLOAD");
-                            else result.setValue("Lỗi cập nhật Profile: " + response.code());
-                        }
-                        @Override
-                        public void onFailure(Call<ResponseBody> call, Throwable t) { result.setValue("Lỗi mạng khi cập nhật Profile"); }
-                    });
-                } else { result.setValue("Lỗi upload ảnh: " + response.code()); }
-            }
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) { result.setValue("Lỗi mạng khi upload"); }
-        });
+        storageAPIService.uploadFileToStorage(
+                            "image/jpeg",
+                            "true",
+                            Constants.AVATAR_BUCKET.replace("/", ""),
+                            fileName,
+                            requestBody
+                )
+                .enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        if (response.isSuccessful() || response.code() == 409) {
+                            String avatarUrl = Constants.STORAGE_BASE_URL + Constants.AVATAR_BUCKET + fileName;
+
+                            Map<String, Object> body = new HashMap<>();
+                            body.put("display_name", fullName);
+                            body.put("avatar_url", avatarUrl);
+                            profileAPISerivce.updateProfile("eq." + userId, body).enqueue(new Callback<ResponseBody>() {
+                                @Override
+                                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                                    if (response.isSuccessful()) result.setValue(avatarUrl);
+                                    else result.setValue("Lỗi cập nhật Profile: " + response.code());
+                                }
+                                @Override
+                                public void onFailure(Call<ResponseBody> call, Throwable t) { result.setValue("Lỗi mạng khi cập nhật Profile"); }
+                            });
+                        } else { result.setValue("Lỗi upload ảnh: " + response.code()); }
+                    }
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) { result.setValue("Lỗi mạng khi upload"); }
+                 });
     }
 
     public MutableLiveData<String> updateNewPassword(String accessToken, String newPassword) {
