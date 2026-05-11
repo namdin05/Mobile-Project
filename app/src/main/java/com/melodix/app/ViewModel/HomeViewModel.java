@@ -5,7 +5,6 @@ import android.app.Application;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.ViewModel;
 
 import com.melodix.app.Model.Banner;
 import com.melodix.app.Model.Genre;
@@ -13,7 +12,6 @@ import com.melodix.app.Model.Song;
 import com.melodix.app.Repository.BannerRepository;
 import com.melodix.app.Repository.GenreRepository;
 import com.melodix.app.Repository.SongRepository;
-import com.melodix.app.Repository.auth.AuthRepository;
 
 import java.util.List;
 

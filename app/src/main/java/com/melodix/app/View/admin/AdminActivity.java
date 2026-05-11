@@ -2,7 +2,6 @@ package com.melodix.app.View.admin;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -19,6 +18,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
 
+import com.melodix.app.Model.MiniPlayerController;
 import com.melodix.app.R;
 import com.melodix.app.View.auth.LoginActivity;
 import com.melodix.app.View.profile.AdminProfileActivity;
@@ -33,9 +33,9 @@ public class AdminActivity extends AppCompatActivity {
 
     private ProfileViewModel viewModel;
 
-    // Lưu tạm state để truyền sang Intent Profile
     private String currentAdminName = "";
     private String currentAdminAvatarUrl = "";
+    private MiniPlayerController miniPlayerController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +45,9 @@ public class AdminActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin);
 
         initViews();
-        setupNavigation();
+        //setupNavigation();
+
+        miniPlayerController = new MiniPlayerController(this);
 
         // 1. Khởi tạo ViewModel
         viewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
@@ -72,7 +74,6 @@ public class AdminActivity extends AppCompatActivity {
             } else {
                 tvAdminName.setText("Chưa đăng nhập");
                 imgProfile.setImageResource(R.drawable.ic_person);
-                Log.e("ADMIN_ACTIVITY", "LỖI CMNR" );
             }
         });
 
@@ -109,6 +110,17 @@ public class AdminActivity extends AppCompatActivity {
         if (viewModel != null) {
             viewModel.loadProfileInfo();
         }
+        if (miniPlayerController != null) {
+            miniPlayerController.onResume();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (miniPlayerController != null) {
+            miniPlayerController.onPause();
+        }
     }
 
     private void initViews() {
@@ -134,10 +146,11 @@ public class AdminActivity extends AppCompatActivity {
             if (itemId == R.id.nav_dashboard) {
                 selectedFragment = new AdminStatFragment();
                 tvAppTitle.setText("DASHBOARD");
-            } else if (itemId == R.id.nav_log) {
-                selectedFragment = new AdminLogFragment();
-                tvAppTitle.setText("LOG");
             }
+//            } else if (itemId == R.id.nav_log) {
+//                selectedFragment = new AdminLogFragment();
+//                tvAppTitle.setText("LOG");
+//            }
 
             if (selectedFragment != null) {
                 getSupportFragmentManager().beginTransaction()

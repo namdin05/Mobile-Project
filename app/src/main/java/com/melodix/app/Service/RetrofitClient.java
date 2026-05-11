@@ -1,19 +1,22 @@
 package com.melodix.app.Service;
 
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.melodix.app.BuildConfig;
+import com.melodix.app.Model.AuthResponse; // Đảm bảo import đúng đường dẫn
 import com.melodix.app.Utils.SessionManager;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
-import android.content.Intent;
-
+import okhttp3.Authenticator;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.Route;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -26,7 +29,7 @@ public class RetrofitClient {
     private static Retrofit authRetrofit = null;
 
     // =========================================================================
-    // HÀM CHUNG: SETUP OKHTTP CLIENT (Gắn Chìa Khóa + Token)
+    // HÀM CHUNG: SETUP OKHTTP CLIENT (Gắn Chìa Khóa + Token + Tự động Refresh)
     // =========================================================================
     private static OkHttpClient getSharedHttpClient(Context context) {
         if (sharedHttpClient == null) {
@@ -35,61 +38,106 @@ public class RetrofitClient {
             sharedHttpClient = new OkHttpClient.Builder()
                     .connectTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
                     .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
-                    .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS).addInterceptor(new Interceptor() {
-                @Override
-                public Response intercept(Chain chain) throws IOException {
-                    SessionManager sessionManager = SessionManager.getInstance(safeContext);
+                    .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
 
-                    String role = sessionManager.getRole();
-                    if (role == null) role = "user";
+                    .addInterceptor(new Interceptor() {
+                        @Override
+                        public Response intercept(Chain chain) throws IOException {
+                            SessionManager sessionManager = SessionManager.getInstance(safeContext);
 
-                    String apikey;
-                    String authBearer;
+                            String role = sessionManager.getRole();
+                            if (role == null) role = "user";
 
-                    if ("admin".equals(role)) {
-                        apikey = BuildConfig.SERVICE_KEY;
-                        authBearer = BuildConfig.SERVICE_KEY;
-                    } else {
-                        apikey = BuildConfig.API_KEY;
-                        String token = sessionManager.getAccessToken();
-                        authBearer = (token != null && !token.isEmpty()) ? token : BuildConfig.API_KEY;
-                    }
+                            // LẤY ĐƯỜNG DẪN URL ĐỂ PHÂN LUỒNG
+                            Request original = chain.request();
+                            String path = original.url().encodedPath();
 
-                    // 1. Lấy Request gốc mà API Service gửi xuống
-                    Request original = chain.request();
-                    Request.Builder requestBuilder = original.newBuilder();
+                            Log.e("RetrofitClient", "path: " + path);
 
-                    // ==================================================================
-                    // 2. CHỐT CHẶN: Chỉ tự động gắn Header nếu Request gốc CHƯA CÓ
-                    // ==================================================================
-                    if (original.header("apikey") == null) {
-                        requestBuilder.addHeader("apikey", apikey);
-                    }
+                            String apikey;
+                            String authBearer;
+                            String userToken = sessionManager.getAccessToken();
 
-                    if (original.header("Authorization") == null) {
-                        requestBuilder.addHeader("Authorization", "Bearer " + authBearer);
-                    }
+                            if ("admin".equals(role)) {
+                                apikey = BuildConfig.SERVICE_KEY;
 
-                    Response response = chain.proceed(requestBuilder.build());
+                                // PHÂN LUỒNG THÔNG MINH CHO ADMIN
+                                if (path.startsWith("/auth/v1/admin/")) {
+                                    // 1. Nhánh gọi API quản trị User (như Ban/Unban) -> Bắt buộc dùng Service Key
+                                    authBearer = BuildConfig.SERVICE_KEY;
+                                } else if (path.startsWith("/auth")) {
+                                    // 2. Gọi API Đăng nhập/Đổi mật khẩu cá nhân -> Dùng Token cá nhân
+                                    authBearer = (userToken != null && !userToken.isEmpty()) ? userToken : BuildConfig.SERVICE_KEY;
+                                    Log.e("RetrofitClient", "userToken: " + authBearer);
+                                } else {
+                                    // 3. Gọi Database (rest) hoặc Storage -> Dùng Service Key để phá vỡ RLS
+                                    authBearer = BuildConfig.SERVICE_KEY;
+                                }
+                            } else {
+                                // USER BÌNH THƯỜNG THÌ DÙNG API_KEY VÀ TOKEN CÁ NHÂN CHO MỌI TRƯỜNG HỢP
+                                apikey = BuildConfig.API_KEY;
+                                authBearer = (userToken != null && !userToken.isEmpty()) ? userToken : BuildConfig.API_KEY;
+                            }
 
-                    // ==================== THÊM ĐOẠN NÀY ĐỂ XỬ LÝ 401 ====================
-                    if (response.code() == 401) {
-                        android.util.Log.e("AUTH_INTERCEPTOR", "Token expired (401) → Đang logout...");
+                            Request.Builder requestBuilder = original.newBuilder();
 
-                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                            SessionManager.getInstance(safeContext).clear();
+                            if (original.header("apikey") == null) {
+                                requestBuilder.addHeader("apikey", apikey);
+                            }
 
-                            Intent intent = new Intent(safeContext, com.melodix.app.View.auth.LoginActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            safeContext.startActivity(intent);
+                            if (original.header("Authorization") == null) {
+                                requestBuilder.addHeader("Authorization", "Bearer " + authBearer);
+                            }
 
-                            // Optional: Toast thông báo
-                            android.widget.Toast.makeText(safeContext, "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", android.widget.Toast.LENGTH_LONG).show();
-                        });
-                    }
-                    return response;
-                }
-            }).build();
+                            return chain.proceed(requestBuilder.build());
+                        }
+                    })
+
+                    // 2. AUTHENTICATOR: Bắt lỗi 401 và tự động xin cấp lại Token mới
+                    .authenticator(new Authenticator() {
+                        @Override
+                        public Request authenticate(Route route, Response response) throws IOException {
+                            // Chống lặp vô tận: Nếu đã thử đổi token rồi mà vẫn bị 401 thì từ bỏ
+                            if (response.priorResponse() != null) {
+                                return null;
+                            }
+
+                            SessionManager sessionManager = SessionManager.getInstance(safeContext);
+                            String refreshToken = sessionManager.getRefreshToken(); // Cần viết thêm hàm này trong SessionManager
+
+                            if (refreshToken == null || refreshToken.isEmpty()) {
+                                return null;
+                            }
+
+                            // Gọi API làm mới token một cách đồng bộ (chờ kết quả ngay)
+                            AuthAPIService authService = getAuth(safeContext).create(AuthAPIService.class);
+
+                            Map<String, String> body = new HashMap<>();
+                            body.put("refresh_token", refreshToken);
+
+                            // Dùng execute() thay vì enqueue() để block luồng mạng hiện tại chờ token mới
+                            retrofit2.Response<AuthResponse> refreshCall = authService.refreshToken(body).execute();
+
+                            if (refreshCall.isSuccessful() && refreshCall.body() != null) {
+                                // Cập nhật Token mới vào két sắt
+                                String newAccessToken = refreshCall.body().getAccessToken();
+                                String newRefreshToken = refreshCall.body().getRefreshToken();
+
+                                sessionManager.updateTokens(newAccessToken, newRefreshToken); // Cần viết thêm hàm này
+
+                                // Sửa lại cái Request cũ vừa bị lỗi, gắn thẻ mới vào và gửi đi tiếp
+                                return response.request().newBuilder()
+                                        .header("Authorization", "Bearer " + newAccessToken)
+                                        .build();
+                            } else {
+                                // Nếu Refresh Token cũng hết hạn (thường là sau 6 tháng hoặc bị thu hồi)
+                                // Xóa phiên làm việc để bắt người dùng đăng nhập lại
+                                sessionManager.clear();
+                                return null;
+                            }
+                        }
+                    })
+                    .build();
         }
         return sharedHttpClient;
     }
@@ -100,8 +148,8 @@ public class RetrofitClient {
     public static Retrofit getClient(Context context) {
         if (databaseRetrofit == null) {
             databaseRetrofit = new Retrofit.Builder()
-                    .baseUrl(BuildConfig.BASE_URL + "rest/v1/") // Đuôi rest
-                    .client(getSharedHttpClient(context))       // Nhét bộ gắn Key chung vào
+                    .baseUrl(BuildConfig.BASE_URL + "rest/v1/")
+                    .client(getSharedHttpClient(context))
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
@@ -114,8 +162,8 @@ public class RetrofitClient {
     public static Retrofit getStorage(Context context) {
         if (storageRetrofit == null) {
             storageRetrofit = new Retrofit.Builder()
-                    .baseUrl(BuildConfig.BASE_URL + "storage/v1/object/") // Đuôi storage
-                    .client(getSharedHttpClient(context))          // Nhét bộ gắn Key chung vào
+                    .baseUrl(BuildConfig.BASE_URL + "storage/v1/object/")
+                    .client(getSharedHttpClient(context))
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
@@ -128,8 +176,8 @@ public class RetrofitClient {
     public static Retrofit getAuth(Context context) {
         if (authRetrofit == null) {
             authRetrofit = new Retrofit.Builder()
-                    .baseUrl(BuildConfig.BASE_URL + "auth/v1/") // Đuôi auth
-                    .client(getSharedHttpClient(context))       // Nhét bộ gắn Key chung vào
+                    .baseUrl(BuildConfig.BASE_URL + "auth/v1/")
+                    .client(getSharedHttpClient(context))
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }

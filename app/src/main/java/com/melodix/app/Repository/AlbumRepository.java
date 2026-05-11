@@ -51,7 +51,7 @@ public class AlbumRepository {
     public MutableLiveData<List<Song>> getSongsByAlbumId(String id) {
         MutableLiveData<List<Song>> songs = new MutableLiveData<>();
 
-        apiService.getAlbumDetails(id).enqueue(new Callback<List<Song>>() {
+        apiService.getAlbumDetails("eq." + id).enqueue(new Callback<List<Song>>() {
             @Override
             public void onResponse(Call<List<Song>> call, Response<List<Song>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -69,23 +69,13 @@ public class AlbumRepository {
         });
 
         return songs;
-
     }
 
-    public void getAlbumById(String id, AppRepository.AlbumCallback callback) {
-        apiService.getAlbumById("eq." + id).enqueue(new Callback<List<Album>>() {
-            @Override
-            public void onResponse(Call<List<Album>> call, retrofit2.Response<List<Album>> response) {
-                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    callback.onSuccess(response.body().get(0));
-                } else {
-                    callback.onError("Không tìm thấy dữ liệu Album! Mã lỗi: " + response.code());
-                }
-            }
-            @Override
-            public void onFailure(Call<List<Album>> call, Throwable t) {
-                callback.onError("Lỗi kết nối mạng: " + t.getMessage());
-            }
-        });
+    public void updateAlbumStatus(String albumId, String newStatus, Callback<okhttp3.ResponseBody> callback) {
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        body.put("status", newStatus);
+
+        // Truyền thẳng callback của ViewModel vào enqueue
+        apiService.updateStatus("eq." + albumId, body).enqueue(callback);
     }
 }

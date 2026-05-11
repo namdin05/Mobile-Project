@@ -66,4 +66,6 @@ public class Album implements Serializable {
     public int getReleaseYear () {
         return year;
     }
+
+    public String getStatus() { return status; }
 }

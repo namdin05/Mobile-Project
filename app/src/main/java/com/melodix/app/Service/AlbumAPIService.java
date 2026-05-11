@@ -2,10 +2,16 @@ package com.melodix.app.Service;
 
 import com.melodix.app.Model.Album;
 import com.melodix.app.Model.Song;
+
 import java.util.List;
+import java.util.Map;
+
+import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.PATCH;
 import retrofit2.http.Query;
 
 public interface AlbumAPIService {
@@ -24,4 +30,10 @@ public interface AlbumAPIService {
 
     @GET("song_details_view?select=*")
     Call<List<Song>> getSongsByAlbumIdForArtist(@Query("album_id") String albumIdQuery);
+
+    @PATCH("albums")
+    Call<ResponseBody> updateStatus(
+            @Query("id") String idFilter,
+            @Body Map<String, Object> body
+    );
 }

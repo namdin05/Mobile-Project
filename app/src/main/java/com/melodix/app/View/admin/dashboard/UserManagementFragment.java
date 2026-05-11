@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.melodix.app.Adapter.ProfileAdapter;
 import com.melodix.app.Model.Profile;
 import com.melodix.app.R;
+import com.melodix.app.Utils.LoadingDialog;
 import com.melodix.app.Utils.ProfileActionHelper;
 import com.melodix.app.ViewModel.admin.AdminUserViewModel;
 
@@ -31,6 +32,7 @@ public class UserManagementFragment extends Fragment {
     private AutoCompleteTextView actvRole;
 
     private AdminUserViewModel viewModel;
+    private LoadingDialog loadingDialog;
 
     // Cần 2 danh sách: 1 cái chứa TOÀN BỘ dữ liệu gốc, 1 cái để HIỂN THỊ theo filter
     private List<Profile> fullUserList = new ArrayList<>();
@@ -46,17 +48,31 @@ public class UserManagementFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        loadingDialog = new LoadingDialog();
+
         rvAllUsers = view.findViewById(R.id.rvAllUsers);
         rvAllUsers.setLayoutManager(new LinearLayoutManager(getContext()));
 
         actvRole = view.findViewById(R.id.actvRole);
+
+        view.findViewById(R.id.btnBack).setOnClickListener(v -> {
+            // Quay lại Fragment trước đó trong BackStack
+            if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                getParentFragmentManager().popBackStack();
+            } else {
+                requireActivity().onBackPressed();
+            }
+        });
 
         setupRecyclerView();
 
         setupRoleFilter();
 
         viewModel = new ViewModelProvider(this).get(AdminUserViewModel.class);
+
+        loadingDialog.showLoading(requireActivity());
         viewModel.getAllProfiles().observe(getViewLifecycleOwner(), songs -> {
+            loadingDialog.hideLoading();
             if (songs != null) {
                 this.fullUserList = songs;
                 this.displayList = new ArrayList<>(songs);

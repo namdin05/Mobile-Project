@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
+import com.melodix.app.Utils.LoadingDialog;
 import com.melodix.app.Utils.PlaybackUtils;
 import com.melodix.app.View.adapters.SongCardAdapter;
 import com.melodix.app.ViewModel.HomeViewModel;
@@ -25,6 +26,7 @@ import java.util.List;
 public class GenreDetailFragment extends Fragment {
     private String genreId;
     private String genreName;
+    private LoadingDialog loadingDialog;
 
     // Hàm khởi tạo nhận dữ liệu truyền vào
     public static GenreDetailFragment newInstance(String genreId, String genreName) {
@@ -41,6 +43,7 @@ public class GenreDetailFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_genre_detail, container, false);
 
+        loadingDialog = new LoadingDialog();
 
         view.setTranslationZ(100f); // Ép nổi lên 100 pixel
         view.setClickable(true);    // Đóng băng điểm chạm (Chống bấm xuyên)
@@ -72,8 +75,10 @@ public class GenreDetailFragment extends Fragment {
         // Parse ID từ String sang int (Vì bảng genres lưu id là integer)
         int id = Integer.parseInt(genreId);
 
+        loadingDialog.showLoading(requireActivity());
         // Gọi API lấy đúng danh sách nhạc của Thể loại đó
         sharedViewModel.getSongsByGenre(id).observe(getViewLifecycleOwner(), genreSongs -> {
+            loadingDialog.hideLoading();
             // MÁY QUAY 2: Xem giao diện nhận được bao nhiêu bài
             android.util.Log.d("DEBUG_UI", "Thể loại ID " + id + " nhận được: " + genreSongs.size() + " bài hát.");
 

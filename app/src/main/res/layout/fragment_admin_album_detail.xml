@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/melodix_bg_dark"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -15,26 +14,99 @@
         android:layout_marginBottom="16dp">
 
         <ImageButton
-            android:id="@+id/btnBackToAlbums"
+            android:id="@+id/btnBack"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_revert"
-            app:tint="@color/melodix_accent_green" />
+            android:src="@drawable/ic_back" />
 
         <TextView
-            android:id="@+id/tvDetailAlbumTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:text="Đang tải..."
-            android:textColor="@android:color/white"
+            android:text="Album details"
+            android:textColor="@color/black"
             android:textSize="20sp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvAlbumSongs"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imgAlbumCover"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/RoundedSquare"
+                android:src="@drawable/ic_music_placeholder" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="16dp">
+
+                <TextView
+                    android:id="@+id/tvAlbumName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tên Album"
+                    android:textSize="18sp"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/layoutActionButtons"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="12dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnApprove"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:text="Approve"
+                        app:backgroundTint="@color/mdx_main_color" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnReject"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Reject"
+                        app:backgroundTint="#F44336" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnHide"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="HIDE"
+                        android:textColor="@color/white"
+                        app:backgroundTint="#F44336"
+                        android:visibility="gone" /> </LinearLayout>
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Danh sách bài hát"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvAlbumSongs"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 </LinearLayout>

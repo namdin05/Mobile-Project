@@ -7,6 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="false"
+    android:background="@color/white"
     tools:context=".View.admin.AdminActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -17,7 +18,8 @@
             android:id="@+id/header_bg"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:background="@color/black" app:layout_constraintTop_toTopOf="parent"
+            android:background="@color/black"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="@+id/imgProfile"
             android:layout_marginBottom="-12dp" />
 
@@ -29,6 +31,7 @@
             android:layout_marginTop="30dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_menu"
+            android:visibility="gone"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/mdx_main_color" />
@@ -37,14 +40,15 @@
             android:id="@+id/tvAppTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="50dp"
+            android:paddingLeft="10dp"
             android:text="MELODIX"
             android:textColor="@color/mdx_main_color"
             android:textSize="20sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/btnMenu"
-            app:layout_constraintStart_toEndOf="@+id/btnMenu"
-            app:layout_constraintTop_toTopOf="@+id/btnMenu" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/imgProfile"
@@ -60,7 +64,6 @@
             app:layout_constraintTop_toTopOf="@+id/tvAppTitle"
             app:shapeAppearanceOverlay="@style/CircleAppearance"
             app:strokeColor="@color/white"
-
             app:strokeWidth="1dp" />
 
         <LinearLayout
@@ -97,12 +100,22 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginTop="16dp"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnMenu"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintTop_toBottomOf="@+id/header_bg"
+            app:layout_constraintBottom_toTopOf="@+id/mini_player_root" />
+
+        <include
+            android:id="@+id/mini_player_root"
+            layout="@layout/layout_mini_player"
+            android:layout_width="0dp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -114,9 +127,7 @@
         android:background="@color/melodix_card_bg"
         app:itemIconTint="@color/melodix_accent_green"
         app:itemTextColor="@android:color/white"
-
         android:fitsSystemWindows="true"
-
         app:menu="@menu/admin_menu"
         app:headerLayout="@layout/admin_nav_header"/>
 

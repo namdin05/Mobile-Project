@@ -25,8 +25,10 @@ public interface AdminAPIService {
     Call<List<AppMetric>> getAppMetrics();
 
     @GET("audit_logs?select=*&order=changed_at.desc")
-    Call<List<AuditLog>> getAuditLogs();
-
+    Call<List<AuditLog>> getAuditLogs(
+            @Query("limit") int limit,
+            @Query("offset") int offset
+    );
     @GET("user_request_to_artist?select=*,profiles(*)&status=eq.pending")
     Call<List<ArtistRequest>> getPendingArtistRequests();
 
@@ -43,4 +45,6 @@ public interface AdminAPIService {
             @Query("id") String userIdFilter,
             @Body Map<String, Object> body
     );
+
+
 }

@@ -33,6 +33,7 @@ import com.melodix.app.Model.Genre;
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
 import com.melodix.app.PlayerActivity;
+import com.melodix.app.Utils.LoadingDialog;
 import com.melodix.app.Utils.PlaybackUtils;
 import com.melodix.app.Utils.ShareUtils;
 import com.melodix.app.Utils.NetworkUtils;
@@ -52,11 +53,15 @@ public class HomeFragment extends Fragment {
     private Runnable sliderRunnable;
     private ImageView avatar;
     private TextView greeting;
+    private LoadingDialog loadingDialog;
 
     // logic
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        
+        loadingDialog = new LoadingDialog();
+        
         if (!NetworkUtils.isNetworkAvailable(requireContext())) {
 //            Toast.makeText(requireContext(), "Không có mạng. Vui lòng chuyển sang Library để nghe nhạc offline.", Toast.LENGTH_LONG).show();
             return;
@@ -68,11 +73,14 @@ public class HomeFragment extends Fragment {
         // danh sach bai hat thinh hanh
         RecyclerView rvTrending = view.findViewById(R.id.rv_trending);
 
+        loadingDialog.showLoading(requireActivity());
+
         // ==========================================
         // FETCH NEW RELEASE
         // ==========================================
         // goi API lay danh sach bai hat moi nhat
         viewModel.getNewReleases().observe(getViewLifecycleOwner(), songs -> {
+            loadingDialog.hideLoading();
             // goi song apdapter
             SongAdapter songAdapter = new SongAdapter(requireContext(), songs, new SongAdapter.OnSongActionListener() {
                 @Override

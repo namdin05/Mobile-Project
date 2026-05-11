@@ -21,6 +21,9 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.fragment.app.FragmentManager;
+
+
 
 import com.bumptech.glide.Glide;
 import com.melodix.app.R;
@@ -28,9 +31,10 @@ import com.melodix.app.Model.Profile;
 import com.melodix.app.Repository.AppRepository;
 import com.melodix.app.Utils.AppUiUtils;
 import com.melodix.app.Utils.SessionManager;
+import com.melodix.app.View.admin.AdminActivity;
 import com.melodix.app.View.artist.ManageSongActivity;
-import com.melodix.app.View.dialogs.PrivacySettingsBottomSheet;
-import com.melodix.app.View.dialogs.EditProfileDialog;
+import com.melodix.app.View.dialogs.ChangePasswordDialog;
+import com.melodix.app.View.profile.AdminProfileActivity;
 
 public class AccountFragment extends Fragment {
     private AppRepository repository;
@@ -81,11 +85,6 @@ public class AccountFragment extends Fragment {
                     }
                 });
 
-        // Nút Edit Profile
-        ImageButton btnEditProfile = view.findViewById(R.id.btn_edit_profile);
-        if (btnEditProfile != null) {
-            btnEditProfile.setOnClickListener(v -> showEditProfileDialog());
-        }
         if (btnPrivacySettings != null) {
             btnPrivacySettings.setOnClickListener(v -> {
                 PrivacySettingsBottomSheet sheet = PrivacySettingsBottomSheet.newInstance();
@@ -149,6 +148,13 @@ public class AccountFragment extends Fragment {
             if (myId != null) com.melodix.app.Utils.ShareUtils.shareContent(requireContext(), "user", myId, myName);
         });
 
+        view.findViewById(R.id.btn_edit_profile).setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), AdminProfileActivity.class);
+            intent.putExtra("CURRENT_NAME", SessionManager.getInstance(requireContext()).getUserName());
+            intent.putExtra("CURRENT_AVATAR", SessionManager.getInstance(requireContext()).getUserAvatar());
+            startActivity(intent);
+        });
+
         btnRequestArtist.setOnClickListener(v -> {
             // ĐÃ SỬA: Gọi SessionManager
             String myId = SessionManager.getInstance(requireContext()).getUserId();
@@ -171,6 +177,7 @@ public class AccountFragment extends Fragment {
 
         return view;
     }
+
 
     @Override
     public void onResume() {

@@ -299,12 +299,6 @@ public class PlayerActivity extends AppCompatActivity {
         findViewById(R.id.btn_next).setOnClickListener(v -> PlaybackUtils.sendAction(this, AudioPlayerService.ACTION_NEXT));
         btnPlayPause.setOnClickListener(v -> PlaybackUtils.sendAction(this, AudioPlayerService.ACTION_TOGGLE_PLAY));
 
-        findViewById(R.id.btn_ai_summary).setOnClickListener(v -> {
-            if (currentSong != null) {
-                ((TextView) findViewById(R.id.tv_ai_summary)).setText(repository.getAiSummaryForSong(currentSong.getId()));
-            }
-        });
-
         ImageButton btnLoop = findViewById(R.id.btn_loop);
         btnLoop.setOnClickListener(v -> {
             AudioPlayerService.toggleLoop();
@@ -390,9 +384,6 @@ public class PlayerActivity extends AppCompatActivity {
         // 1. CHUẨN BỊ GIAO DIỆN LỜI BÀI HÁT
         RecyclerView rvLyrics = findViewById(R.id.rv_lyrics);
 
-        // Hiện thông báo đang tải (Tùy chọn)
-        ((TextView) findViewById(R.id.tv_ai_summary)).setText("Đang tải lời bài hát...");
-
         // 2. GỌI HÀM TẢI FILE LRC TỪ MẠNG
         LyricUtils.downloadAndParseLrc(currentSong.getLyricsUrl(), new LyricUtils.LyricCallback() {
             @Override
@@ -433,7 +424,6 @@ public class PlayerActivity extends AppCompatActivity {
                 }
             }
         });
-        ((TextView) findViewById(R.id.tv_ai_summary)).setText("Tap the button above to generate AI summary from listeners' comments.");
     }
 
     private void updatePlaybackUi(int position, int duration, boolean playing) {

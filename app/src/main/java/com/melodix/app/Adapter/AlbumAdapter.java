@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide;
 import com.melodix.app.Model.Album;
 import com.melodix.app.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHolder> {
@@ -33,6 +34,12 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
         this.listener = listener;
     }
 
+    public void update(ArrayList<Album> newAlbums) {
+        this.albumList.clear();
+        this.albumList.addAll(newAlbums);
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public AlbumViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -45,7 +52,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
         Album album = albumList.get(position);
 
         holder.tvTitle.setText(album.getTitle());
-        holder.tvYear.setText("Phát hành: " + album.getReleaseYear());
+        holder.tvYear.setText("Release: " + album.getReleaseYear());
 
         Glide.with(context)
                 .load(album.getCoverUrl())

@@ -223,13 +223,13 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardPlaylists"
+                android:id="@+id/cardLog"
                 style="@style/MelodixDashCard">
                 <RelativeLayout style="@style/MelodixDashContent">
-                    <ImageView android:id="@+id/iconPlaylists" style="@style/MelodixDashIcon" android:src="@drawable/ic_playlist" />
-                    <TextView style="@style/MelodixDashLabel" android:layout_toEndOf="@id/iconPlaylists" android:text="Playlists" />
+                    <ImageView android:id="@+id/iconPlaylists" style="@style/MelodixDashIcon" android:src="@drawable/ic_history" />
+                    <TextView style="@style/MelodixDashLabel" android:layout_toEndOf="@id/iconPlaylists" android:text="Logs" />
                     <ImageView style="@style/MelodixDashArrow" />
-                    <TextView android:id="@+id/tvTotalPlaylists" style="@style/MelodixDashValue" android:layout_below="@id/iconPlaylists" android:text="..." />
+                    <TextView android:id="@+id/tvTotalPlaylists" style="@style/MelodixDashValue" android:layout_below="@id/iconPlaylists" android:text="System logs" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 

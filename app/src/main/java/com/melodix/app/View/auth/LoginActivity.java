@@ -1,6 +1,7 @@
 package com.melodix.app.View.auth;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,47 +13,46 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.melodix.app.Constants;
+import com.melodix.app.Utils.LoadingDialog;
 import com.melodix.app.View.admin.AdminActivity;
 import com.melodix.app.BuildConfig;
 import com.melodix.app.MainActivity;
-import com.melodix.app.Utils.SessionManager; // IMPORT CLASS SESSION
+import com.melodix.app.Utils.SessionManager; 
 import com.melodix.app.R;
+import com.melodix.app.View.dialogs.ForgotPasswordDialog;
 import com.melodix.app.ViewModel.AuthViewModel;
+
+import java.net.URLDecoder;
 
 public class LoginActivity extends AppCompatActivity {
 
     private AuthViewModel authViewModel;
     private EditText edtEmail, edtPassword;
     private Button btnLoginEmail, btnLoginGoogle, btnLoginFacebook;
-    private TextView tvGoToRegister;
-
-    private static final String BASE_URL = BuildConfig.BASE_URL;
+    private TextView tvGoToRegister, tvForgotPassword;
+    private LoadingDialog loadingDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        loadingDialog = new LoadingDialog();
 
-        // =========================================================
-        // KIỂM TRA AUTO-LOGIN BẰNG SESSION MANAGER
-        // =========================================================
+        Intent intent = getIntent();
+        Uri uri = intent.getData();
+
+        boolean isFromDeepLink = (uri != null && "https".equals(uri.getScheme()) && uri.getHost() != null && uri.getHost().contains("github.io"));
         SessionManager sessionManager = SessionManager.getInstance(this);
 
-        // In log ra để xem rốt cuộc két sắt đang thiếu cái gì
-        Log.e("DEBUG_SESSION", "Có Session không: " + sessionManager.hasSession());
-        Log.e("DEBUG_SESSION", "User ID: " + sessionManager.getUserId());
-        Log.e("DEBUG_SESSION", "Token: " + sessionManager.getAccessToken());
-        if (sessionManager.hasSession()) {
+        if (!isFromDeepLink && sessionManager.hasSession()) {
             String role = sessionManager.getRole();
-            if ("admin".equals(role)) {
-                startActivity(new Intent(LoginActivity.this, AdminActivity.class));
-            } else {
-                startActivity(new Intent(LoginActivity.this, MainActivity.class));
-            }
+            navigateToNextScreen(role);
             finish();
-            return; // Thoát ngay không load UI nữa
+            return;
         }
 
         setContentView(R.layout.activity_login);
+        handleRedirectLink(getIntent());
 
         authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
@@ -62,6 +62,11 @@ public class LoginActivity extends AppCompatActivity {
         btnLoginGoogle = findViewById(R.id.btnLoginGoogle);
         btnLoginFacebook = findViewById(R.id.btnLoginFacebook);
         tvGoToRegister = findViewById(R.id.tvGoToRegister);
+        tvForgotPassword = findViewById(R.id.tvForgotPassword);
+
+        tvForgotPassword.setOnClickListener(v -> {
+            ForgotPasswordDialog.newInstance().show(getSupportFragmentManager(), "forgot_password");
+        });
 
         btnLoginEmail.setOnClickListener(v -> {
             String email = edtEmail.getText().toString().trim();
@@ -70,19 +75,28 @@ public class LoginActivity extends AppCompatActivity {
             if (email.isEmpty() || pass.isEmpty()) {
                 Toast.makeText(LoginActivity.this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
             } else {
+                loadingDialog.showLoading(LoginActivity.this);
                 authViewModel.login(email, pass).observe(this, loginResult -> {
                     if (loginResult.isSuccess()) {
                         String role = loginResult.getRole();
+                        String userId = loginResult.getUserId();
 
-                        if ("admin".equals(role)) {
-                            Toast.makeText(LoginActivity.this, "Xin chào Quản trị viên!", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(LoginActivity.this, AdminActivity.class));
+                        SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
+                        String pendingAvatarBase64 = prefs.getString("PENDING_AVATAR", null);
+                        String pendingFullName = prefs.getString("PENDING_FULL_NAME", null);
+
+                        if (pendingAvatarBase64 != null && pendingFullName != null) {
+                            byte[] imageBytes = android.util.Base64.decode(pendingAvatarBase64, android.util.Base64.DEFAULT);
+                            authViewModel.uploadPendingAvatar(userId, imageBytes, pendingFullName).observe(this, uploadResult -> {
+                                prefs.edit().remove("PENDING_AVATAR").remove("PENDING_FULL_NAME").apply();
+                                navigateToNextScreen(role);
+                            });
                         } else {
-                            Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                            navigateToNextScreen(role);
                         }
                         finish();
                     } else {
+                        loadingDialog.hideLoading();
                         Toast.makeText(LoginActivity.this, loginResult.getErrorMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
@@ -98,62 +112,94 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        Intent intent = getIntent();
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleRedirectLink(intent);
+    }
+
+    private void navigateToNextScreen(String role) {
+        if ("admin".equals(role)) {
+            Toast.makeText(LoginActivity.this, "Xin chào Quản trị viên!", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(LoginActivity.this, AdminActivity.class));
+        } else {
+            Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+        }
+        loadingDialog.hideLoading();
+    }
+
+    private void socialLogin(String provider) {
+        String redirectUrl = Constants.MELODIX_AUTH;
+        String authUrl = BuildConfig.BASE_URL + "auth/v1/authorize?provider=" + provider + "&redirect_to=" + Uri.encode(redirectUrl);
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(authUrl));
+        startActivity(browserIntent);
+    }
+
+    private void handleRedirectLink(Intent intent) {
         Uri uri = intent.getData();
+        if (uri == null) return;
 
-        // ĐÃ SỬA: Kiểm tra chính xác scheme là "melodix" và host là "callback"
-        if (uri != null && "melodix".equals(uri.getScheme()) && "callback".equals(uri.getHost())) {
+        boolean isGithubLink = "https".equals(uri.getScheme()) && uri.getHost() != null && uri.getHost().contains("github.io");
+        boolean isFallbackLink = "melodix".equals(uri.getScheme()) && "auth".equals(uri.getHost());
 
+        if (isGithubLink || isFallbackLink) {
             String fragment = uri.getFragment();
             if (fragment != null) {
-                String[] params = fragment.split("&");
                 String accessToken = null;
+                String refreshToken = null;
+                String type = null;
+                String errorDescription = null;
 
+                String[] params = fragment.split("&");
                 for (String param : params) {
                     if (param.startsWith("access_token=")) {
                         accessToken = param.split("=")[1];
-                        break;
+                    } else if (param.startsWith("refresh_token=")) {
+                        refreshToken = param.split("=")[1];
+                    } else if (param.startsWith("type=")) {
+                        type = param.split("=")[1];
+                    } else if (param.startsWith("error_description=")) {
+                        errorDescription = param.split("=")[1];
                     }
                 }
 
+                // XỬ LÝ LỖI TRƯỚC (Ví dụ: Bị ban)
+                if (errorDescription != null) {
+                    try {
+                        String decodedError = URLDecoder.decode(errorDescription, "UTF-8").replace("+", " ");
+                        if (decodedError.toLowerCase().contains("banned")) {
+                            decodedError = "Tài khoản của bạn đã bị khóa bởi quản trị viên.";
+                        }
+                        Toast.makeText(this, decodedError, Toast.LENGTH_LONG).show();
+                    } catch (Exception e) {
+                        Toast.makeText(this, "Lỗi đăng nhập Social", Toast.LENGTH_SHORT).show();
+                    }
+                    intent.setData(null);
+                    return;
+                }
+
                 if (accessToken != null) {
-                    intent.setData(null); // Xóa link đi để khỏi lặp lại
+                    intent.setData(null);
+                    if ("recovery".equals(type)) {
+                        Intent resetIntent = new Intent(this, ResetPasswordActivity.class);
+                        resetIntent.putExtra("RECOVERY_TOKEN", accessToken);
+                        startActivity(resetIntent);
+                        return;
+                    }
 
-                    Toast.makeText(this, "Waiting...", Toast.LENGTH_SHORT).show();
-                    Log.e("SOCIAL_LOGIN", "0. Đã chộp được Token: " + accessToken);
-
-                    authViewModel.handleSocialLoginToken(accessToken).observe(this, loginResult -> {
+                    loadingDialog.showLoading(this);
+                    authViewModel.handleSocialLoginToken(accessToken, refreshToken).observe(this, loginResult -> {
                         if (loginResult.isSuccess()) {
-                            String role = loginResult.getRole();
-
-                            if ("admin".equals(role)) {
-                                Toast.makeText(this, "Hi! Admin.", Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(LoginActivity.this, AdminActivity.class));
-                            } else {
-                                Toast.makeText(this, "Welcome!", Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                            }
+                            navigateToNextScreen(loginResult.getRole());
                             finish();
                         } else {
+                            loadingDialog.hideLoading();
                             Toast.makeText(LoginActivity.this, loginResult.getErrorMessage(), Toast.LENGTH_LONG).show();
                         }
                     });
                 }
             }
         }
-    }
-
-    private void socialLogin(String provider) {
-        String authUrl = BASE_URL + "auth/v1/authorize?provider=" + provider + "&redirect_to=melodix://callback";
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(authUrl));
-        startActivity(browserIntent);
-    }
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent);
     }
 }

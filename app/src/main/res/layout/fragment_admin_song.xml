@@ -5,6 +5,32 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Back"
+        android:padding="12dp"
+        android:src="@drawable/ic_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/black" />
+
+    <TextView
+        android:id="@+id/tvPageTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="SONG"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/btnBack"
+        app:layout_constraintStart_toEndOf="@+id/btnBack"
+        app:layout_constraintTop_toTopOf="@+id/btnBack" />
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilStatusFilter"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
@@ -14,7 +40,7 @@
         android:layout_marginEnd="20dp"
         app:hintEnabled="false"
         app:boxStrokeColor="@color/white"
-        app:boxBackgroundColor="@color/melodix_accent_green"
+        app:boxBackgroundColor="@color/mdx_main_color"
         app:endIconTint="@color/melodix_text_secondary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">

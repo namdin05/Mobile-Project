@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.melodix.app.Model.Song;
 import com.melodix.app.R;
+import com.melodix.app.Utils.LoadingDialog;
 import com.melodix.app.Utils.SongActionHelper;
 import com.melodix.app.View.adapters.SongAdapter;
 import com.melodix.app.ViewModel.SongViewModel;
@@ -28,9 +29,10 @@ public class SongManagementFragment extends Fragment {
     private AutoCompleteTextView actvStatus;
     private SongAdapter songAdapter;
 
-    private List<Song> fullSongList = new ArrayList<>(); // Chứa toàn bộ bài hát từ API
-    private List<Song> currentDisplayList = new ArrayList<>(); // Chứa danh sách ĐANG hiển thị trên màn hình
+    private List<Song> fullSongList = new ArrayList<>(); 
+    private List<Song> currentDisplayList = new ArrayList<>(); 
     private SongViewModel viewModel;
+    private LoadingDialog loadingDialog;
 
     @Nullable
     @Override
@@ -42,26 +44,34 @@ public class SongManagementFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        loadingDialog = new LoadingDialog();
+
         rvAllSongs = view.findViewById(R.id.rvAllSongs);
         actvStatus = view.findViewById(R.id.actvStatus);
 
-        // 1. Khởi tạo RecyclerView 1 lần duy nhất
         setupRecyclerView();
 
-        // 2. Thiết lập Dropdown
         setupStatusFilter();
 
-        // 3. Khởi tạo ViewModel và Quan sát (Observe)
         viewModel = new ViewModelProvider(this).get(SongViewModel.class);
 
+        loadingDialog.showLoading(requireActivity());
         viewModel.getAllSong().observe(getViewLifecycleOwner(), songs -> {
+            loadingDialog.hideLoading();
             if (songs != null) {
                 this.fullSongList = songs;
                 this.currentDisplayList = new ArrayList<>(songs);
 
-                // Xử lý bộ lọc ngầm: Khi có data mới, phải lọc lại theo Dropdown hiện tại
                 String currentFilter = actvStatus.getText().toString();
-                filterSongsByStatus(currentFilter); // Thay bằng hàm lọc của bạn nếu tên khác
+                filterSongsByStatus(currentFilter);
+            }
+        });
+
+        view.findViewById(R.id.btnBack).setOnClickListener(v -> {
+            if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                getParentFragmentManager().popBackStack();
+            } else {
+                requireActivity().onBackPressed();
             }
         });
     }
@@ -70,7 +80,6 @@ public class SongManagementFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        // Giữ nguyên thiết lập Dropdown
         String[] statuses = {"All", "Pending", "Approved", "Rejected"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 requireContext(),
@@ -79,25 +88,17 @@ public class SongManagementFragment extends Fragment {
         );
         actvStatus.setAdapter(adapter);
 
-        // =================================================================
-        // GỌI HÀM FETCH API TRONG VIEWMODEL ĐỂ LẤY DATA MỚI NHẤT TỪ SUPABASE
-        // =================================================================
         if (!fullSongList.isEmpty()) {
             String currentFilter = actvStatus.getText().toString();
             if (currentFilter.isEmpty()) currentFilter = "All";
-
-            // Hàm filter này sẽ tự động quét lại fullSongList.
-            // Nếu bài đó đã bị bạn setStatus thành "Approved" thì nó sẽ tự rớt khỏi list "Pending"
             filterSongsByStatus(currentFilter);
         }
     }
 
     private void setupRecyclerView() {
-        // Đã khắc phục lỗi trống logic click ở đây
         songAdapter = new SongAdapter(requireContext(), new ArrayList<>(), new SongAdapter.OnSongActionListener() {
             @Override
             public void onSongClick(Song song, int position) {
-                // Truyền currentDisplayList để PlaybackUtils lấy đúng danh sách đang lọc làm Queue
                 SongActionHelper.playSongAndSetQueue(requireContext(), song, currentDisplayList);
             }
 
@@ -107,12 +108,14 @@ public class SongManagementFragment extends Fragment {
             }
         });
 
+        // KÍCH HOẠT CHẾ ĐỘ ADMIN: Ẩn nút More (menu dành cho người dùng)
+        songAdapter.setAdminMode(true);
+
         rvAllSongs.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvAllSongs.setAdapter(songAdapter);
     }
 
     private void setupStatusFilter() {
-
         actvStatus.setOnItemClickListener((parent, view, position, id) -> {
             String selectedStatus = parent.getItemAtPosition(position).toString();
             filterSongsByStatus(selectedStatus);
@@ -130,7 +133,6 @@ public class SongManagementFragment extends Fragment {
                 }
             }
         }
-        // Chỉ dùng 1 hàm update duy nhất, KHÔNG tạo lại Adapter
         songAdapter.update(new ArrayList<>(currentDisplayList));
     }
 }

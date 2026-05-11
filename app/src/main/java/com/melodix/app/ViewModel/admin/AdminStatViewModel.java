@@ -9,7 +9,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.melodix.app.Model.AppMetric;
 import com.melodix.app.Model.ArtistRequest;
-import com.melodix.app.Repository.admin.AdminRepository;
+import com.melodix.app.Repository.AdminRepository;
 
 import java.util.List;
 
