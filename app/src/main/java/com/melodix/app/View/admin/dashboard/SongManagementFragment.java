@@ -28,7 +28,6 @@ public class SongManagementFragment extends Fragment {
     private RecyclerView rvAllSongs;
     private AutoCompleteTextView actvStatus;
     private SongAdapter songAdapter;
-
     private List<Song> fullSongList = new ArrayList<>(); 
     private List<Song> currentDisplayList = new ArrayList<>(); 
     private SongViewModel viewModel;

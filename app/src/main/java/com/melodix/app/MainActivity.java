@@ -337,9 +337,6 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    // Hàm Lễ tân phân loại link
-// Lễ tân phân loại link
-// Lễ tân phân loại link
     private void handleDeepLink(android.content.Intent intent) {
         if (intent != null && android.content.Intent.ACTION_VIEW.equals(intent.getAction())) {
             android.net.Uri data = intent.getData();

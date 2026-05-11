@@ -38,7 +38,6 @@ public class AdminRepository {
             @Override
             public void onResponse(Call<List<AppMetric>> call, Response<List<AppMetric>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // 2. CÓ DỮ LIỆU THÌ ĐẨY VÀO HỘP NGAY LẬP TỨC BẰNG setValue()
                     appMetricLiveData.setValue(response.body());
                     Log.e("ADMIN_STAT", "Lấy dữ liệu thống kê thành công: " + response.body().size() + " dòng");
 
@@ -54,8 +53,6 @@ public class AdminRepository {
                 appMetricLiveData.setValue(null);
             }
         });
-
-        // 3. Trả cái hộp về cho ViewModel (lúc này hộp rỗng, nhưng 1 giây sau Retrofit chạy xong sẽ tự động bơm data vào)
         return appMetricLiveData;
     }
 
@@ -68,9 +65,7 @@ public class AdminRepository {
                 if (response.isSuccessful() && response.body() != null)
                 {
                     artistRequests.setValue(response.body());
-                }
-                else
-                {
+                } else {
                     Log.e("AdminLog", "Lỗi tải dữ liệu: " + response.code());
                     artistRequests.setValue(null);
                 }

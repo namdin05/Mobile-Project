@@ -31,7 +31,7 @@ import java.util.List;
 
 public class AdminStatFragment extends Fragment {
     private TextView tvLastSync, tvTotalUsers, tvTotalListeners, tvTotalArtists, tvTotalAdmins,
-            tvTotalSongs, tvTotalAlbums, tvTotalGenres, tvTotalPlaylists;
+            tvTotalSongs, tvTotalAlbums, tvTotalGenres;
 
     private MaterialCardView badgeArtistReqs;
     private TextView tvPendingArtistReqs;
@@ -60,8 +60,6 @@ public class AdminStatFragment extends Fragment {
         MaterialCardView cardAlbums = view.findViewById(R.id.cardAlbums);
         MaterialCardView cardGenres = view.findViewById(R.id.cardGenres);
         MaterialCardView cardLogs = view.findViewById(R.id.cardLog);
-
-
 
         // 2. Ánh xạ View cho các TextView hiển thị số liệu
         tvLastSync = view.findViewById(R.id.tvLastSync);

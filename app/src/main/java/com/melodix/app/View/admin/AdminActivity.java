@@ -132,10 +132,6 @@ public class AdminActivity extends AppCompatActivity {
                 selectedFragment = new AdminStatFragment();
                 tvAppTitle.setText("DASHBOARD");
             }
-//            } else if (itemId == R.id.nav_log) {
-//                selectedFragment = new AdminLogFragment();
-//                tvAppTitle.setText("LOG");
-//            }
 
             if (selectedFragment != null) {
                 getSupportFragmentManager().beginTransaction()
