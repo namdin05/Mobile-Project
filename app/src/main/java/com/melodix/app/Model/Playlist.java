@@ -18,6 +18,9 @@ public class Playlist implements Serializable {
     public String coverRes;
     @SerializedName("is_public")
     public boolean isPublic = true;
+
+    @SerializedName("is_liked_playlist")
+    public boolean isLikedPlaylist = false;
     public boolean pinned;
     public int songCount = 0;
     public ArrayList<String> songIds = new ArrayList<>();

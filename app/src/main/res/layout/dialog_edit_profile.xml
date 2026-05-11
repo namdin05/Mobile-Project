@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -20,50 +21,54 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chỉnh sửa Playlist"
+            android:text="Chỉnh sửa Hồ sơ"
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="@color/mdx_text" />
 
+        <!-- Avatar Preview -->
         <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/img_cover_preview"
+            android:id="@+id/img_avatar_preview"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="20dp"
-            android:src="@drawable/ic_music_placeholder"
-            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Melodix.Cover.Small" />
+            android:src="@drawable/circle_placeholder"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Melodix.Cover.Small"
+            android:scaleType="centerCrop" />
 
+        <!-- Nút chọn ảnh -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_pick_cover"
+            android:id="@+id/btn_pick_avatar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="12dp"
-            android:text="Chọn ảnh bìa"
+            android:text="Chọn ảnh đại diện"
             app:icon="@drawable/ic_camera"
             style="@style/Widget.MaterialComponents.Button.TextButton" />
 
+        <!-- Tên hiển thị -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:hint="Tên playlist"
+            android:hint="Tên hiển thị"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             app:boxCornerRadiusTopStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
             app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusBottomEnd="12dp"
-            android:clipChildren="true"
-            android:clipToPadding="true">
+            app:boxCornerRadiusBottomEnd="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/edt_playlist_name"
+                android:id="@+id/edt_display_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPersonName" />
+                android:inputType="textPersonName"
+                android:maxLength="50" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Hai nút hành động -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

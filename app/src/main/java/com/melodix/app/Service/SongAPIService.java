@@ -2,12 +2,14 @@ package com.melodix.app.Service;
 
 import com.melodix.app.Model.Song;
 import com.melodix.app.Model.StatusUpdateRequest;
-
+import com.melodix.app.Model.ListenHistoryItem;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.POST;
 import retrofit2.http.Header;
 import retrofit2.http.PATCH;
 import retrofit2.http.Query;
@@ -36,6 +38,25 @@ public interface SongAPIService {
             @Query("id") String idFilter,
             @Body StatusUpdateRequest body
     );
+
+    @GET("listen_history?select=*,songs!inner(*,song_artists!inner(artist_id,profiles!inner(display_name)))&order=listened_at.desc")
+    Call<List<ListenHistoryItem>> getRecentListenHistory(
+            @Query(value = "user_id", encoded = true) String userIdFilter,
+            @Query("limit") int limit
+    );
+
+    @GET("listen_history_view")
+    Call<List<ListenHistoryItem>> getListenHistoryFromView(
+            @Query(value = "user_id", encoded = true) String userIdFilter,
+            @Query("limit") int limit
+    );
+
+    @POST("rpc/upsert_listen_history")
+    Call<Void> upsertListenHistory(@Body Map<String, Object> body);
+
+    @POST("listen_history")
+    Call<Void> insertListenHistory(@Body Map<String, Object> body);
+
 
 
     // Gọi hàm RPC từ Supabase bằng phương thức POST

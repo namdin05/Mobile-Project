@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -43,7 +44,7 @@ public class UserProfileActivity extends AppCompatActivity {
     private boolean isFollowing = false;
     private int followerCount = 0;
     private int followingCount = 0;
-
+    private boolean showPlaylists = true;
     private String targetUserId;
     private String myUserId;
     // KHAI BÁO ADAPTER: Sếp mở comment và đổi tên cho khớp với Adapter hiển thị Playlist của sếp nhé!
@@ -64,8 +65,8 @@ public class UserProfileActivity extends AppCompatActivity {
         }
 
         initViews();
-        loadUserInfo(userId);
-        loadUserPlaylists(userId);
+//        loadUserInfo(userId);
+//        loadUserPlaylists(userId);
         targetUserId = userId;
 
         // Lấy ID của chính mình từ AppRepository
@@ -73,7 +74,7 @@ public class UserProfileActivity extends AppCompatActivity {
         // 👇 LẤY ID CHUẨN TỪ SHAREDPREFERENCES CỦA SẾP 👇
         android.content.SharedPreferences prefs = getSharedPreferences("MelodixPrefs", android.content.Context.MODE_PRIVATE);
         myUserId = prefs.getString("USER_ID", null);
-
+        loadUserInfo(userId);
         // Tải số lượng thống kê
         loadFollowerCount();
         loadFollowingCount();
@@ -108,10 +109,21 @@ public class UserProfileActivity extends AppCompatActivity {
             public void onResponse(Call<List<Profile>> call, Response<List<Profile>> response) {
                 // Lớp giáp 2: Chống crash nếu user đã thoát ra lúc mạng đang load
                 if (isFinishing() || isDestroyed()) return;
+                android.util.Log.d("USER_PROFILE_DEBUG", "Response code: " + response.code());
+                android.util.Log.d("USER_PROFILE_DEBUG", "Response body: " +
+                        new com.google.gson.Gson().toJson(response.body()));
 
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                     Profile profile = response.body().get(0);
 
+                    android.util.Log.d("USER_PROFILE_DEBUG", "Response code: " + response.code());
+                    android.util.Log.d("USER_PROFILE_DEBUG", "Response body: " +
+                            new com.google.gson.Gson().toJson(response.body()));
+
+                    showPlaylists = profile.isShowPlaylists();
+                    if (rvPlaylists != null) {
+                        rvPlaylists.setVisibility(showPlaylists ? View.VISIBLE : View.GONE);
+                    }
                     // 1. Hiển thị Tên
                     tvName.setText(profile.getDisplayName() != null ? profile.getDisplayName() : "Người dùng Melodix");
 
@@ -125,6 +137,9 @@ public class UserProfileActivity extends AppCompatActivity {
                     } else {
                         // Nếu user chưa có avatar thì set ảnh mặc định
                         imgAvatar.setImageResource(R.drawable.circle_placeholder);
+                    }
+                    if (showPlaylists) {
+                        loadUserPlaylists(userId);
                     }
                 } else {
                     tvName.setText("Người dùng ẩn danh");
@@ -140,6 +155,10 @@ public class UserProfileActivity extends AppCompatActivity {
     }
 
     private void loadUserPlaylists(String userId) {
+        if (rvPlaylists == null || rvPlaylists.getVisibility() == View.GONE) {
+            android.util.Log.d("PLAYLIST_PRIVACY", "Người dùng đã tắt hiển thị playlist → Không load");
+            return;
+        }
         PlaylistRepository playlistRepo = new PlaylistRepository(this);
 
         playlistRepo.getUserPlaylists(userId, new Callback<List<Playlist>>() {
@@ -191,12 +210,14 @@ public class UserProfileActivity extends AppCompatActivity {
 
                                         // KHI ĐÃ ĐẾM XONG TOÀN BỘ -> MỚI RÁP ADAPTER VÀO
                                         runOnUiThread(() -> {
-                                            PlaylistAdapter adapter = new PlaylistAdapter(UserProfileActivity.this, publicPlaylists, playlist -> {
-                                                Intent intent = new Intent(UserProfileActivity.this, com.melodix.app.View.PlaylistDetailActivity.class);
-                                                intent.putExtra("extra_playlist_id", playlist.id);
-                                                startActivity(intent);
-                                            });
-                                            rvPlaylists.setAdapter(adapter);
+                                            if (rvPlaylists != null && rvPlaylists.getVisibility() == View.VISIBLE) {
+                                                PlaylistAdapter adapter = new PlaylistAdapter(UserProfileActivity.this, publicPlaylists, playlist -> {
+                                                    Intent intent = new Intent(UserProfileActivity.this, com.melodix.app.View.PlaylistDetailActivity.class);
+                                                    intent.putExtra("extra_playlist_id", playlist.id);
+                                                    startActivity(intent);
+                                                });
+                                                rvPlaylists.setAdapter(adapter);
+                                            }
                                         });
                                     }
                                 }

@@ -130,7 +130,10 @@
         <activity android:name=".View.ArtistSongsActivity" android:exported="false" />
         <activity android:name=".View.ArtistAlbumsActivity" android:exported="false" />
         <activity android:name=".View.PlaylistDetailActivity" android:exported="false" />
-
+        <!-- Recent History -->
+        <activity
+            android:name=".View.RecentHistoryActivity"
+            android:exported="false" />
         <!--SERVICE-->
         <service
             android:name=".Service.AudioPlayerService"

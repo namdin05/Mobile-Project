@@ -28,8 +28,9 @@ public interface ProfileAPIService  {
             @Query("username") String emailFilter
     );
 
-    @Headers("Cache-Control: no-cache")
-    @GET("profiles?select=display_name,avatar_url, role")
+    // Lấy thông tin của 1 user cụ thể dựa vào ID
+    @retrofit2.http.Headers("Cache-Control: no-cache")
+    @GET("profiles?select=display_name,avatar_url,role,show_playlists,show_recent_artists")
     Call<List<Profile>> getProfileById(
             @Query("id") String idFilter
     );
@@ -47,11 +48,24 @@ public interface ProfileAPIService  {
             @Body Map<String, Object> bodyData
     );
 
-    @HEAD("follows")
+    // Cập nhật cài đặt quyền riêng tư
+    @PATCH("profiles")
+    Call<Void> updatePrivacySettings(
+            @Query("id") String idFilter,
+            @Body Map<String, Object> body
+    );
+    @GET("profiles")
+    Call<List<Profile>> getProfileByEmail(
+            @Query("username") String emailFilter
+    );
+
+
+    @retrofit2.http.HEAD("follows")
     Call<Void> getFollowerCount(
             @Header("Prefer") String preferCount, // Bắt buộc truyền "count=exact"
             @Query("artist_id") String artistIdQuery
     );
+  
     @HEAD("follows")
     Call<Void> getFollowingCount(
             @Header("Prefer") String preferCount,

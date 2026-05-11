@@ -70,6 +70,9 @@ public class PlayerActivity extends AppCompatActivity {
     private TextView tvElapsed;
     private TextView tvTotal;
     private ImageButton btnPlayPause;
+    private ImageButton btnLike;
+    private ImageButton btnAddToPlaylist;
+
     private boolean isUserSeeking = false;
     private int currentLyricIndex = -1;
     private boolean isAutoPlay = false;
@@ -148,7 +151,8 @@ public class PlayerActivity extends AppCompatActivity {
         layoutAdminActions = findViewById(R.id.layoutAdminActions);
         btnApprove = findViewById(R.id.btnApprove);
         btnReject = findViewById(R.id.btnReject);
-
+        btnLike = findViewById(R.id.btn_like);
+        btnAddToPlaylist = findViewById(R.id.btn_add_to_playlist);
         // 1. ƯU TIÊN CAO NHẤT: Mở từ File Manager (My Files)
         Uri data = getIntent().getData();
         if (data != null && "content".equals(data.getScheme())) {
@@ -237,6 +241,19 @@ public class PlayerActivity extends AppCompatActivity {
                 layoutAdminActions.setVisibility(View.GONE);
                 currentSong.setStatus("rejected");
                 songViewModel.updateSongStatus(currentSong.getId(), "rejected");
+            }
+        });
+
+        // Like button
+        btnLike.setOnClickListener(v -> {
+            if (currentSong != null) {
+                handleLikeSong(currentSong);
+            }
+        });
+
+        btnAddToPlaylist.setOnClickListener(v -> {
+            if (currentSong != null) {
+                showPlaylistSelectionDialog(currentSong);
             }
         });
 
@@ -363,7 +380,7 @@ public class PlayerActivity extends AppCompatActivity {
         tvTotal.setText(TimeUtils.formatDuration(currentSong.getDurationSeconds()));
 
         Glide.with(this).load(currentSong.getCoverUrl()).into(cover);
-
+        checkLikeStatus();
         // 1. CHUẨN BỊ GIAO DIỆN LỜI BÀI HÁT
         RecyclerView rvLyrics = findViewById(R.id.rv_lyrics);
 
@@ -687,6 +704,90 @@ public class PlayerActivity extends AppCompatActivity {
                 finish(); // Không tải được bài gốc thì đóng Activity luôn cho rảnh nợ sếp ạ
             }
         });
+    }
+
+    private void handleLikeSong(Song song) {
+        // Gọi lại hàm đã có trong SongAdapter
+        android.content.SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
+        String userId = prefs.getString("USER_ID", null);
+
+        if (userId == null) {
+            Toast.makeText(this, "Vui lòng đăng nhập để like", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        com.melodix.app.Repository.PlaylistRepository playlistRepo =
+                new com.melodix.app.Repository.PlaylistRepository(this);
+
+        playlistRepo.toggleLikeSong(userId, song.getId(), new retrofit2.Callback<Boolean>() {
+            @Override
+            public void onResponse(retrofit2.Call<Boolean> call, retrofit2.Response<Boolean> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    boolean liked = response.body();
+                    btnLike.setImageResource(liked ? R.drawable.ic_heart_filled : R.drawable.ic_heart);
+                    btnLike.setColorFilter(liked ?
+                            ContextCompat.getColor(PlayerActivity.this, R.color.mdx_primary) :
+                            ContextCompat.getColor(PlayerActivity.this, R.color.mdx_text));
+
+                    Toast.makeText(PlayerActivity.this,
+                            liked ? "❤️ Đã thích" : "♡ Đã bỏ thích", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<Boolean> call, Throwable t) {
+                Toast.makeText(PlayerActivity.this, "Lỗi: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void checkLikeStatus() {
+        if (currentSong == null || btnLike == null) return;
+
+        String userId = getSharedPreferences("MelodixPrefs", MODE_PRIVATE)
+                .getString("USER_ID", null);
+
+        if (userId == null) {
+            btnLike.setImageResource(R.drawable.ic_heart);
+            return;
+        }
+
+        com.melodix.app.Repository.PlaylistRepository repo =
+                new com.melodix.app.Repository.PlaylistRepository(this);
+
+        repo.isSongLiked(userId, currentSong.getId(), new retrofit2.Callback<Boolean>() {
+            @Override
+            public void onResponse(retrofit2.Call<Boolean> call, retrofit2.Response<Boolean> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    boolean isLiked = response.body();
+                    updateLikeButtonUI(isLiked);
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<Boolean> call, Throwable t) {
+                // Mặc định là chưa like nếu lỗi
+                updateLikeButtonUI(false);
+            }
+        });
+    }
+
+    private void updateLikeButtonUI(boolean isLiked) {
+        if (btnLike != null) {
+            btnLike.setImageResource(isLiked ? R.drawable.ic_heart_filled : R.drawable.ic_heart);
+            btnLike.setColorFilter(isLiked ?
+                    ContextCompat.getColor(this, R.color.mdx_primary) :
+                    ContextCompat.getColor(this, R.color.mdx_text));
+        }
+    }
+
+
+    private void showPlaylistSelectionDialog(Song song) {
+        if (this instanceof androidx.fragment.app.FragmentActivity) {
+            com.melodix.app.View.dialogs.PlaylistSelectionDialog dialog =
+                    com.melodix.app.View.dialogs.PlaylistSelectionDialog.newInstance(song.getId());
+            dialog.show(getSupportFragmentManager(), "playlist_selection");
+        }
     }
 
 // --- Các hàm phụ trợ giúp code sạch đẹp hơn ---

@@ -15,6 +15,8 @@ import android.widget.Toast;
 import android.util.Log;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+
 
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -30,6 +32,10 @@ import com.melodix.app.Model.Playlist;
 import com.melodix.app.Model.PlaylistSong;
 import com.melodix.app.Model.Song;
 import com.melodix.app.Model.AppDatabase;
+import com.melodix.app.Model.ListenHistoryItem;
+import com.melodix.app.Service.SongAPIService;
+import com.melodix.app.Service.RetrofitClient;
+import com.melodix.app.View.RecentHistoryActivity;
 import com.melodix.app.PlayerActivity;
 import com.melodix.app.R;
 import com.melodix.app.Repository.PlaybackRepository;
@@ -38,6 +44,8 @@ import com.melodix.app.Utils.NetworkUtils;
 import com.melodix.app.View.adapters.DownloadedSongAdapter;
 import com.melodix.app.View.adapters.PlaylistAdapter;
 import com.melodix.app.View.dialogs.CreatePlaylistDialog;
+import com.melodix.app.View.adapters.SongAdapter;
+import com.melodix.app.Utils.PlaybackUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +70,9 @@ public class LibraryFragment extends Fragment {
 
     private ActivityResultLauncher<String> imagePickerLauncher;
     private CreatePlaylistDialog currentDialog;
-
+    private RecyclerView rvRecent;
+    private SongAdapter recentSongAdapter;
+    private List<Song> recentSongs = new ArrayList<>();
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -107,10 +117,35 @@ public class LibraryFragment extends Fragment {
                 });
 
         btnCreatePlaylist.setOnClickListener(v -> showCreatePlaylistDialog());
+        rvRecent = view.findViewById(R.id.rv_recent);
 
+        if (rvRecent != null) {
+            rvRecent.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false));            recentSongAdapter = new SongAdapter(requireContext(), new ArrayList<>(), new SongAdapter.OnSongActionListener() {
+                @Override
+                public void onSongClick(Song song, int position) {
+                    if (song != null && song.getId() != null) {
+                        ArrayList<Song> queue = new ArrayList<>(recentSongs);  // Dùng recentSongs ở đây
+                        PlaybackUtils.playSong(requireContext(), queue, song.getId());
+                    }
+                }
+
+                @Override
+                public void onMenuClick(Song song, int position, String actionId) {
+                    // tạm thời để trống
+                }
+            });
+            rvRecent.setAdapter(recentSongAdapter);
+        }
+
+        // Nút "Xem tất cả" (nếu bạn thêm button trong XML)
+        View btnViewAllRecent = view.findViewById(R.id.btn_view_all_recent);
+        if (btnViewAllRecent != null) {
+            btnViewAllRecent.setOnClickListener(v -> openRecentHistoryActivity());
+        }
         // Load dữ liệu an toàn
         loadDownloadedSongs();
         checkNetworkAndLoadContent();
+        loadRecentPlayed();
 
         return view;
     }
@@ -217,7 +252,27 @@ public class LibraryFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     playlistList.clear();
                     playlistList.addAll(response.body());
-                    playlistList.sort((p1, p2) -> p2.id.compareTo(p1.id));
+
+                    // ✅ SẮP XẾP TRỰC TIẾP TẠI ĐÂY
+                    // Tách playlist "Bài hát đã thích" và các playlist còn lại
+                    List<Playlist> likedPlaylists = new ArrayList<>();
+                    List<Playlist> otherPlaylists = new ArrayList<>();
+
+                    for (Playlist p : playlistList) {
+                        if (p.isLikedPlaylist) {
+                            likedPlaylists.add(p);
+                        } else {
+                            otherPlaylists.add(p);
+                        }
+                    }
+
+                    // Sắp xếp các playlist khác theo thời gian tạo (ID mới nhất lên đầu)
+                    Collections.sort(otherPlaylists, (p1, p2) -> p2.id.compareTo(p1.id));
+
+                    // Gộp lại: liked playlist lên đầu, sau đó đến các playlist khác
+                    playlistList.clear();
+                    playlistList.addAll(likedPlaylists);  // Bài hát đã thích ở đầu
+                    playlistList.addAll(otherPlaylists);  // Các playlist khác ở dưới
 
                     playlistAdapter.notifyDataSetChanged();
                     loadSongCountsForPlaylists();
@@ -293,6 +348,76 @@ public class LibraryFragment extends Fragment {
         intent.putExtra("start_playback", true);
         startActivity(intent);
     }
+    private void loadRecentPlayed() {
+        String userId = getCurrentUserId();
+        if (userId == null || rvRecent == null) {
+            if (rvRecent != null) rvRecent.setVisibility(View.GONE);
+            return;
+        }
+
+        SongAPIService songApi = RetrofitClient.getClient(requireContext())
+                .create(SongAPIService.class);
+
+        songApi.getListenHistoryFromView("eq." + userId, 5)
+                .enqueue(new Callback<List<ListenHistoryItem>>() {
+                    @Override
+                    public void onResponse(Call<List<ListenHistoryItem>> call,
+                                           Response<List<ListenHistoryItem>> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+
+                            Log.d("RECENT_PLAYED", "=== BẮT ĐẦU ===");
+                            Log.d("RECENT_PLAYED", "1. recentSongs ban đầu: " + recentSongs.size());
+                            Log.d("RECENT_PLAYED", "2. recentSongs hashcode: " + recentSongs.hashCode());
+
+                            recentSongs.clear();
+                            Log.d("RECENT_PLAYED", "3. Sau clear: " + recentSongs.size());
+
+                            for (ListenHistoryItem item : response.body()) {
+                                Song song = item.getSong();
+                                recentSongs.add(song);
+                                Log.d("RECENT_PLAYED", "4. Đã thêm: " + song.getTitle());
+                            }
+
+                            Log.d("RECENT_PLAYED", "5. Sau khi thêm: " + recentSongs.size());
+                            Log.d("RECENT_PLAYED", "6. recentSongs hashcode: " + recentSongs.hashCode());
+
+                            if (recentSongAdapter != null) {
+                                Log.d("RECENT_PLAYED", "7. Adapter đang dùng list có hashcode: " +
+                                        recentSongAdapter.getSongs().hashCode());
+
+                                recentSongAdapter.update(new ArrayList<>(recentSongs));  // Truyền bản sao
+                                Log.d("RECENT_PLAYED", "Adapter item count sau update: " + recentSongAdapter.getItemCount());
+                                rvRecent.post(() -> {
+                                    rvRecent.requestLayout();
+                                    rvRecent.getParent().requestLayout();
+                                });
+
+                                Log.d("RECENT_PLAYED", "8. Sau update, adapter list size: " +
+                                        recentSongAdapter.getSongs().size());
+                            }
+
+                            rvRecent.setVisibility(recentSongs.isEmpty() ? View.GONE : View.VISIBLE);
+                            Log.d("RECENT_PLAYED", "9. KẾT THÚC");
+
+                        } else {
+                            Log.e("RECENT_PLAYED", "Lỗi: " + response.code());
+                            rvRecent.setVisibility(View.GONE);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<ListenHistoryItem>> call, Throwable t) {
+                        Log.e("RECENT_PLAYED", "Lỗi mạng: " + t.getMessage());
+                        rvRecent.setVisibility(View.GONE);
+                    }
+                });
+    }
+
+    // ====================== MỞ MÀN HÌNH XEM TẤT CẢ ======================
+    private void openRecentHistoryActivity() {
+        Intent intent = new Intent(requireContext(), RecentHistoryActivity.class);
+        startActivity(intent);
+    }
 
     private void onPlaylistClick(Playlist playlist) {
         if (!NetworkUtils.isNetworkAvailable(requireContext())) {
@@ -316,5 +441,6 @@ public class LibraryFragment extends Fragment {
         super.onResume();
         loadDownloadedSongs();
         checkNetworkAndLoadContent();        // Quan trọng: kiểm tra lại mạng
+        loadRecentPlayed();
     }
 }

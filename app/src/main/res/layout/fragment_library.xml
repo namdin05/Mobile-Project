@@ -100,6 +100,14 @@
                 android:layout_marginTop="10dp"
                 android:nestedScrollingEnabled="false" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_view_all_recent"
+                style="@style/Widget.Melodix.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Xem tất cả"
+                android:layout_gravity="end"
+                android:layout_marginTop="8dp"/>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

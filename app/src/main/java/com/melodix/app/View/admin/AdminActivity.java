@@ -18,6 +18,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
 
+import com.melodix.app.Model.MiniPlayerController;
 import com.melodix.app.R;
 import com.melodix.app.View.auth.LoginActivity;
 import com.melodix.app.View.profile.AdminProfileActivity;
@@ -34,6 +35,7 @@ public class AdminActivity extends AppCompatActivity {
 
     private String currentAdminName = "";
     private String currentAdminAvatarUrl = "";
+    private MiniPlayerController miniPlayerController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +46,8 @@ public class AdminActivity extends AppCompatActivity {
 
         initViews();
         //setupNavigation();
+
+        miniPlayerController = new MiniPlayerController(this);
 
         // 1. Khởi tạo ViewModel
         viewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
@@ -105,6 +109,17 @@ public class AdminActivity extends AppCompatActivity {
         // Ra lệnh cho ViewModel đi lấy data
         if (viewModel != null) {
             viewModel.loadProfileInfo();
+        }
+        if (miniPlayerController != null) {
+            miniPlayerController.onResume();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (miniPlayerController != null) {
+            miniPlayerController.onPause();
         }
     }
 
