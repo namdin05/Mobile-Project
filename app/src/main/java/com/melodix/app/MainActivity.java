@@ -412,6 +412,37 @@ public class MainActivity extends AppCompatActivity {
                 // Xóa dữ liệu để tránh bị mở lại bài hát nếu người dùng xoay màn hình
                 intent.removeExtra("action");
                 intent.removeExtra("song_id");
+            } else if ("ROLE_UPGRADED".equals(action)) {
+                // BẮT SỰ KIỆN NÂNG CẤP QUYỀN
+                Log.d("MELODIX_FCM", "Người dùng được duyệt làm Artist!");
+
+                // 1. Ép két sắt SessionManager cập nhật quyền mới ngay lập tức
+                com.melodix.app.Utils.SessionManager.getInstance(this).updateRole("artist");
+
+                // 2. Hiển thị lời chúc mừng
+                Toast.makeText(this, "Chúc mừng! Bạn đã chính thức trở thành Nghệ sĩ trên Melodix.", Toast.LENGTH_LONG).show();
+
+                // 3. (Tùy chọn) Reset lại giao diện để hiện các nút của Nghệ sĩ (vd: Nút Upload nhạc)
+                // Bạn có thể reload lại Fragment hiện tại hoặc gọi hàm kiểm tra UI
+
+                // Xóa action để tránh chạy lại khi xoay màn hình
+                intent.removeExtra("action");
+            } else if ("OPEN_ALBUM_DETAIL".equals(action)) {
+                // BẮT SỰ KIỆN MỞ ALBUM
+                String albumId = intent.getStringExtra("album_id");
+
+                if (albumId != null) {
+                    Log.d("MELODIX_FCM", "Mở Album từ thông báo: " + albumId);
+
+                    android.content.Intent nextIntent = new android.content.Intent(this, com.melodix.app.View.AlbumDetailActivity.class);
+                    // Dùng đúng key "extra_album_id" như trong hàm handleDeepLink của bạn
+                    nextIntent.putExtra("extra_album_id", albumId);
+                    startActivity(nextIntent);
+
+                    // Xóa dữ liệu để tránh mở lại khi xoay màn hình
+                    intent.removeExtra("action");
+                    intent.removeExtra("album_id");
+                }
             }
         }
     }
