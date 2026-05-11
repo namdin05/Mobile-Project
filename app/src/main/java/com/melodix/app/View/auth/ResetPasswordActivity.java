@@ -19,11 +19,10 @@ public class ResetPasswordActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_reset_password); // Tự tạo file XML này nhé
+        setContentView(R.layout.activity_reset_password);
 
         authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
-        // Lấy Token từ LoginActivity truyền sang
         recoveryToken = getIntent().getStringExtra("RECOVERY_TOKEN");
 
         EditText edtNewPassword = findViewById(R.id.edtNewPassword);
@@ -43,7 +42,6 @@ public class ResetPasswordActivity extends AppCompatActivity {
                 return;
             }
 
-            // Gọi API đổi mật khẩu
             authViewModel.updateNewPassword(recoveryToken, newPass).observe(this, result -> {
                 if ("SUCCESS".equals(result)) {
                     Toast.makeText(this, "Đổi mật khẩu thành công! Hãy đăng nhập lại.", Toast.LENGTH_LONG).show();

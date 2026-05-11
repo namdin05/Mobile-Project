@@ -45,9 +45,8 @@ public class AdminProfileActivity extends AppCompatActivity {
     private MaterialButton btnSaveChanges, btnChangePassword;
 
     private String adminUid = "";
-    private Uri selectedImageUri = null; // Biến lưu ảnh vừa chọn từ thư viện
+    private Uri selectedImageUri = null;
 
-    // Khai báo công cụ bắt sự kiện chọn ảnh
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
     private AuthViewModel authViewModel;
@@ -127,7 +126,6 @@ public class AdminProfileActivity extends AppCompatActivity {
 
         });
 
-        // ĐÃ CẬP NHẬT: Gọi ChangePasswordDialog mới
         btnChangePassword.setOnClickListener(v -> {
             ChangePasswordDialog.newInstance().show(getSupportFragmentManager(), "change_password");
         });
@@ -135,12 +133,8 @@ public class AdminProfileActivity extends AppCompatActivity {
         authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
     }
 
-    // ==========================================
-    // 2. LOGIC UPLOAD ẢNH LÊN STORAGE
-    // ==========================================
     private void uploadImageAndSaveProfile(String newName) {
         try {
-            // Chuyển ảnh từ thẻ nhớ thành mảng byte nhị phân để gửi qua mạng
             InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
             ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
             int bufferSize = 1024;
@@ -151,15 +145,12 @@ public class AdminProfileActivity extends AppCompatActivity {
             }
             byte[] imageBytes = byteBuffer.toByteArray();
 
-            // Đóng gói mảng byte thành RequestBody
             RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpeg"), imageBytes);
 
-            // Tạo tên file an toàn (Kèm thời gian để chống lỗi Cache)
             String fileName = adminUid + "_" + System.currentTimeMillis() + ".jpg";
 
             StorageAPIService apiService = RetrofitClient.getStorage(getApplicationContext()).create(StorageAPIService.class);
 
-            // Gọi API ném ảnh lên Supabase
             apiService.uploadFileToStorage(
                             "image/jpeg",
                             "true",
@@ -197,14 +188,10 @@ public class AdminProfileActivity extends AppCompatActivity {
         }
     }
 
-    // ==========================================
-    // 3. LOGIC CẬP NHẬT TÊN VÀ LINK VÀO DATABASE
-    // ==========================================
     private void updateDatabaseOnly(String newName, String newAvatarUrl) {
         ProfileAPIService apiService = RetrofitClient.getClient(getApplicationContext()).create(ProfileAPIService.class);
         String idFilter = "eq." + adminUid;
 
-        // Chuẩn bị dữ liệu cập nhật
         Map<String, Object> updateData = new HashMap<>();
         updateData.put("display_name", newName);
         if (newAvatarUrl != null) {
@@ -218,7 +205,7 @@ public class AdminProfileActivity extends AppCompatActivity {
                     SessionManager.getInstance(getApplicationContext()).updateDisplayName(newName);
 
                     Toast.makeText(AdminProfileActivity.this, "Lưu thông tin thành công!", Toast.LENGTH_SHORT).show();
-                    finish(); // Thành công thì đóng màn hình
+                    finish();
                 } else {
                     Toast.makeText(AdminProfileActivity.this, "Lỗi cập nhật Database", Toast.LENGTH_SHORT).show();
                     resetButton();
