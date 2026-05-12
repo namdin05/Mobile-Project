@@ -64,7 +64,7 @@ public class LibraryFragment extends Fragment {
 
     private List<Playlist> playlistList = new ArrayList<>();
     private Button btnCreatePlaylist;
-    private TextView tvOfflineNotice;           // ← Quan trọng
+    private TextView tvOfflineNotice;
 
     private PlaylistRepository playlistRepository;
 
@@ -137,7 +137,7 @@ public class LibraryFragment extends Fragment {
             rvRecent.setAdapter(recentSongAdapter);
         }
 
-        // Nút "Xem tất cả" (nếu bạn thêm button trong XML)
+        // Nút "Xem tất cả"
         View btnViewAllRecent = view.findViewById(R.id.btn_view_all_recent);
         if (btnViewAllRecent != null) {
             btnViewAllRecent.setOnClickListener(v -> openRecentHistoryActivity());
@@ -253,8 +253,6 @@ public class LibraryFragment extends Fragment {
                     playlistList.clear();
                     playlistList.addAll(response.body());
 
-                    // ✅ SẮP XẾP TRỰC TIẾP TẠI ĐÂY
-                    // Tách playlist "Bài hát đã thích" và các playlist còn lại
                     List<Playlist> likedPlaylists = new ArrayList<>();
                     List<Playlist> otherPlaylists = new ArrayList<>();
 
@@ -269,7 +267,6 @@ public class LibraryFragment extends Fragment {
                     // Sắp xếp các playlist khác theo thời gian tạo (ID mới nhất lên đầu)
                     Collections.sort(otherPlaylists, (p1, p2) -> p2.id.compareTo(p1.id));
 
-                    // Gộp lại: liked playlist lên đầu, sau đó đến các playlist khác
                     playlistList.clear();
                     playlistList.addAll(likedPlaylists);  // Bài hát đã thích ở đầu
                     playlistList.addAll(otherPlaylists);  // Các playlist khác ở dưới
@@ -281,7 +278,6 @@ public class LibraryFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<Playlist>> call, Throwable t) {
-                // Không hiện Toast lỗi khi offline để tránh spam
             }
         });
     }
@@ -413,7 +409,6 @@ public class LibraryFragment extends Fragment {
                 });
     }
 
-    // ====================== MỞ MÀN HÌNH XEM TẤT CẢ ======================
     private void openRecentHistoryActivity() {
         Intent intent = new Intent(requireContext(), RecentHistoryActivity.class);
         startActivity(intent);
@@ -430,7 +425,6 @@ public class LibraryFragment extends Fragment {
         startActivity(intent);
     }
 
-    // ĐÃ SỬA: Lấy USER_ID từ SharedPreferences thay vì SessionManager
     private String getCurrentUserId() {
         SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
         return prefs.getString("USER_ID", null);
@@ -440,7 +434,7 @@ public class LibraryFragment extends Fragment {
     public void onResume() {
         super.onResume();
         loadDownloadedSongs();
-        checkNetworkAndLoadContent();        // Quan trọng: kiểm tra lại mạng
+        checkNetworkAndLoadContent();
         loadRecentPlayed();
     }
 }

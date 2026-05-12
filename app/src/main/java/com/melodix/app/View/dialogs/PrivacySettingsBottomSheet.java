@@ -30,10 +30,10 @@ import retrofit2.Response;
 public class PrivacySettingsBottomSheet extends BottomSheetDialogFragment {
 
     private Switch switchPlaylists, switchRecentArtists;
-    private ProgressBar progressBar; // Thêm ProgressBar vào layout nếu cần
+    private ProgressBar progressBar;
     private ProfileRepository repository;
     private String userId;
-    private boolean isLoaded = false; // Cờ kiểm tra đã load xong chưa
+    private boolean isLoaded = false;
 
     public static PrivacySettingsBottomSheet newInstance() {
         return new PrivacySettingsBottomSheet();
@@ -55,11 +55,9 @@ public class PrivacySettingsBottomSheet extends BottomSheetDialogFragment {
         switchPlaylists = view.findViewById(R.id.switch_show_playlists);
         switchRecentArtists = view.findViewById(R.id.switch_show_recent_artists);
 
-        // TẮT SWITCH NGAY LẬP TỨC ĐỂ TRÁNH HIỆN TRUE
         switchPlaylists.setEnabled(false);
         switchRecentArtists.setEnabled(false);
 
-        // Load trạng thái mới nhất từ Supabase
         loadCurrentSettingsFromServer();
 
         view.findViewById(R.id.btn_save_settings).setOnClickListener(v -> saveSettings());
@@ -118,6 +116,6 @@ public class PrivacySettingsBottomSheet extends BottomSheetDialogFragment {
 
         repository.updatePrivacySettings(userId, updates);
         Toast.makeText(requireContext(), "Đã lưu cài đặt", Toast.LENGTH_SHORT).show();
-        dismiss(); // Đóng ngay, không cần delay
+        dismiss();
     }
 }

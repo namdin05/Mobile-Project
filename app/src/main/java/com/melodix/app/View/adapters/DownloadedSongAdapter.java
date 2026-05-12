@@ -19,13 +19,11 @@ import com.melodix.app.Utils.TimeUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-//Hiển thị danh sach bài hát đã tải
 public class DownloadedSongAdapter extends RecyclerView.Adapter<DownloadedSongAdapter.ViewHolder> {
 
     private final Context context;
     private List<DownloadedSong> downloadedSongs = new ArrayList<>();
 
-    // Listener khi click vào bài hát đã tải
     public interface OnDownloadedSongClickListener {
         void onSongClick(DownloadedSong song);
         void onMoreClick(DownloadedSong song, int position);

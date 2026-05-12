@@ -32,7 +32,6 @@ public class RecentHistoryActivity extends AppCompatActivity {
     private SongAdapter songAdapter;
     private List<Song> allRecentSongs = new ArrayList<>();
 
-    // THÊM: MiniPlayerController giống AlbumDetailActivity
     private MiniPlayerController miniPlayerController;
 
     @Override
@@ -54,19 +53,16 @@ public class RecentHistoryActivity extends AppCompatActivity {
 
             @Override
             public void onMenuClick(Song song, int position, String actionId) {
-                // Có thể thêm xử lý menu nếu cần
             }
         });
 
         rvAllRecent.setAdapter(songAdapter);
 
-        // THÊM: Khởi tạo MiniPlayerController giống AlbumDetailActivity
         miniPlayerController = new MiniPlayerController(this);
 
         loadAllRecentHistory();
     }
 
-    // THÊM: onResume để cập nhật mini player
     @Override
     protected void onResume() {
         super.onResume();
@@ -75,7 +71,6 @@ public class RecentHistoryActivity extends AppCompatActivity {
         }
     }
 
-    // THÊM: onPause để dọn dẹp
     @Override
     protected void onPause() {
         super.onPause();
@@ -93,7 +88,6 @@ public class RecentHistoryActivity extends AppCompatActivity {
 
         SongAPIService api = RetrofitClient.getClient(this).create(SongAPIService.class);
 
-        // Dùng API mới với tên VIEW listen_history_view, limit lớn
         api.getListenHistoryFromView("eq." + userId, 500)
                 .enqueue(new Callback<List<ListenHistoryItem>>() {
                     @Override

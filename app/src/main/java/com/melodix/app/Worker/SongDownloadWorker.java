@@ -399,8 +399,6 @@ public class SongDownloadWorker extends Worker {
     //Loai bỏ kí tự đặc biệt trong tên file
     private String sanitizeFileName(String fileName) {
         if (fileName == null) return "unknown_song";
-        // Chỉ thay thế các ký tự không hợp lệ trong tên file
-        // Giữ nguyên tiếng Việt có dấu
         return fileName.replaceAll("[\\\\/:*?\"<>|]", "_");
     }
 
