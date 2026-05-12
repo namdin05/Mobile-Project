@@ -111,7 +111,7 @@ public class CreatePlaylistDialog {
         }
     }
 
-    // Upload Ảnh
+    
     private void uploadCoverThenCreatePlaylist(String playlistName) {
         try {
             InputStream inputStream = context.getContentResolver().openInputStream(selectedCoverUri);
@@ -191,7 +191,7 @@ public class CreatePlaylistDialog {
                 Log.d("CREATE_PLAYLIST", "Response code: " + response.code());
 
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    Playlist created = response.body().get(0);   // Lấy phần tử đầu tiên trong array
+                    Playlist created = response.body().get(0);   
 
                     Log.d("CREATE_PLAYLIST", "Tạo thành công - ID: " + created.id);
 

@@ -25,7 +25,7 @@ public class SongViewModel extends AndroidViewModel {
     public SongViewModel(@NonNull Application application) {
         super(application);
 
-        // Truyền thẳng cái 'application' (Context) xuống cho Repository
+        
         songRepository = new SongRepository(application);
     }
 
@@ -53,7 +53,7 @@ public class SongViewModel extends AndroidViewModel {
     public LiveData<Boolean> getActionSuccess() { return actionSuccess; }
     public LiveData<String> getActionMessage() { return actionMessage; }
 
-    // Hàm này sẽ được PlayerActivity gọi
+    
     public void updateSongStatus(String songId, String newStatus) {
         songRepository.updateSongStatus(songId, newStatus, actionSuccess, actionMessage);
     }

@@ -119,7 +119,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void checkAndUploadPendingProfile(String email, String role, String userId) {
         SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
-        // Vì Deep Link có thể không biết email lúc đăng ký, ta rà soát tất cả các key
+        
         String pendingAvatarBase64 = prefs.getString("PENDING_AVATAR" + email, null);
         String pendingFullName = prefs.getString("PENDING_FULL_NAME" + email, null);
 
@@ -127,25 +127,25 @@ public class LoginActivity extends AppCompatActivity {
             byte[] imageBytes = android.util.Base64.decode(pendingAvatarBase64, android.util.Base64.DEFAULT);
             authViewModel.uploadPendingAvatar(userId, imageBytes, pendingFullName).observe(this, uploadResult -> {
                 if (uploadResult != null && !uploadResult.startsWith("Lỗi")) {
-                    // 1. Xóa rác SharedPrefs
+                    
                     prefs.edit().remove("PENDING_AVATAR" + email).remove("PENDING_FULL_NAME" + email).apply();
 
-                    // 2. CẬP NHẬT "KÉT SẮT" NGAY LẬP TỨC
-                    // Chúng ta lấy uploadResult (chính là avatarUrl) để lưu đè vào Session
+                    
+                    
                     SessionManager session = SessionManager.getInstance(LoginActivity.this);
                     session.saveLogInSession(
                             userId,
                             role,
                             session.getAccessToken(),
                             session.getRefreshToken(),
-                            pendingFullName, // Tên mới
-                            uploadResult     // Link ảnh mới vừa upload xong
+                            pendingFullName, 
+                            uploadResult     
                     );
 
-                    // 3. BÂY GIỜ MỚI CHUYỂN MÀN HÌNH
+                    
                     navigateToNextScreen(role);
                 } else {
-                    // Nếu upload lỗi thì vẫn cho vào app nhưng báo lỗi
+                    
                     Toast.makeText(this, "Lỗi upload ảnh, bạn có thể cập nhật sau", Toast.LENGTH_SHORT).show();
                     navigateToNextScreen(role);
                 }

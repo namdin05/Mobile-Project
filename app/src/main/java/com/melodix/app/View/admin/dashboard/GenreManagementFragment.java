@@ -44,11 +44,11 @@ public class GenreManagementFragment extends Fragment {
     private GenreViewModel viewModel;
     private LoadingDialog loadingDialog;
 
-    // Biến cho Dialog
+    
     private AlertDialog currentDialog;
     private Uri selectedImageUri = null;
     private ImageView currentDialogImageView = null;
-    private MaterialButton btnSaveCurrent; // Lưu tạm nút Save để reset trạng thái
+    private MaterialButton btnSaveCurrent; 
 
     private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -80,25 +80,25 @@ public class GenreManagementFragment extends Fragment {
 
         setupRecyclerView();
 
-        // Setup ViewModel
+        
         viewModel = new ViewModelProvider(this).get(GenreViewModel.class);
 
-        // 1. Observe Danh sách thể loại
+        
         observeGenreList();
 
-        // 2. Observe Kết quả Trạng thái (Thêm/Sửa/Xóa thành công hay không)
+        
         viewModel.getActionSuccess().observe(getViewLifecycleOwner(), isSuccess -> {
             loadingDialog.hideLoading();
             if (isSuccess != null) {
                 if (isSuccess) {
-                    // Thành công -> Đóng Dialog (nếu đang mở) và Load lại danh sách
+                    
                     if (currentDialog != null && currentDialog.isShowing()) {
                         currentDialog.dismiss();
                     }
                     viewModel.refreshGenres();
-                    observeGenreList(); // Gắn lại Observer cho list mới
+                    observeGenreList(); 
                 } else {
-                    // Thất bại -> Bật lại nút Save cho bấm lại
+                    
                     if (btnSaveCurrent != null) {
                         btnSaveCurrent.setEnabled(true);
                         btnSaveCurrent.setText("Lưu lại");
@@ -107,7 +107,7 @@ public class GenreManagementFragment extends Fragment {
             }
         });
 
-        // 3. Observe Thông báo lỗi/thành công để hiện Toast
+        
         viewModel.getActionMessage().observe(getViewLifecycleOwner(), message -> {
             if (message != null && !message.isEmpty()) {
                 Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
@@ -117,7 +117,7 @@ public class GenreManagementFragment extends Fragment {
         btnAddGenre.setOnClickListener(v -> showAddEditDialog(null));
 
         view.findViewById(R.id.btnBack).setOnClickListener(v -> {
-            // Quay lại Fragment trước đó trong BackStack
+            
             if (getParentFragmentManager().getBackStackEntryCount() > 0) {
                 getParentFragmentManager().popBackStack();
             } else {
@@ -141,9 +141,9 @@ public class GenreManagementFragment extends Fragment {
     private void setupRecyclerView() {
         rvAllGenres.setLayoutManager(new GridLayoutManager(requireContext(), 2));
         genreList = new ArrayList<>();
-        // Truyền context, list và bắt sự kiện từ Adapter (bạn tự custom theo Adapter của bạn)
+        
         genreAdapter = new AdminGenreAdapter(getContext(), genreList, genre -> {
-            // Khi bấm vào 1 Thể loại -> Mở hộp thoại Edit lên
+            
             showAddEditDialog(genre);
         });
         rvAllGenres.setAdapter(genreAdapter);
@@ -167,7 +167,7 @@ public class GenreManagementFragment extends Fragment {
         MaterialButton btnPickImage = view.findViewById(R.id.btnPickImage);
         btnSaveCurrent = view.findViewById(R.id.btnSaveGenre);
 
-        // TÌM NÚT XÓA BẠN VỪA THÊM TRONG XML
+        
         MaterialButton btnDelete = view.findViewById(R.id.btnDeleteGenre);
 
         currentDialogImageView = imgPreview;
@@ -183,26 +183,26 @@ public class GenreManagementFragment extends Fragment {
             if (btnDelete != null) {
                 btnDelete.setVisibility(View.VISIBLE);
 
-                // KIỂM TRA TRẠNG THÁI ẨN/HIỆN ĐỂ TÙY BIẾN NÚT
+                
                 if (!genre.isVisible()) {
-                    // Trạng thái: ĐÃ BỊ ẨN -> Đổi thành nút "Restore" (Màu xanh)
+                    
                     btnDelete.setText("Restore");
-                    btnDelete.setTextColor(android.graphics.Color.parseColor("#1DB954")); // Xanh Spotify
+                    btnDelete.setTextColor(android.graphics.Color.parseColor("#1DB954")); 
                     btnDelete.setStrokeColor(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1DB954")));
 
                     btnDelete.setOnClickListener(v -> {
                         currentDialog.dismiss();
-                        restoreGenre(genre); // Gọi hàm khôi phục
+                        restoreGenre(genre); 
                     });
                 } else {
-                    // Trạng thái: BÌNH THƯỜNG -> Nút "Delete" (Màu đỏ)
+                    
                     btnDelete.setText("Delete");
                     btnDelete.setTextColor(android.graphics.Color.parseColor("#FF3B30"));
                     btnDelete.setStrokeColor(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#FF3B30")));
 
                     btnDelete.setOnClickListener(v -> {
                         currentDialog.dismiss();
-                        softDeleteGenre(genre); // Gọi hàm xóa mềm
+                        softDeleteGenre(genre); 
                     });
                 }
             }
@@ -217,7 +217,7 @@ public class GenreManagementFragment extends Fragment {
             imagePickerLauncher.launch(intent);
         });
 
-        // Xử lý nút SAVE (giữ nguyên logic của bạn)
+        
         btnSaveCurrent.setOnClickListener(v -> {
             String name = edtName.getText().toString().trim();
             if (name.isEmpty()) {

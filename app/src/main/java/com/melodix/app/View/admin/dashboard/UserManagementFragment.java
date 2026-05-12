@@ -34,7 +34,7 @@ public class UserManagementFragment extends Fragment {
     private AdminUserViewModel viewModel;
     private LoadingDialog loadingDialog;
 
-    // Cần 2 danh sách: 1 cái chứa TOÀN BỘ dữ liệu gốc, 1 cái để HIỂN THỊ theo filter
+    
     private List<Profile> fullUserList = new ArrayList<>();
     private List<Profile> displayList = new ArrayList<>();
 
@@ -56,7 +56,7 @@ public class UserManagementFragment extends Fragment {
         actvRole = view.findViewById(R.id.actvRole);
 
         view.findViewById(R.id.btnBack).setOnClickListener(v -> {
-            // Quay lại Fragment trước đó trong BackStack
+            
             if (getParentFragmentManager().getBackStackEntryCount() > 0) {
                 getParentFragmentManager().popBackStack();
             } else {
@@ -77,9 +77,9 @@ public class UserManagementFragment extends Fragment {
                 this.fullUserList = songs;
                 this.displayList = new ArrayList<>(songs);
 
-                // Xử lý bộ lọc ngầm: Khi có data mới, phải lọc lại theo Dropdown hiện tại
+                
                 String currentFilter = actvRole.getText().toString();
-                filterSongsByStatus(currentFilter); // Thay bằng hàm lọc của bạn nếu tên khác
+                filterSongsByStatus(currentFilter); 
             }
         });
     }
@@ -98,7 +98,7 @@ public class UserManagementFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        // Đã khắc phục lỗi trống logic click ở đây
+        
         profileAdapter = new ProfileAdapter(requireContext(), new ArrayList<>(), new ProfileAdapter.OnProfileActionListener() {
             @Override
             public void onMenuClick(Profile profile, int position, String action) {
@@ -129,7 +129,7 @@ public class UserManagementFragment extends Fragment {
                 }
             }
         }
-        // Chỉ dùng 1 hàm update duy nhất, KHÔNG tạo lại Adapter
+        
         profileAdapter.update(new ArrayList<>(displayList));
     }
 

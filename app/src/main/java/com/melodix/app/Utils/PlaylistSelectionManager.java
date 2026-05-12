@@ -56,7 +56,7 @@ public class PlaylistSelectionManager {
         });
     }
 
-    // Load songCount cho tất cả playlist + kiểm tra bài hát có trong playlist không
+    
     private void loadSongCountsForPlaylists(List<Playlist> playlists, String songId,
                                             OnPlaylistsLoadedListener listener) {
 
@@ -76,7 +76,7 @@ public class PlaylistSelectionManager {
                     if (response.isSuccessful() && response.body() != null) {
                         playlist.songCount = response.body().size();
 
-                        // Kiểm tra bài hát hiện tại có trong playlist không
+                        
                         for (PlaylistSong ps : response.body()) {
                             if (ps.song != null && ps.song.getId().equals(songId)) {
                                 playlistIdsContainSong.add(playlist.id);

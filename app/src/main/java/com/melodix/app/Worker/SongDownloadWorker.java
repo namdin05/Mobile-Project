@@ -69,7 +69,7 @@ public class SongDownloadWorker extends Worker {
 
         createNotificationChannel();
 
-        // Hiển thị notification bắt đầu tải
+        
         showProgressNotification(0, title);
 
         try {
@@ -81,10 +81,10 @@ public class SongDownloadWorker extends Worker {
 
             saveToDatabase(songId, title, artist, coverUrl, localPath, duration);
 
-            // Xóa notification progress cũ
+            
             cancelProgressNotification();
 
-            // Hiển thị notification thành công với intent để mở bài hát
+            
             showSuccessNotification(title, songId);
 
             Log.d(TAG, "Download thành công: " + title);
@@ -130,7 +130,7 @@ public class SongDownloadWorker extends Worker {
                 .setOngoing(true)
                 .setOnlyAlertOnce(true);
 
-        // Category chỉ hỗ trợ từ API 21+, an toàn cho Android 10
+        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             builder.setCategory(NotificationCompat.CATEGORY_PROGRESS);
         }
@@ -147,16 +147,16 @@ public class SongDownloadWorker extends Worker {
         Log.d(TAG, "Đã xóa notification progress");
     }
 
-    private void showSuccessNotification(String title, String songId) {  // Thêm tham số songId
+    private void showSuccessNotification(String title, String songId) {  
         NotificationManagerCompat nm = NotificationManagerCompat.from(getApplicationContext());
 
-        // Tạo Intent để mở PlayerActivity với bài hát vừa tải
+        
         Intent intent = new Intent(getApplicationContext(), PlayerActivity.class);
         intent.putExtra(PlayerActivity.EXTRA_SONG_ID, songId);
-        intent.putExtra(PlayerActivity.EXTRA_AUTO_PLAY, true);  // THÊM DÒNG NÀY
+        intent.putExtra(PlayerActivity.EXTRA_AUTO_PLAY, true);  
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-        // Tạo PendingIntent
+        
         PendingIntent pendingIntent;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             pendingIntent = PendingIntent.getActivity(
@@ -181,7 +181,7 @@ public class SongDownloadWorker extends Worker {
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setAutoCancel(true)
-                .setContentIntent(pendingIntent)  // THÊM DÒNG NÀY
+                .setContentIntent(pendingIntent)  
                 .setVibrate(new long[]{0, 500, 200, 500});
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -231,25 +231,25 @@ public class SongDownloadWorker extends Worker {
             long contentLength = response.body().contentLength();
             InputStream is = response.body().byteStream();
 
-            // Sử dụng phương thức lưu phù hợp với từng phiên bản Android
+            
             String localPath = saveFileForAndroidVersion(title, artist, contentLength, is);
             is.close();
             return localPath;
         }
     }
 
-    //Lưu file tương thích
+    
     private String saveFileForAndroidVersion(String title, String artist, long contentLength, InputStream is) throws Exception {
-        // Android 10 trở lên (API 29+)
+        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             return saveUsingMediaStore(title, artist, contentLength, is);
         } else {
-            // Android 9 trở xuống, dùng file system truyền thống
+            
             return saveUsingFileSystem(title, artist, is);
         }
     }
 
-    //Lưu file bằng MediaStore
+    
     private String saveUsingMediaStore(String title, String artist, long contentLength, InputStream is) throws Exception {
         ContentResolver resolver = getApplicationContext().getContentResolver();
 
@@ -298,20 +298,20 @@ public class SongDownloadWorker extends Worker {
             throw e;
         }
 
-        // Lấy đường dẫn thực từ URI
+        
         String realPath = getRealPathFromMediaStoreUri(uri);
 
         if (realPath != null && !realPath.isEmpty()) {
             Log.d(TAG, "Lưu thành công, đường dẫn thực: " + realPath);
             return realPath;
         } else {
-            // Fallback: vẫn trả về URI nếu không lấy được đường dẫn thực
+            
             Log.w(TAG, "Không lấy được đường dẫn thực, dùng URI: " + uri.toString());
             return uri.toString();
         }
     }
 
-    // Lấy đường dẫn thực từ MediaStore URI
+    
     private String getRealPathFromMediaStoreUri(Uri uri) {
         if (uri == null) return null;
 
@@ -331,9 +331,9 @@ public class SongDownloadWorker extends Worker {
         return null;
     }
 
-    //Lưu file bằng FileSystem
+    
     private String saveUsingFileSystem(String title, String artist, InputStream is) throws Exception {
-        // Tạo thư mục Melodix trong Music
+        
         File musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
         File melodixDir = new File(musicDir, "Melodix");
 
@@ -346,7 +346,7 @@ public class SongDownloadWorker extends Worker {
         String fileName = sanitizeFileName(title) + ".mp3";
         File outputFile = new File(melodixDir, fileName);
 
-        // Nếu file đã tồn tại, thêm số đằng sau
+        
         int counter = 1;
         while (outputFile.exists()) {
             fileName = sanitizeFileName(title) + "_" + counter + ".mp3";
@@ -364,7 +364,7 @@ public class SongDownloadWorker extends Worker {
                 fos.write(buffer, 0, bytesRead);
                 totalBytesRead += bytesRead;
 
-                // Cập nhật progress cho Android 9 trở xuống (không có contentLength)
+                
                 int progress = (int) ((totalBytesRead * 100) / (totalBytesRead + 1024));
                 if (progress > lastProgress + 5) {
                     lastProgress = progress;
@@ -373,13 +373,13 @@ public class SongDownloadWorker extends Worker {
             }
         }
 
-        // Quét file vào MediaStore để hiển thị trong các app nghe nhạc khác
+        
         scanFileToMediaStore(outputFile, title, artist);
 
         return outputFile.getAbsolutePath();
     }
 
-    // Quét file vào MediaStore
+    
     private void scanFileToMediaStore(File file, String title, String artist) {
         ContentValues values = new ContentValues();
         values.put(MediaStore.MediaColumns.DATA, file.getAbsolutePath());
@@ -396,11 +396,11 @@ public class SongDownloadWorker extends Worker {
         );
     }
 
-    //Loai bỏ kí tự đặc biệt trong tên file
+    
     private String sanitizeFileName(String fileName) {
         if (fileName == null) return "unknown_song";
-        // Chỉ thay thế các ký tự không hợp lệ trong tên file
-        // Giữ nguyên tiếng Việt có dấu
+        
+        
         return fileName.replaceAll("[\\\\/:*?\"<>|]", "_");
     }
 

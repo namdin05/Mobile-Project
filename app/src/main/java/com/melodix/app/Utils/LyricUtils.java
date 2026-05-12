@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 
 public class LyricUtils {
 
-    // Tạo một interface để callback khi tải xong
+    
     public interface LyricCallback {
         void onLyricsLoaded(ArrayList<LyricLine> lyrics);
     }
@@ -27,7 +27,7 @@ public class LyricUtils {
             return;
         }
 
-        // Chạy một luồng phụ để tải mạng
+        
         new Thread(() -> {
             ArrayList<LyricLine> lyricsList = new ArrayList<>();
             try {
@@ -39,7 +39,7 @@ public class LyricUtils {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
                 String line;
 
-                // Mẫu regex của bạn giữ nguyên
+                
                 Pattern pattern = Pattern.compile("\\[(\\d{2}):(\\d{2})\\.(\\d{2,3})\\](.*)");
 
                 while ((line = reader.readLine()) != null) {
@@ -54,7 +54,7 @@ public class LyricUtils {
                         long totalTimeMs = (min * 60 * 1000) + (sec * 1000) + millis;
                         String text = matcher.group(4).trim();
 
-                        // Tránh thêm dòng trống nếu không có chữ
+                        
                         if (!text.isEmpty()) {
                             lyricsList.add(new LyricLine(totalTimeMs, text));
                         }
@@ -66,7 +66,7 @@ public class LyricUtils {
                 Log.e("LYRICS", "Lỗi tải file LRC từ mạng: " + e.getMessage());
             }
 
-            // Đưa kết quả về luồng chính (Main Thread) để cập nhật UI
+            
             new Handler(Looper.getMainLooper()).post(() -> {
                 callback.onLyricsLoaded(lyricsList);
             });

@@ -44,7 +44,7 @@ public class AppUiUtils {
             context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
             tv.setBackgroundResource(outValue.resourceId);
 
-            // Bỏ comment nút thêm vào Playlist (Nếu bạn muốn dùng sau này)
+            
             /*
             tv.setOnClickListener(v -> {
                 repository.addSongToPlaylist(playlist.id, songId);
@@ -73,7 +73,7 @@ public class AppUiUtils {
         }
 
         android.content.SharedPreferences prefs = context.getApplicationContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
-        float currentSpeed = prefs.getFloat("saved_speed", 1.0f); // Mặc định là 1.0f
+        float currentSpeed = prefs.getFloat("saved_speed", 1.0f); 
 
         int colorPrimary = androidx.core.content.ContextCompat.getColor(context, R.color.mdx_primary);
         int colorNormal = androidx.core.content.ContextCompat.getColor(context, R.color.mdx_text);
@@ -108,7 +108,7 @@ public class AppUiUtils {
         }
 
         tv.setOnClickListener(v -> {
-            // LƯU BẰNG APPLICATION CONTEXT
+            
             android.content.SharedPreferences prefs = context.getApplicationContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
             prefs.edit().putFloat("saved_speed", targetSpeed).apply();
 

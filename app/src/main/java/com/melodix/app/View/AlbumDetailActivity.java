@@ -66,32 +66,32 @@ public class AlbumDetailActivity extends AppCompatActivity {
             }
         });
 
-        // 1. Cài đặt RecyclerView cho Track List
+        
         rvTracks = findViewById(R.id.rv_tracks);
         rvTracks.setLayoutManager(new LinearLayoutManager(this));
 
-        // Khởi tạo Adapter
+        
         trackAdapter = new SongAdapter(this, new ArrayList<>(), new SongAdapter.OnSongActionListener() {
             @Override
             public void onSongClick(Song song, int position) {
-                // Nhóm 6 sẽ viết logic MediaPlayer ở đây sau nhé
+                
                 PlaybackUtils.playSong(AlbumDetailActivity.this, new ArrayList<>(trackAdapter.getSongs()), song.getId());            }
 
             @Override
             public void onMenuClick(Song song, int position, String actionId) {
-                // Xử lý sự kiện Menu 3 chấm
+                
                 switch (actionId) {
                     case "share":
-                        // 👇 XÓA DÒNG NÀY ĐI 👇
-                        // ShareUtils.shareSongToFriends(AlbumDetailActivity.this, song);
+                        
+                        
 
-                        // 👇 THAY BẰNG ĐOẠN NÀY ĐỂ ĐỒNG BỘ VỚI PLAYER ACTIVITY 👇
+                        
                         if (song != null && song.getId() != null) {
                             com.melodix.app.Utils.ShareUtils.shareContent(
                                     AlbumDetailActivity.this,
-                                    "song",           // Type là bài hát
-                                    song.getId(),     // ID của bài hát người dùng vừa bấm
-                                    song.getTitle()   // Tên bài hát
+                                    "song",           
+                                    song.getId(),     
+                                    song.getTitle()   
                             );
                         } else {
                             Toast.makeText(AlbumDetailActivity.this, "Lỗi dữ liệu bài hát", Toast.LENGTH_SHORT).show();
@@ -99,7 +99,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
                         break;
 
                     case "play":
-                        // Xử lý nút play trong menu
+                        
                         java.util.ArrayList<Song> singleList = new java.util.ArrayList<>();
                         singleList.add(song);
                         PlaybackUtils.playSong(AlbumDetailActivity.this, singleList, song.getId());
@@ -117,25 +117,25 @@ public class AlbumDetailActivity extends AppCompatActivity {
         });
         rvTracks.setAdapter(trackAdapter);
 
-        // XỬ LÝ SỰ KIỆN NÚT PHÁT TẤT CẢ
+        
         View btnPlayAll = findViewById(R.id.btn_play_all);
         btnPlayAll.setOnClickListener(v -> {
             if (trackAdapter != null && trackAdapter.getSongs() != null && !trackAdapter.getSongs().isEmpty()) {
-                // Lấy toàn bộ danh sách bài hát trong Album
+                
                 ArrayList<Song> allSongs = new ArrayList<>(trackAdapter.getSongs());
 
-                // Gọi hàm PlaybackUtils, truyền list vào và bắt đầu phát từ bài đầu tiên (index 0)
+                
                 PlaybackUtils.playSong(AlbumDetailActivity.this, allSongs, allSongs.get(0).getId());
             } else {
                 Toast.makeText(AlbumDetailActivity.this, "Album chưa có bài hát nào để phát", Toast.LENGTH_SHORT).show();
             }
         });
 
-        // 2. GỌI API LẤY CHI TIẾT ALBUM
+        
         repository.getAlbumById(albumId, new AppRepository.AlbumCallback() {
             @Override
             public void onSuccess(Album album) {
-                // Lớp giáp 1: Chống crash nếu người dùng đã thoát màn hình
+                
                 if (isFinishing() || isDestroyed()) return;
 
                 ImageView imgCover = findViewById(R.id.img_cover);
@@ -147,7 +147,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
                 String artist = album.artistName != null ? album.artistName : "Nghệ sĩ ẩn danh";
                 tvSubtitle.setText(artist + " • " + album.year);
 
-                // UX Đỉnh cao: Nếu album không có mô tả, giấu luôn cái khung đi cho đẹp
+                
                 if (TextUtils.isEmpty(album.description)) {
                     tvDescription.setVisibility(View.GONE);
                 } else {
@@ -155,21 +155,21 @@ public class AlbumDetailActivity extends AppCompatActivity {
                     tvDescription.setText(album.description);
                 }
 
-                // Nâng cấp Glide: Thêm hiệu ứng fade-in mượt mà khi load ảnh mạng
+                
                 Glide.with(AlbumDetailActivity.this)
                         .load(album.coverRes)
                         .transition(DrawableTransitionOptions.withCrossFade(300))
                         .into(imgCover);
 
-                // 3. LẤY ALBUM XONG THÌ GỌI TIẾP API LẤY BÀI HÁT
+                
                 repository.getSongsByAlbum(albumId, new AppRepository.SongListCallback() {
                     @Override
                     public void onSuccess(ArrayList<Song> songs) {
-                        // Lớp giáp 2
+                        
                         if (isFinishing() || isDestroyed()) return;
 
                         trackAdapter.update(songs);
-                        // Cập nhật số lượng bài hát lên tiêu đề
+                        
                         tvTrackCount.setText("Track List (" + songs.size() + ")");
                     }
 
@@ -183,7 +183,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
 
             @Override
             public void onError(String message) {
-                // Lớp giáp 3
+                
                 if (isFinishing() || isDestroyed()) return;
                 Toast.makeText(AlbumDetailActivity.this, "Album không tồn tại hoặc lỗi mạng", Toast.LENGTH_SHORT).show();
                 finish();
@@ -192,7 +192,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
         });
         miniPlayerController = new com.melodix.app.Model.MiniPlayerController(this);
     }
-    // THÊM 2 HÀM NÀY VÀO TRONG CLASS AlbumDetailActivity
+    
     @Override
     protected void onResume() {
         super.onResume();

@@ -33,7 +33,7 @@ public class UploadSongViewModel extends AndroidViewModel {
     private final ArtistAPIService apiService;
     private final StorageAPIService storageService;
 
-    // CÁC "LOA PHÁT THANH"
+    
     private final MutableLiveData<String> uploadStatus = new MutableLiveData<>();
     private final MutableLiveData<Boolean> uploadSuccess = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
@@ -62,7 +62,7 @@ public class UploadSongViewModel extends AndroidViewModel {
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                     if (response.isSuccessful()) {
                         String newCoverUrl = Constants.STORAGE_BASE_URL + Constants.SONG_COVER_BUCKET + coverFileName;
-                        // Ảnh xong -> Gọi Nhạc
+                        
                         uploadAudioStep(newCoverUrl, songTitle, audioUri, lyricUri, isEditMode, editSongId, selectedAlbumId, selectedGenreIds, selectedArtistIds);
                     } else {
                         errorMessage.setValue("Lỗi tải ảnh bìa lên server!");
@@ -74,7 +74,7 @@ public class UploadSongViewModel extends AndroidViewModel {
                 }
             });
         } else {
-            // Không có ảnh -> Gọi Nhạc
+            
             uploadAudioStep(existingCoverUrl, songTitle, audioUri, lyricUri, isEditMode, editSongId, selectedAlbumId, selectedGenreIds, selectedArtistIds);
         }
     }
@@ -93,7 +93,7 @@ public class UploadSongViewModel extends AndroidViewModel {
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                     if (response.isSuccessful()) {
                         String newAudioUrl = Constants.STORAGE_BASE_URL + Constants.SONG_AUDIO_BUCKET + audioFileName;
-                        // Nhạc xong -> GỌI LYRIC (Thay vì gọi DB như code cũ)
+                        
                         uploadLyricStep(finalCoverUrl, songTitle, audioUri, newAudioUrl, lyricUri, isEditMode, editSongId, selectedAlbumId, selectedGenreIds, selectedArtistIds);
                     } else {
                         errorMessage.setValue("Lỗi tải file nhạc lên server!");
@@ -105,7 +105,7 @@ public class UploadSongViewModel extends AndroidViewModel {
                 }
             });
         } else {
-            // Không up nhạc -> GỌI LYRIC
+            
             uploadLyricStep(finalCoverUrl, songTitle, audioUri, null, lyricUri, isEditMode, editSongId, selectedAlbumId, selectedGenreIds, selectedArtistIds);
         }
     }
@@ -125,7 +125,7 @@ public class UploadSongViewModel extends AndroidViewModel {
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                     if (response.isSuccessful()) {
                         String newLyricUrl = Constants.STORAGE_BASE_URL + Constants.SONG_LYRIC_BUCKET + lyricFileName;
-                        // Lyric xong -> Lưu Database
+                        
                         submitToDatabase(songTitle, finalCoverUrl, finalAudioUrl, audioUri, newLyricUrl, isEditMode, editSongId, selectedAlbumId, selectedGenreIds, selectedArtistIds);
                     } else {
                         errorMessage.setValue("Lỗi tải file lời bài hát!");
@@ -137,7 +137,7 @@ public class UploadSongViewModel extends AndroidViewModel {
                 }
             });
         } else {
-            // Không có Lyric -> Truyền null và Lưu Database
+            
             submitToDatabase(songTitle, finalCoverUrl, finalAudioUrl, audioUri, null, isEditMode, editSongId, selectedAlbumId, selectedGenreIds, selectedArtistIds);
         }
     }
@@ -159,7 +159,7 @@ public class UploadSongViewModel extends AndroidViewModel {
             }
             if (selectedAlbumId != null) songData.put("album_id", selectedAlbumId);
 
-            // Cập nhật DB cột lyrics_lrc_url
+            
             if (lyricUrl != null) songData.put("lyrics_lrc_url", lyricUrl);
 
             apiService.updateSong("eq." + editSongId, songData).enqueue(new Callback<ResponseBody>() {
@@ -168,7 +168,7 @@ public class UploadSongViewModel extends AndroidViewModel {
                     if (response.isSuccessful()) {
                         uploadSuccess.setValue(true);
                     } else {
-                        // 👇 IN LỖI CHI TIẾT KHI UPDATE 👇
+                        
                         try {
                             String errorDetail = response.errorBody() != null ? response.errorBody().string() : "Lỗi không xác định";
                             android.util.Log.e("DB_ERROR_EDIT", "Mã lỗi: " + response.code() + " - Chi tiết: " + errorDetail);
@@ -186,7 +186,7 @@ public class UploadSongViewModel extends AndroidViewModel {
 
         } else {
             int duration = audioUri != null ? MediaUtils.getAudioDuration(getApplication(), audioUri) : 0;
-            // Nhét lyricUrl vào constructor
+            
             SongRequestUpload requestBody = new SongRequestUpload(
                     songTitle, coverUrl, audioUrl, duration, selectedAlbumId, lyricUrl, selectedArtistIds, selectedGenreIds
             );
@@ -194,12 +194,12 @@ public class UploadSongViewModel extends AndroidViewModel {
             apiService.submitSongWithArtists(requestBody).enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
-                    // 👇 PHẢI CÓ CÁI IF NÀY ĐỂ CHIA 2 NGẢ 👇
+                    
                     if (response.isSuccessful()) {
-                        // NGẢ 1: MÃ 200 -> THÀNH CÔNG RỰC RỠ
+                        
                         uploadSuccess.setValue(true);
                     } else {
-                        // NGẢ 2: MÃ 400, 500 -> THẤT BẠI THÌ MỚI BẮT LỖI
+                        
                         try {
                             String errorDetail = response.errorBody() != null ? response.errorBody().string() : "Lỗi không xác định";
                             android.util.Log.e("DB_ERROR_INSERT", "Mã lỗi: " + response.code() + " - Chi tiết: " + errorDetail);

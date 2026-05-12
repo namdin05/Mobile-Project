@@ -37,23 +37,23 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Comment comment = comments.get(position);
 
-        // Tên người dùng
+        
         String displayName = comment.getDisplayName();
         holder.tvUser.setText(displayName != null ? displayName : "Người dùng");
 
-        // Nội dung bình luận
+        
         holder.tvText.setText(comment.content);
 
-        // Thời gian
+        
         if (comment.createdAt != null && !comment.createdAt.isEmpty()) {
-            // Hiển thị đơn giản (có thể cải tiến sau bằng TimeUtils)
-            String time = comment.createdAt.substring(0, 10); // YYYY-MM-DD
+            
+            String time = comment.createdAt.substring(0, 10); 
             holder.tvTime.setText(time);
         } else {
             holder.tvTime.setText("Vừa xong");
         }
 
-        // Avatar
+        
         String avatarUrl = comment.getAvatarUrl();
         if (avatarUrl != null && !avatarUrl.isEmpty()) {
             Glide.with(context)
@@ -65,8 +65,8 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
             holder.imgAvatar.setImageResource(R.drawable.ic_default_avatar);
         }
 
-        // Mood emoji (tạm thời để mặc định, bạn có thể thêm logic random hoặc theo nội dung sau)
-        holder.tvMood.setText("❤️");   // Có thể thay đổi thành 🔥, 👍, 🎵... tùy theo cảm xúc
+        
+        holder.tvMood.setText("❤️");   
     }
 
     @Override

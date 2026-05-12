@@ -16,7 +16,7 @@ public class GenreViewModel extends AndroidViewModel {
 
     private LiveData<List<Genre>> genres;
 
-    // Thêm 2 "Cái loa" báo trạng thái về cho Fragment
+    
     private final MutableLiveData<Boolean> actionSuccess = new MutableLiveData<>();
     private final MutableLiveData<String> actionMessage = new MutableLiveData<>();
 
@@ -32,21 +32,21 @@ public class GenreViewModel extends AndroidViewModel {
         return genres;
     }
 
-    // Hàm gọi ép tải lại list khi thêm/sửa/xóa xong
+    
     public void refreshGenres() {
         genres = genreRepository.fetchGenres();
     }
 
-    // Các getter cho LiveData trạng thái
+    
     public LiveData<Boolean> getActionSuccess() { return actionSuccess; }
     public LiveData<String> getActionMessage() { return actionMessage; }
 
-    // Gọi chức năng Lưu
+    
     public void saveGenre(String genreId, String name, String imageUrl, byte[] imageBytes) {
         genreRepository.saveGenreToDb(genreId, name, imageUrl, imageBytes, actionSuccess, actionMessage);
     }
 
-    // Gọi chức năng Xóa
+    
     public void deleteGenre(String genreId) {
         genreRepository.softDeleteGenre(genreId, actionSuccess, actionMessage);
     }

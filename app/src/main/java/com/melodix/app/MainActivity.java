@@ -56,14 +56,14 @@ public class MainActivity extends AppCompatActivity {
 
     private ProfileViewModel profileViewModel;
 
-    // Quản lý Fragment
+    
     private Fragment homeFragment;
     private Fragment searchFragment;
     private Fragment libraryFragment;
     private Fragment accountFragment;
     private Fragment activeFragment;
 
-    // Quản lý Mini Player
+    
     private LinearLayout miniPlayer;
     private ImageView miniCover;
     private TextView miniTitle;
@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // --- 1. CHỐT DARK MODE TRƯỚC KHI VẼ MÀN HÌNH ---
+        
         android.content.SharedPreferences prefs = getSharedPreferences("MelodixSettings", MODE_PRIVATE);
         boolean isDarkMode = prefs.getBoolean("dark_mode_enabled", false);
         androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(isDarkMode ?
@@ -103,16 +103,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 1. KHỞI TẠO VIEWMODEL ĐẦU TIÊN (Rất quan trọng để tránh lỗi Null)
+        
         profileViewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
 
-        // 2. SAU ĐÓ MỚI GỌI CÁC HÀM LIÊN QUAN ĐẾN NÓ
+        
         askNotificationPermission();
         fetchAndSaveFCMToken();
 
-        // --- 2. XỬ LÝ FRAGMENT CHỐNG LỖI DARK MODE ---
+        
         if (savedInstanceState == null) {
-            // Lần MỞ APP ĐẦU TIÊN: Tạo mới toàn bộ
+            
             homeFragment = new HomeFragment();
             searchFragment = new SearchFragment();
             libraryFragment = new LibraryFragment();
@@ -128,13 +128,13 @@ public class MainActivity extends AppCompatActivity {
             activeFragment = homeFragment;
             currentTabId = R.id.nav_home;
         } else {
-            // LẦN KHỞI ĐỘNG LẠI (Do đổi Dark Mode/Xoay màn hình): Khôi phục bộ nhớ cũ
+            
             homeFragment = getSupportFragmentManager().findFragmentByTag("HOME");
             searchFragment = getSupportFragmentManager().findFragmentByTag("SEARCH");
             libraryFragment = getSupportFragmentManager().findFragmentByTag("LIB");
             accountFragment = getSupportFragmentManager().findFragmentByTag("ACC");
 
-            // Tìm xem thằng nào đang mở thì gán nó vào active
+            
             if (!homeFragment.isHidden()) activeFragment = homeFragment;
             else if (!searchFragment.isHidden()) activeFragment = searchFragment;
             else if (!libraryFragment.isHidden()) activeFragment = libraryFragment;
@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
             currentTabId = savedInstanceState.getInt("ACTIVE_TAB", R.id.nav_home);
         }
 
-        // --- 3. KHỞI TẠO MINI PLAYER ---
+        
         miniPlayer = findViewById(R.id.mini_player_root);
         if (miniPlayer != null) {
             miniCover = findViewById(R.id.mini_cover);
@@ -165,9 +165,9 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // --- 4. BẮT SỰ KIỆN CLICK TAB ---
+        
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_nav);
-        // Đồng bộ lại tab đang chọn lỡ như bị Restart
+        
         bottomNavigationView.setSelectedItemId(currentTabId);
 
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
@@ -208,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        // Cất id của tab hiện tại vào balo
+        
         outState.putInt("ACTIVE_TAB", currentTabId);
 
     }
@@ -216,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(android.content.Intent intent) {
         super.onNewIntent(intent);
-        setIntent(intent); // Cập nhật lại cái "balo" mới nhất
+        setIntent(intent); 
         handleDeepLink(intent);
 
         handleNotificationIntent(intent);
@@ -276,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
         if (!isOnline) {
             bottomNav.setSelectedItemId(R.id.nav_library);
 
-            // Tắt tab Home và Search để tránh load dữ liệu
+            
             bottomNav.getMenu().findItem(R.id.nav_home).setEnabled(false);
             bottomNav.getMenu().findItem(R.id.nav_search).setEnabled(false);
 
@@ -325,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
                     String token = task.getResult();
                     Log.d("MELODIX_FCM", "Đã lấy được FCM Token: " + token);
 
-                    // Gọi ViewModel để cập nhật Token (ViewModel sẽ gọi xuống Repo)
+                    
                     if (profileViewModel != null) {
                         profileViewModel.updateTokenToServer(token);
                     }
@@ -336,7 +336,7 @@ public class MainActivity extends AppCompatActivity {
         if (intent != null && android.content.Intent.ACTION_VIEW.equals(intent.getAction())) {
             android.net.Uri data = intent.getData();
 
-            // 👇 BẮT CẢ SCHEME (melodix) HOẶC HOST CŨ (giabaocode.github.io)
+            
             if (data != null) {
                 boolean isMyScheme = "melodix".equals(data.getScheme()) && "redirect".equals(data.getHost());
                 boolean isMyWeb = "giabaocode.github.io".equals(data.getHost());
@@ -348,7 +348,7 @@ public class MainActivity extends AppCompatActivity {
                     if (type != null && id != null) {
                         android.content.Intent nextIntent = null;
 
-                        switch (type.toLowerCase()) { // Thêm toLowerCase() cho an toàn
+                        switch (type.toLowerCase()) { 
                             case "user":
                                 nextIntent = new android.content.Intent(this, com.melodix.app.View.profile.UserProfileActivity.class);
                                 nextIntent.putExtra(com.melodix.app.View.profile.UserProfileActivity.EXTRA_USER_ID, id);
@@ -359,11 +359,11 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                             case "album":
                                 nextIntent = new android.content.Intent(this, com.melodix.app.View.AlbumDetailActivity.class);
-                                // Sếp chú ý: Mở trang AlbumDetailActivity nhớ check lại tên biến hằng số EXTRA nhé
+                                
                                 nextIntent.putExtra("extra_album_id", id);
                                 break;
                             case "profile":
-                            case "artist": // Thêm case artist để dự phòng
+                            case "artist": 
                                 nextIntent = new android.content.Intent(this, com.melodix.app.View.ArtistDetailActivity.class);
                                 nextIntent.putExtra("extra_artist_id", id);
                                 break;
@@ -385,50 +385,50 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleNotificationIntent(android.content.Intent intent) {
         if (intent != null && intent.getExtras() != null) {
-            // Lấy dữ liệu từ "balo" Extras do Firebase nhét vào
+            
             String action = intent.getStringExtra("action");
             String songId = intent.getStringExtra("song_id");
 
             if ("OPEN_SONG_DETAIL".equals(action) && songId != null) {
                 Log.d("MELODIX_FCM", "Mở bài hát từ thông báo: " + songId);
 
-                // Dùng chung logic mở PlayerActivity giống như Deep Link của bạn
+                
                 android.content.Intent nextIntent = new android.content.Intent(this, com.melodix.app.PlayerActivity.class);
                 nextIntent.putExtra(com.melodix.app.PlayerActivity.EXTRA_SONG_ID, songId);
                 nextIntent.putExtra("start_playback", true);
                 startActivity(nextIntent);
 
-                // Xóa dữ liệu để tránh bị mở lại bài hát nếu người dùng xoay màn hình
+                
                 intent.removeExtra("action");
                 intent.removeExtra("song_id");
             } else if ("ROLE_UPGRADED".equals(action)) {
-                // BẮT SỰ KIỆN NÂNG CẤP QUYỀN
+                
                 Log.d("MELODIX_FCM", "Người dùng được duyệt làm Artist!");
 
-                // 1. Ép két sắt SessionManager cập nhật quyền mới ngay lập tức
+                
                 com.melodix.app.Utils.SessionManager.getInstance(this).updateRole("artist");
 
-                // 2. Hiển thị lời chúc mừng
+                
                 Toast.makeText(this, "Chúc mừng! Bạn đã chính thức trở thành Nghệ sĩ trên Melodix.", Toast.LENGTH_LONG).show();
 
-                // 3. (Tùy chọn) Reset lại giao diện để hiện các nút của Nghệ sĩ (vd: Nút Upload nhạc)
-                // Bạn có thể reload lại Fragment hiện tại hoặc gọi hàm kiểm tra UI
+                
+                
 
-                // Xóa action để tránh chạy lại khi xoay màn hình
+                
                 intent.removeExtra("action");
             } else if ("OPEN_ALBUM_DETAIL".equals(action)) {
-                // BẮT SỰ KIỆN MỞ ALBUM
+                
                 String albumId = intent.getStringExtra("album_id");
 
                 if (albumId != null) {
                     Log.d("MELODIX_FCM", "Mở Album từ thông báo: " + albumId);
 
                     android.content.Intent nextIntent = new android.content.Intent(this, com.melodix.app.View.AlbumDetailActivity.class);
-                    // Dùng đúng key "extra_album_id" như trong hàm handleDeepLink của bạn
+                    
                     nextIntent.putExtra("extra_album_id", albumId);
                     startActivity(nextIntent);
 
-                    // Xóa dữ liệu để tránh mở lại khi xoay màn hình
+                    
                     intent.removeExtra("action");
                     intent.removeExtra("album_id");
                 }

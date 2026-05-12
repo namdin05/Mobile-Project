@@ -70,7 +70,6 @@ public class DownloadRepository {
                         .putInt(SongDownloadWorker.KEY_DURATION, song.getDurationSeconds())
                         .build();
 
-                // QUAN TRỌNG: Thêm constraints và backoff policy
                 OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(SongDownloadWorker.class)
                         .setInputData(inputData)
                         .setConstraints(new Constraints.Builder()

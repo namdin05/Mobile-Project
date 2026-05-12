@@ -107,7 +107,7 @@ public class SongManagementFragment extends Fragment {
             }
         });
 
-        // KÍCH HOẠT CHẾ ĐỘ ADMIN: Ẩn nút More (menu dành cho người dùng)
+        
         songAdapter.setAdminMode(true);
 
         rvAllSongs.setLayoutManager(new LinearLayoutManager(requireContext()));

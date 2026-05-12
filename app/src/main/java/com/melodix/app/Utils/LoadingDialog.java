@@ -11,9 +11,9 @@ import com.melodix.app.R;
 public class LoadingDialog {
     private AlertDialog dialog;
 
-    // Hiển thị vòng xoay
+    
     public void showLoading(Activity activity) {
-        // Tránh lỗi crash nếu dialog đã hiển thị rồi
+        
         if (dialog != null && dialog.isShowing()) {
             return;
         }
@@ -22,12 +22,12 @@ public class LoadingDialog {
         LayoutInflater inflater = activity.getLayoutInflater();
         builder.setView(inflater.inflate(R.layout.dialog_loading, null));
 
-        // Cực kỳ quan trọng: Ngăn người dùng bấm ra ngoài hoặc bấm nút Back để hủy
+        
         builder.setCancelable(false);
 
         dialog = builder.create();
 
-        // Làm nền của Dialog trong suốt để hiện rõ phần thẻ bo tròn bên trong
+        
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
@@ -35,7 +35,7 @@ public class LoadingDialog {
         dialog.show();
     }
 
-    // Tắt vòng xoay
+    
     public void hideLoading() {
         if (dialog != null && dialog.isShowing()) {
             dialog.dismiss();

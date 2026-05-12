@@ -115,7 +115,6 @@ public class AudioPlayerService extends Service {
             public void run() {
                 broadcastState();
 
-                // ĐỒNG HỒ ĐẾM GIÂY VÀ CỘNG VIEW (Đã tích hợp test log)
                 if (mediaPlayer != null && isPlaying) {
                     int listenedSec = mediaPlayer.getCurrentPosition() / 1000;
 
@@ -123,7 +122,7 @@ public class AudioPlayerService extends Service {
 
                     if (listenedSec >= 15 && !hasRecordedPlay) {
                         Log.d("TEST_TIME", "🚀 Đã đủ 15s! Bắt đầu gọi API cộng view...");
-                        repository.recordPlay(currentSongId); // Gọi hàm 1 tham số
+                        repository.recordPlay(currentSongId);
                         hasRecordedPlay = true;
                     }
                 }
@@ -202,7 +201,7 @@ public class AudioPlayerService extends Service {
 
         releasePlayer();
         currentSongId = song.getId();
-        hasRecordedPlay = false; // Reset cờ cho bài hát mới
+        hasRecordedPlay = false;
 
         try {
             mediaPlayer = new MediaPlayer();
@@ -239,12 +238,11 @@ public class AudioPlayerService extends Service {
             mediaPlayer.prepareAsync();
 
             mediaPlayer.setOnCompletionListener(mp -> {
-                // ĐÃ XÓA KHÚC GỌI API BỊ LỖI Ở ĐÂY
                 if (isLoopingOne) {
                     try {
                         mp.seekTo(0);
                         mp.start();
-                        hasRecordedPlay = false; // Nếu bài hát tự lặp lại thì cho tính thêm view nữa
+                        hasRecordedPlay = false;
                         broadcastState();
                     } catch (Exception e) {}
                 } else {
@@ -361,9 +359,8 @@ public class AudioPlayerService extends Service {
         PendingIntent contentIntent = PendingIntent.getActivity(this, 11, openIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        // 1. TẠO THÔNG BÁO CƠ BẢN VÀ HIỆN LÊN TRƯỚC (Để tránh lỗi Android ANR)
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_logo) // Bạn có thể thay bằng R.drawable.ic_music_note nếu muốn
+                .setSmallIcon(R.drawable.ic_logo)
                 .setContentTitle(currentSong.getTitle())
                 .setContentText(currentSong.getArtistName())
                 .setContentIntent(contentIntent)
@@ -457,7 +454,6 @@ public class AudioPlayerService extends Service {
         isPlaying = false;
     }
 
-    // Lấy tốc độ phát hiện tại (Mặc định là 1.0f)
     public static float getCurrentSpeed() {
         if (instance != null && instance.mediaPlayer != null) {
             try {
@@ -470,7 +466,6 @@ public class AudioPlayerService extends Service {
     }
 
     public static boolean isTimerActive() {
-        // Biến sleepRunnable là biến bạn đã dùng trong hàm setSleepTimer()
         return instance != null && instance.sleepRunnable != null;
     }
 

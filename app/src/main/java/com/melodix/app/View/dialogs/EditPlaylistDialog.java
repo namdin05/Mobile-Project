@@ -72,7 +72,7 @@ public class EditPlaylistDialog {
         btnSave = dialogView.findViewById(R.id.btn_save);
         Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
 
-        // Điền dữ liệu hiện tại
+        
         edtName.setText(currentPlaylist.name != null ? currentPlaylist.name : "");
 
         if (currentPlaylist.coverRes != null && !currentPlaylist.coverRes.isEmpty()) {
@@ -127,7 +127,7 @@ public class EditPlaylistDialog {
         }
     }
 
-    // Upload Ảnh
+    
     private void uploadCoverThenUpdate(String playlistName) {
         try {
             InputStream inputStream = context.getContentResolver().openInputStream(selectedCoverUri);
@@ -190,7 +190,7 @@ public class EditPlaylistDialog {
                 if (response.isSuccessful()) {
                     Toast.makeText(context, "Đã cập nhật playlist!", Toast.LENGTH_SHORT).show();
 
-                    // Cập nhật lại object
+                    
                     currentPlaylist.name = name;
                     if (coverUrl != null) currentPlaylist.coverRes = coverUrl;
 

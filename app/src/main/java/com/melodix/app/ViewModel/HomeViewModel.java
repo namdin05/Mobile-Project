@@ -24,12 +24,12 @@ public class HomeViewModel extends AndroidViewModel {
     private LiveData<List<Song>> trendingSongs;
     private LiveData<List<Genre>> genres;
     private LiveData<List<Banner>> banners;
-    // view model chi goi API 1 lan va giu cac data du Activity, fragment bi destroy hay ko
+    
 
     public HomeViewModel(@NonNull Application application) {
         super(application);
 
-        // Truyền thẳng cái 'application' (Context) xuống cho Repository
+        
         songRepository = new SongRepository(application);
         genreRepository = new GenreRepository(application);
         bannerRepository = new BannerRepository(application);
@@ -43,10 +43,10 @@ public class HomeViewModel extends AndroidViewModel {
         return newReleases;
     }
 
-    // Bạn ném hàm này vào trong class HomeViewModel nhé
+    
     public LiveData<List<Song>> getSongsByGenre(int genreId) {
-        // Khác với list Trending hay New Release (chỉ load 1 lần),
-        // list nhạc theo thể loại sẽ phụ thuộc vào ID người dùng bấm, nên ta gọi thẳng từ Repository.
+        
+        
         return songRepository.fetchSongsByGenre(genreId);
     }
 

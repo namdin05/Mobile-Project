@@ -24,7 +24,7 @@ public class CommentViewModel extends AndroidViewModel {
     public LiveData<List<Comment>> getCommentsList() { return commentsList; }
     public LiveData<String> getFetchMessage() { return fetchMessage; }
 
-    // Hàm ra lệnh tải bình luận
+    
     public void fetchComments(String songId) {
         repository.getCommentsBySong(songId, commentsList, fetchMessage);
     }
@@ -37,7 +37,7 @@ public class CommentViewModel extends AndroidViewModel {
     public LiveData<Boolean> getActionSuccess() { return actionSuccess; }
     public LiveData<String> getActionMessage() { return actionMessage; }
 
-    // Fragment chỉ cần gọi hàm này
+    
     public void postNewComment(String songId, String content) {
         repository.postComment(songId, content, actionSuccess, actionMessage);
     }

@@ -13,7 +13,6 @@ public class ArtistRequest {
 
     private String status;
 
-    // Giả sử bạn có join với bảng profiles để lấy tên người dùng hiển thị cho Admin xem
     @SerializedName("profiles")
     private Profile userProfile;
 

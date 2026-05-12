@@ -69,7 +69,7 @@ public class EditProfileDialog {
         btnSave = dialogView.findViewById(R.id.btn_save);
         Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
 
-        // Điền dữ liệu hiện tại
+        
         edtDisplayName.setText(currentProfile.getDisplayName() != null ? currentProfile.getDisplayName() : "");
 
         if (currentProfile.getAvatarUrl() != null && !currentProfile.getAvatarUrl().isEmpty()) {
@@ -180,10 +180,10 @@ public class EditProfileDialog {
             updates.put("avatar_url", avatarUrl);
         }
 
-        // Gọi hàm mới
+        
         repo.updateProfile(currentProfile.getId(), updates);
 
-        // Optimistic update (vì hàm không trả callback)
+        
         Toast.makeText(context, "Cập nhật thành công!", Toast.LENGTH_SHORT).show();
 
         currentProfile.setDisplayName(displayName);

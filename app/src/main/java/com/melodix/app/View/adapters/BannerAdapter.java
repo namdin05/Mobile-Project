@@ -35,8 +35,8 @@ public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerView
     @Override
     public void onBindViewHolder(@NonNull BannerViewHolder holder, int position) {
         Banner item = items.get(position);
-//        holder.title.setText(item.getTitle()+"");
-//        holder.badge.setText("HOT");
+
+
         Glide.with(context).load(item.getCover_url()).into(holder.image);
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onBannerClick(item);
@@ -50,9 +50,9 @@ public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerView
         ImageView image; TextView title; TextView badge;
         BannerViewHolder(@NonNull View itemView) {
             super(itemView);
-//            title = itemView.findViewById(R.id.tv_title);
+
             image = itemView.findViewById(R.id.img_banner);
-//            badge = itemView.findViewById(R.id.tv_badge);
+
         }
     }
 }

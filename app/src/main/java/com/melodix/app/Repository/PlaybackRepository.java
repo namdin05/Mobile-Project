@@ -14,7 +14,6 @@ public class PlaybackRepository {
         currentIndex = -1;
     }
 
-    // singleton
     public static synchronized PlaybackRepository getInstance() {
         if (instance == null) {
             instance = new PlaybackRepository();
@@ -43,7 +42,7 @@ public class PlaybackRepository {
 
         for (int i = 0; i < currentQueue.size(); i++) {
             if (currentQueue.get(i).getId().equals(songId)) {
-                this.currentIndex = i; // CẬP NHẬT LẠI TRÍ NHỚ: Lưu lại vị trí mới!
+                this.currentIndex = i;
                 return currentQueue.get(i);
             }
         }
@@ -59,9 +58,9 @@ public class PlaybackRepository {
 
     private int findSongIndex(String songId) {
         for (int i = 0; i < currentQueue.size(); i++) {
-            if (currentQueue.get(i).getId().equals(songId)) return i; // Thay getId() bằng tên biến tương ứng của bạn
+            if (currentQueue.get(i).getId().equals(songId)) return i;
         }
-        return 0; // Mặc định phát bài đầu tiên nếu không tìm thấy
+        return 0;
     }
 
 

@@ -111,7 +111,6 @@ public class Song {
         return plays;
     }
 
-    // THÊM HÀM GET LIKES ĐỂ BÊN ACTIVITY CÓ THỂ LỌC DỮ LIỆU
     public int getLikes() {
         return likes;
     }

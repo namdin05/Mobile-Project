@@ -50,7 +50,7 @@ public class AccountFragment extends Fragment {
 
     private com.melodix.app.ViewModel.ProfileViewModel profileViewModel;
 
-    // Tách biệt cài đặt App (Dark Mode) ra một két sắt riêng
+    
     private static final String PREF_SETTINGS = "MelodixSettings";
     private static final String KEY_DARK_MODE = "dark_mode_enabled";
 
@@ -98,7 +98,7 @@ public class AccountFragment extends Fragment {
         if (swipeRefresh != null) {
             swipeRefresh.setColorSchemeColors(android.graphics.Color.parseColor("#1DB954"));
             swipeRefresh.setOnRefreshListener(() -> {
-                // ĐÃ SỬA: Gọi trực tiếp SessionManager
+                
                 String myId = SessionManager.getInstance(requireContext()).getUserId();
                 if (myId != null) {
                     checkRequestStatus(myId);
@@ -109,7 +109,7 @@ public class AccountFragment extends Fragment {
             });
         }
 
-        // 1. TÍNH NĂNG DARK MODE (Dùng file Setting riêng)
+        
         SharedPreferences settingsPrefs = requireContext().getSharedPreferences(PREF_SETTINGS, Context.MODE_PRIVATE);
         dark = view.findViewById(R.id.switch_dark_mode);
         dark.setChecked(settingsPrefs.getBoolean(KEY_DARK_MODE, false));
@@ -118,14 +118,14 @@ public class AccountFragment extends Fragment {
             AppCompatDelegate.setDefaultNightMode(isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
         });
 
-        // 2. CÁC NÚT CƠ BẢN
+        
         view.findViewById(R.id.btn_speed).setOnClickListener(v -> AppUiUtils.showSpeedDialog(requireContext()));
         view.findViewById(R.id.btn_sleep_timer).setOnClickListener(v -> AppUiUtils.showSleepTimerDialog(requireContext()));
         btnArtistUpload.setOnClickListener(v -> startActivity(new Intent(getContext(), ManageSongActivity.class)));
         btnArtistAlbums.setOnClickListener(v -> startActivity(new Intent(requireContext(), com.melodix.app.View.artist.ManageAlbumActivity.class)));
 
         btnArtistStats.setOnClickListener(v -> {
-            // ĐÃ SỬA: Lấy ID từ SessionManager
+            
             String userId = SessionManager.getInstance(requireContext()).getUserId();
             if (userId != null) {
                 Intent intent = new Intent(requireContext(), com.melodix.app.View.artist.ArtistAnalyticsActivity.class);
@@ -135,7 +135,7 @@ public class AccountFragment extends Fragment {
         });
 
         view.findViewById(R.id.btn_share_profile).setOnClickListener(v -> {
-            // ĐÃ SỬA: Lấy thông tin từ Session và MelodixPrefs
+            
             String myId = SessionManager.getInstance(requireContext()).getUserId();
             SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
             String myName = prefs.getString("USER_NAME", "Người dùng");
@@ -150,7 +150,7 @@ public class AccountFragment extends Fragment {
         });
 
         btnRequestArtist.setOnClickListener(v -> {
-            // ĐÃ SỬA: Gọi SessionManager
+            
             String myId = SessionManager.getInstance(requireContext()).getUserId();
             if (myId == null) return;
 
@@ -163,7 +163,7 @@ public class AccountFragment extends Fragment {
             }
         });
 
-        // KIỂM TRA ĐĂNG NHẬP NGAY TỪ ĐẦU
+        
         String myId = SessionManager.getInstance(requireContext()).getUserId();
         if (myId != null) {
             syncProfileRoleSilently(myId);
@@ -182,7 +182,7 @@ public class AccountFragment extends Fragment {
             String myId = session.getUserId();
             String role = session.getRole();
 
-            // Name và Avatar thường được lưu ở bước khác nên ta vẫn đọc từ MelodixPrefs
+            
             SharedPreferences prefs = requireContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
             String displayName = session.getUserName();
             String avatarUrl = session.getUserAvatar();
@@ -312,7 +312,7 @@ public class AccountFragment extends Fragment {
                     String realRole = response.body().get(0).getRole();
 
                     if (realRole != null) {
-                        // Cập nhật lại role mới nhất vào SessionManager thay vì tự mở SharedPreferences
+                        
                         SessionManager.getInstance(requireContext()).updateRole(realRole);
 
                         if ("artist".equalsIgnoreCase(realRole)) {

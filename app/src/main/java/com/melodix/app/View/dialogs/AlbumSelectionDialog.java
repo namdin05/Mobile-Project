@@ -22,19 +22,19 @@ public class AlbumSelectionDialog {
     private final String currentUserId;
     private final OnAlbumSelectedListener listener;
 
-    // 1. TẠO INTERFACE ĐỂ TRẢ KẾT QUẢ VỀ CHO ACTIVITY
+    
     public interface OnAlbumSelectedListener {
         void onSelected(String albumId, String albumTitle);
     }
 
-    // 2. CONSTRUCTOR NHẬN DỮ LIỆU TỪ NGOÀI TRUYỀN VÀO
+    
     public AlbumSelectionDialog(Context context, String currentUserId, OnAlbumSelectedListener listener) {
         this.context = context;
         this.currentUserId = currentUserId;
         this.listener = listener;
     }
 
-    // 3. HÀM HIỂN THỊ DIALOG (Đổi tên thành show() cho chuyên nghiệp)
+    
     public void show() {
         BottomSheetDialog dialog = new BottomSheetDialog(context, R.style.BottomSheetTheme);
 
@@ -66,9 +66,9 @@ public class AlbumSelectionDialog {
             public void onResponse(Call<List<Album>> call, Response<List<Album>> response) {
                 if (response.isSuccessful() && response.body() != null) {
 
-                    // Lựa chọn Single
+                    
                     container.addView(createPremiumDialogItem("🎵", "Single (Không thuộc album nào)", v -> {
-                        listener.onSelected(null, "Single (Không thuộc album nào)"); // Bắn kết quả về!
+                        listener.onSelected(null, "Single (Không thuộc album nào)"); 
                         dialog.dismiss();
                     }));
 
@@ -80,7 +80,7 @@ public class AlbumSelectionDialog {
                     divider.setLayoutParams(params);
                     container.addView(divider);
 
-                    // Danh sách Album
+                    
                     for (Album album : response.body()) {
                         if (album.status != null && album.status.equalsIgnoreCase("rejected")) {
                             continue;
@@ -93,7 +93,7 @@ public class AlbumSelectionDialog {
                         }
 
                         container.addView(createPremiumDialogItem("💽", displayTitle, v -> {
-                            listener.onSelected(album.id, album.title); // Bắn kết quả về!
+                            listener.onSelected(album.id, album.title); 
                             dialog.dismiss();
                         }));
                     }
@@ -104,7 +104,7 @@ public class AlbumSelectionDialog {
         dialog.show();
     }
 
-    // 4. MANG LUÔN CÁI HÀM VẼ UI NÀY SANG ĐÂY ĐỂ HOẠT ĐỘNG ĐỘC LẬP
+    
     private View createPremiumDialogItem(String icon, String text, View.OnClickListener onClick) {
         android.widget.LinearLayout layout = new android.widget.LinearLayout(context);
         layout.setOrientation(android.widget.LinearLayout.HORIZONTAL);

@@ -26,7 +26,7 @@ public class ListenHistoryItem {
     @SerializedName("audio_url")
     private String audioUrl;
 
-    @SerializedName("lyrics_lrc_url")  // ← THÊM DÒNG NÀY
+    @SerializedName("lyrics_lrc_url")
     private String lyricsUrl;
 
     @SerializedName("duration_seconds")
@@ -65,7 +65,6 @@ public class ListenHistoryItem {
         );
         song.setStatus(status);
 
-        // ← THÊM DÒNG NÀY ĐỂ SET LYRIC URL
         try {
             java.lang.reflect.Field field = Song.class.getDeclaredField("lyrics_url");
             field.setAccessible(true);

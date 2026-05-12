@@ -22,10 +22,10 @@ public interface GenreAPIService {
             @Body java.util.Map<String, Object> genreData
     );
 
-    // UPDATE & SOFT DELETE (Cập nhật tên, hình ảnh, hoặc ẩn đi)
+    
     @PATCH("genres")
     Call<ResponseBody> updateGenre(
-            @Query("id") String idFilter, // eq.xxx
+            @Query("id") String idFilter, 
             @Body java.util.Map<String, Object> genreData
     );
 

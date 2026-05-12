@@ -42,7 +42,7 @@ public interface PlaylistAPIService {
             @Query("id") String idFilter
     );
 
-    // Playlist Songs
+    
     @POST("playlist_songs")
     Call<ResponseBody> addSongToPlaylist(
             @Body Map<String, Object> data
@@ -57,14 +57,14 @@ public interface PlaylistAPIService {
     @PATCH("playlist_songs")
     Call<ResponseBody> updatePlaylistSongOrder(
             @Header("Prefer") String prefer,
-            @Query("playlist_id") String playlistFilter,  // "eq.xxx"
-            @Query("song_id") String songFilter,          // "eq.yyy"
+            @Query("playlist_id") String playlistFilter,  
+            @Query("song_id") String songFilter,          
             @Body Map<String, Object> data
     );
 
     @PATCH("playlist_songs")
     Call<ResponseBody> updatePlaylistSongOrderWithAuth(
-            @Header("Authorization") String auth,  // 👈 Thêm header này
+            @Header("Authorization") String auth,  
             @Header("Prefer") String prefer,
             @Query("playlist_id") String playlistFilter,
             @Query("song_id") String songFilter,

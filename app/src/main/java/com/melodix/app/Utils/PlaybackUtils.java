@@ -17,7 +17,6 @@ public class PlaybackUtils {
     public static void playSong(Context context, ArrayList<Song> queue, String songId, boolean fromPlaylist) {
         PlaybackRepository.getInstance().setQueue(queue, songId);
 
-        // CHỈ mở PlayerActivity và truyền cờ "start_playback"
         Intent playerIntent = new Intent(context, PlayerActivity.class);
         playerIntent.putExtra(PlayerActivity.EXTRA_SONG_ID, songId);
         playerIntent.putExtra("start_playback", true);

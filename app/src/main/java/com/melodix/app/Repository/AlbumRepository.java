@@ -75,7 +75,6 @@ public class AlbumRepository {
         java.util.Map<String, Object> body = new java.util.HashMap<>();
         body.put("status", newStatus);
 
-        // Truyền thẳng callback của ViewModel vào enqueue
         apiService.updateStatus("eq." + albumId, body).enqueue(callback);
     }
 }

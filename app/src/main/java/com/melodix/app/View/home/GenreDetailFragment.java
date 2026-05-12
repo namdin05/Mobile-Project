@@ -28,7 +28,7 @@ public class GenreDetailFragment extends Fragment {
     private String genreName;
     private LoadingDialog loadingDialog;
 
-    // Hàm khởi tạo nhận dữ liệu truyền vào
+    
     public static GenreDetailFragment newInstance(String genreId, String genreName) {
         GenreDetailFragment fragment = new GenreDetailFragment();
         Bundle args = new Bundle();
@@ -45,41 +45,41 @@ public class GenreDetailFragment extends Fragment {
 
         loadingDialog = new LoadingDialog();
 
-        view.setTranslationZ(100f); // Ép nổi lên 100 pixel
-        view.setClickable(true);    // Đóng băng điểm chạm (Chống bấm xuyên)
-        view.setFocusable(true);    // Đóng băng focus
-        view.setBackgroundColor(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.mdx_bg)); // Đổ lại màu nền cho chắc cú
+        view.setTranslationZ(100f); 
+        view.setClickable(true);    
+        view.setFocusable(true);    
+        view.setBackgroundColor(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.mdx_bg)); 
 
-        // Nhận dữ liệu
+        
         if (getArguments() != null) {
             genreId = getArguments().getString("GENRE_ID");
             genreName = getArguments().getString("GENRE_NAME");
         }
 
-        // Set tiêu đề thể loại
+        
         TextView tvTitle = view.findViewById(R.id.tv_genre_title);
         tvTitle.setText(genreName);
 
-        // Nút Back
+        
         view.findViewById(R.id.btn_back).setOnClickListener(v -> {
             requireActivity().getSupportFragmentManager().popBackStack();
         });
 
-        // Setup RecyclerView hiển thị dạng Lưới (2 cột) cho đẹp mắt với SongCardAdapter
+        
         RecyclerView rvSongs = view.findViewById(R.id.rv_genre_songs);
         rvSongs.setLayoutManager(new GridLayoutManager(requireContext(), 2));
 
-        // Lấy dữ liệu bài hát
+        
         HomeViewModel sharedViewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
 
-        // Parse ID từ String sang int (Vì bảng genres lưu id là integer)
+        
         int id = Integer.parseInt(genreId);
 
         loadingDialog.showLoading(requireActivity());
-        // Gọi API lấy đúng danh sách nhạc của Thể loại đó
+        
         sharedViewModel.getSongsByGenre(id).observe(getViewLifecycleOwner(), genreSongs -> {
             loadingDialog.hideLoading();
-            // MÁY QUAY 2: Xem giao diện nhận được bao nhiêu bài
+            
             android.util.Log.d("DEBUG_UI", "Thể loại ID " + id + " nhận được: " + genreSongs.size() + " bài hát.");
 
             SongCardAdapter adapter = new SongCardAdapter(requireContext(), genreSongs, false, song -> {
@@ -88,26 +88,26 @@ public class GenreDetailFragment extends Fragment {
             rvSongs.setAdapter(adapter);
         });
 
-//        // TODO: Đổi getNewReleases() thành hàm lấy bài hát theo Thể loại của bạn (VD: getSongsByGenre(genreId))
-//        sharedViewModel.getNewReleases().observe(getViewLifecycleOwner(), allSongs -> {
-//            List<Song> genreSongs = new ArrayList<>();
-//
-//            // Lọc các bài hát thuộc thể loại này (Hoặc API của bạn đã lọc sẵn rồi thì bỏ qua bước này)
-//            for (Song song : allSongs) {
-//                // Nếu backend trả về tất cả, bạn mở comment dòng IF dưới đây để lọc:
-//                // if (song.getGenreId() != null && song.getGenreId().equals(genreId)) {
-//                genreSongs.add(song);
-//                // }
-//            }
-//
-//            // Đổ dữ liệu vào SongCardAdapter
-//            SongCardAdapter adapter = new SongCardAdapter(requireContext(), genreSongs, false, song -> {
-//                // Bắt sự kiện bấm vào Card thì phát nhạc
-//                PlaybackUtils.playSong(requireContext(), (ArrayList<Song>) genreSongs, song.getId());
-//            });
-//
-//            rvSongs.setAdapter(adapter);
-//        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         return view;
     }

@@ -23,10 +23,10 @@ public class ManageAlbumAdapter extends RecyclerView.Adapter<ManageAlbumAdapter.
     private final List<Album> albumList;
     private final OnAlbumOptionClickListener listener;
 
-    // Upgraded interface: now it has 2 clear responsibilities
+    
     public interface OnAlbumOptionClickListener {
-        void onAlbumClick(Album album);   // Tap the album card to view tracks
-        void onOptionClick(Album album);  // Tap the 3-dot button / trash button
+        void onAlbumClick(Album album);   
+        void onOptionClick(Album album);  
     }
 
     public ManageAlbumAdapter(Context context, List<Album> albumList, OnAlbumOptionClickListener listener) {
@@ -71,10 +71,10 @@ public class ManageAlbumAdapter extends RecyclerView.Adapter<ManageAlbumAdapter.
                 break;
         }
 
-        // Handle click on the whole album card
+        
         holder.itemView.setOnClickListener(v -> listener.onAlbumClick(album));
 
-        // Handle click on the 3-dot / trash button
+        
         holder.btnOptions.setOnClickListener(v -> listener.onOptionClick(album));
     }
 

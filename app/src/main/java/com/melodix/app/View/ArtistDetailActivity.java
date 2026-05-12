@@ -43,7 +43,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
     private TextView tvSongsTitle, tvAlbumsTitle, tvRelatedTitle;
     private TextView tvSeeAllSongs, tvSeeAllAlbums;
 
-    // THÊM: Khai báo MiniPlayerController
+    
     private com.melodix.app.Model.MiniPlayerController miniPlayerController;
 
     @Override
@@ -77,7 +77,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
             }
         });
 
-//        findViewById(R.id.btn_follow).setOnClickListener(v -> Toast.makeText(this, "Đang phát triển", Toast.LENGTH_SHORT).show());
+
 
         findViewById(R.id.btn_play_all).setOnClickListener(v -> {
             if (songAdapter != null && songAdapter.getSongs() != null && !songAdapter.getSongs().isEmpty()) {
@@ -146,7 +146,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
                     tvFollowerCount.setText(displayCount + " follower(s)");
                 });
 
-                // LẤY BÀI HÁT
+                
                 repository.getSongsByArtist(artistId, new AppRepository.SongListCallback() {
                     @Override public void onSuccess(ArrayList<Song> songs) {
                         if (isFinishing() || isDestroyed()) return;
@@ -180,7 +180,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
                     }
                 });
 
-                // LẤY ALBUMS
+                
                 repository.getAlbumsByArtist(artistId, new AppRepository.AlbumListCallback() {
                     @Override public void onSuccess(ArrayList<Album> albums) {
                         if (isFinishing() || isDestroyed() || albums.isEmpty()) return;
@@ -197,7 +197,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
                     }
                     @Override public void onError(String message) {}
                 });
-                //LẤY SỐ LƯỢNG FOLLOW
+                
                 repository.getFollowerCount(artistId, count -> {
                     if (isFinishing() || isDestroyed()) return;
                     tvFollowerCount.setVisibility(View.VISIBLE);
@@ -209,7 +209,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
                     if (followManager != null) followManager.setFollowerCount(count);
                 });
 
-                // LẤY NGHỆ SĨ LIÊN QUAN
+                
                 repository.getRelatedArtists(artistId, new AppRepository.ArtistListCallback() {
                     @Override public void onSuccess(ArrayList<Artist> artists) {
                         if (isFinishing() || isDestroyed() || artists.isEmpty()) return;
@@ -225,12 +225,12 @@ public class ArtistDetailActivity extends AppCompatActivity {
                 if (!isFinishing() && !isDestroyed()) finish();
             }
         });
-        // Khởi tạo FollowManager
+        
         Button btnFollow = findViewById(R.id.btn_follow);
         TextView tvFollowerCountView = findViewById(R.id.tv_follower_count);
         followManager = new FollowManager(this, artistId, btnFollow, tvFollowerCountView);
         followManager.init();
-        // THÊM: Khởi tạo MiniPlayer Controller
+        
         miniPlayerController = new com.melodix.app.Model.MiniPlayerController(this);
     }
 
@@ -272,7 +272,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
         }
     }
 
-    // THÊM: Quản lý vòng đời của Mini Player (Đánh thức và Ngủ đông)
+    
     @Override
     protected void onResume() {
         super.onResume();

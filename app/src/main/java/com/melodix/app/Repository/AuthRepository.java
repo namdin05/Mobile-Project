@@ -123,7 +123,6 @@ public class AuthRepository {
                     }
                 } else {
                     String errorMsg = "Token MXH không hợp lệ";
-                    // KIỂM TRA LỖI BAN KHI GỌI USER INFO
                     if (response.code() == 403) {
                         errorMsg = "Tài khoản của bạn đã bị khóa bởi quản trị viên.";
                     } else {

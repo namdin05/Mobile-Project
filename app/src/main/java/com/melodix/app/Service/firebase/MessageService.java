@@ -26,23 +26,19 @@ public class MessageService extends FirebaseMessagingService {
     private static final String TAG = "MELODIX_FCM";
     private static final String CHANNEL_ID = "Melodix_Notification_Channel";
 
-    // Hàm này tự động chạy khi Google cấp cho máy 1 cái Token mới
     @Override
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
         Log.d(TAG, "FCM Token mới: " + token);
 
-        // ĐẨY TOKEN LÊN SERVER THÔNG QUA REPO
         ProfileRepository repository = new ProfileRepository(getApplicationContext());
         repository.updateTokenToServer(token);
     }
 
-    // Hàm này chạy khi App đang MỞ trên màn hình mà có thông báo bay tới
     @Override
     public void onMessageReceived(@NonNull RemoteMessage message) {
         super.onMessageReceived(message);
 
-        // ĐỌC TRỰC TIẾP TỪ GÓI DATA PAYLOAD
         Map<String, String> data = message.getData();
 
         if (data.size() > 0) {
@@ -51,7 +47,6 @@ public class MessageService extends FirebaseMessagingService {
 
             Log.d(TAG, "Nhận thông báo ngầm: " + title);
 
-            // Gọi hàm tự vẽ thông báo nổi lên màn hình
             sendNotification(title, body, data);
         }
     }
@@ -80,10 +75,10 @@ public class MessageService extends FirebaseMessagingService {
                         .setSmallIcon(R.drawable.ic_logo)
                         .setContentTitle(title)
                         .setContentText(messageBody)
-                        .setAutoCancel(true) // Bấm vào tự động biến mất
+                        .setAutoCancel(true)
                         .setSound(defaultSoundUri)
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
-                        .setContentIntent(pendingIntent); // Gắn tấm vé chứa song_id vào đây!
+                        .setContentIntent(pendingIntent);
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

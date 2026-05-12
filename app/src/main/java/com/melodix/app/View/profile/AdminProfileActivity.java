@@ -58,7 +58,7 @@ public class AdminProfileActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_admin_profile);
 
-        // Ánh xạ View
+        
         btnBack = findViewById(R.id.btnBack);
         imgProfileAvatar = findViewById(R.id.imgProfileAvatar);
         btnChangeAvatar = findViewById(R.id.btnChangeAvatar);
@@ -66,11 +66,11 @@ public class AdminProfileActivity extends AppCompatActivity {
         btnSaveChanges = findViewById(R.id.btnSaveChanges);
         btnChangePassword = findViewById(R.id.btnChangePassword);
 
-        // Lấy UID của Admin hiện tại
+        
 
         adminUid = SessionManager.getInstance(getApplicationContext()).getUserId();
 
-        // Nhận dữ liệu cũ từ AdminActivity
+        
         String currentName = getIntent().getStringExtra("CURRENT_NAME");
         String currentAvatarUrl = getIntent().getStringExtra("CURRENT_AVATAR");
 
@@ -83,25 +83,25 @@ public class AdminProfileActivity extends AppCompatActivity {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        // Lấy đường dẫn ảnh vừa chọn
+                        
                         selectedImageUri = result.getData().getData();
-                        // Tạm thời hiển thị ảnh đó lên giao diện (chưa upload)
+                        
                         Glide.with(this).load(selectedImageUri).into(imgProfileAvatar);
                     }
                 }
         );
 
-        // Nút Back
+        
         btnBack.setOnClickListener(v -> finish());
 
-        // Nút Mở thư viện ảnh
+        
         btnChangeAvatar.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK);
             intent.setType("image/*");
             imagePickerLauncher.launch(intent);
         });
 
-        // Nút Lưu thay đổi
+        
         btnSaveChanges.setOnClickListener(v -> {
             String newName = edtDisplayName.getText().toString().trim();
             if (newName.isEmpty()) {
@@ -112,11 +112,11 @@ public class AdminProfileActivity extends AppCompatActivity {
             btnSaveChanges.setEnabled(false);
             btnSaveChanges.setText("Đang lưu...");
 
-            // Nếu user có chọn ảnh mới -> Phải Upload ảnh trước
+            
             if (selectedImageUri != null) {
                 uploadImageAndSaveProfile(newName);
             } else {
-                // Nếu chỉ đổi tên, không đổi ảnh -> Cập nhật Database luôn
+                
                 updateDatabaseOnly(newName, null);
             }
 

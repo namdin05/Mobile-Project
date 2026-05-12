@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat; // Đã thêm thư viện này để lấy màu chuẩn
+import androidx.core.content.ContextCompat; 
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.melodix.app.Model.LyricLine;
@@ -19,13 +19,13 @@ public class LyricAdapter extends RecyclerView.Adapter<LyricAdapter.ViewHolder> 
     private ArrayList<LyricLine> list;
     private int currentHighlightIndex = -1;
 
-    // 1. THÊM BỘ ĐÀM LIÊN LẠC
+    
     public interface OnLyricClickListener {
         void onLyricClick(long timeMs);
     }
     private OnLyricClickListener listener;
 
-    // 2. SỬA LẠI HÀM KHỞI TẠO ĐỂ NHẬN BỘ ĐÀM
+    
     public LyricAdapter(ArrayList<LyricLine> list, OnLyricClickListener listener) {
         this.list = list;
         this.listener = listener;
@@ -37,7 +37,7 @@ public class LyricAdapter extends RecyclerView.Adapter<LyricAdapter.ViewHolder> 
         int oldIndex = this.currentHighlightIndex;
         this.currentHighlightIndex = index;
 
-        // Bắn tín hiệu cập nhật
+        
         if (oldIndex != -1) notifyItemChanged(oldIndex, false);
         if (this.currentHighlightIndex != -1) notifyItemChanged(this.currentHighlightIndex, true);
     }
@@ -54,13 +54,13 @@ public class LyricAdapter extends RecyclerView.Adapter<LyricAdapter.ViewHolder> 
         holder.tvText.setText(list.get(position).text);
 
 
-        int activeColor = ContextCompat.getColor(holder.itemView.getContext(), R.color.mdx_primary); // Xanh Spotify cho dòng đang hát
-        int inactiveColor = ContextCompat.getColor(holder.itemView.getContext(), R.color.mdx_text);  // Trắng/Đen cho dòng chưa hát
+        int activeColor = ContextCompat.getColor(holder.itemView.getContext(), R.color.mdx_primary); 
+        int inactiveColor = ContextCompat.getColor(holder.itemView.getContext(), R.color.mdx_text);  
 
-        // BƯỚC 1: Rút phích cắm mọi animation đang chạy ngầm trên view này
+        
         holder.tvText.animate().cancel();
 
-        // 3. BẮT SỰ KIỆN CLICK VÀO DÒNG CHỮ
+        
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onLyricClick(list.get(position).timeMs);
@@ -69,24 +69,24 @@ public class LyricAdapter extends RecyclerView.Adapter<LyricAdapter.ViewHolder> 
 
         boolean isHighlight = (position == currentHighlightIndex);
         if (payloads.isEmpty()) {
-            // NẾU LÀ VUỐT MÀN HÌNH -> Gắn cứng trạng thái tĩnh
+            
             holder.tvText.setTextColor(isHighlight ? activeColor : inactiveColor);
             holder.tvText.setAlpha(isHighlight ? 1.0f : 0.4f);
             holder.tvText.setScaleX(isHighlight ? 1.1f : 1.0f);
             holder.tvText.setScaleY(isHighlight ? 1.1f : 1.0f);
         } else {
-            // NẾU LÀ TỰ ĐỘNG CHUYỂN CÂU HÁT -> Chạy animation
+            
             if (isHighlight) {
                 holder.tvText.setTextColor(activeColor);
-                // Dòng đang hát: Phóng to và Sáng lên mượt mà (300ms)
+                
                 holder.tvText.animate().alpha(1.0f).scaleX(1.1f).scaleY(1.1f).setDuration(300).start();
             } else {
                 holder.tvText.setTextColor(inactiveColor);
 
-                // ĐÃ SỬA: Ép độ mờ (alpha) xuống 40% NGAY LẬP TỨC để chặn cú chớp sáng
+                
                 holder.tvText.setAlpha(0.4f);
 
-                // Chỉ chạy animation thu nhỏ kích thước chữ thôi
+                
                 holder.tvText.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).start();
             }
         }
@@ -94,7 +94,7 @@ public class LyricAdapter extends RecyclerView.Adapter<LyricAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        // Bỏ trống vì đã xài hàm payloads ở trên
+        
     }
 
     @Override

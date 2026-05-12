@@ -44,7 +44,7 @@ public class AdminStatFragment extends Fragment {
     private LoadingDialog loadingDialog;
 
     public AdminStatFragment() {
-        // Required empty public constructor
+        
     }
 
     @Nullable
@@ -54,14 +54,14 @@ public class AdminStatFragment extends Fragment {
 
         loadingDialog = new LoadingDialog();
 
-        // 1. Ánh xạ View cho các Card điều hướng
+        
         MaterialCardView cardUsersBanner = view.findViewById(R.id.cardUsersBanner);
         MaterialCardView cardSongs = view.findViewById(R.id.cardSongs);
         MaterialCardView cardAlbums = view.findViewById(R.id.cardAlbums);
         MaterialCardView cardGenres = view.findViewById(R.id.cardGenres);
         MaterialCardView cardLogs = view.findViewById(R.id.cardLog);
 
-        // 2. Ánh xạ View cho các TextView hiển thị số liệu
+        
         tvLastSync = view.findViewById(R.id.tvLastSync);
         tvTotalUsers = view.findViewById(R.id.tvTotalUsers);
         tvTotalListeners = view.findViewById(R.id.tvTotalListeners);
@@ -70,16 +70,16 @@ public class AdminStatFragment extends Fragment {
         tvTotalSongs = view.findViewById(R.id.tvTotalSongs);
         tvTotalAlbums = view.findViewById(R.id.tvTotalAlbums);
         tvTotalGenres = view.findViewById(R.id.tvTotalGenres);
-        //tvTotalPlaylists = view.findViewById(R.id.tvTotalPlaylists);
+        
 
-        // 3. Thiết lập sự kiện Click gọi hàm điều hướng
+        
         cardUsersBanner.setOnClickListener(v -> navigateToFragment(new UserManagementFragment()));
         cardSongs.setOnClickListener(v -> navigateToFragment(new SongManagementFragment()));
         cardAlbums.setOnClickListener(v -> navigateToFragment(new AlbumManagementFragment()));
         cardGenres.setOnClickListener(v -> navigateToFragment(new GenreManagementFragment()));
         cardLogs.setOnClickListener(v -> navigateToFragment(new LogManagementFragment()));
 
-        // 4. Khởi tạo ViewModel và quan sát dữ liệu
+        
         viewModel = new ViewModelProvider(this).get(AdminStatViewModel.class);
         
         loadingDialog.showLoading(requireActivity());
@@ -159,7 +159,7 @@ public class AdminStatFragment extends Fragment {
     }
 
     private void observeViewModel() {
-        // Lắng nghe danh sách trả về để hiển thị Badge số lượng
+        
         viewModel.getPendingArtistRequests().observe(getViewLifecycleOwner(), list -> {
             if (list != null) {
                 currentPendingList = list;
@@ -170,7 +170,7 @@ public class AdminStatFragment extends Fragment {
                     tvPendingArtistReqs.setText(count + " New");
                 } else {
                     badgeArtistReqs.setVisibility(View.GONE);
-                    // Đóng hộp thoại nếu đang mở mà hết người
+                    
                     if (currentDialog != null && currentDialog.isShowing()) {
                         currentDialog.dismiss();
                     }
@@ -178,16 +178,16 @@ public class AdminStatFragment extends Fragment {
             }
         });
 
-        // Lắng nghe kết quả bấm Duyệt/Từ chối
+        
         viewModel.getActionSuccess().observe(getViewLifecycleOwner(), isSuccess -> {
             loadingDialog.hideLoading();
             if (isSuccess != null && isSuccess) {
-                // Nếu thành công -> Load lại danh sách, giao diện sẽ tự động cập nhật
+                
                 viewModel.getPendingArtistRequests();
             }
         });
 
-        // Lắng nghe để hiện Toast
+        
         viewModel.getActionMessage().observe(getViewLifecycleOwner(), message -> {
             if (message != null && !message.isEmpty()) {
                 Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
@@ -231,9 +231,9 @@ public class AdminStatFragment extends Fragment {
         title.setPadding(0, 0, 0, 40);
         container.addView(title);
 
-        // Hiển thị từng yêu cầu
+        
         for (ArtistRequest req : currentPendingList) {
-            // TẠO MỘT CÁI "HỘP" ĐỂ CHỨA RIÊNG THÔNG TIN CỦA 1 NGƯỜI NÀY
+            
             android.widget.LinearLayout itemContainer = new android.widget.LinearLayout(requireContext());
             itemContainer.setOrientation(android.widget.LinearLayout.VERTICAL);
             itemContainer.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
@@ -247,12 +247,12 @@ public class AdminStatFragment extends Fragment {
             tvName.setTextSize(16);
             tvName.setTextColor(android.graphics.Color.DKGRAY);
             tvName.setPadding(0, 0, 0, 20);
-            itemContainer.addView(tvName); // Thêm vào hộp nhỏ
+            itemContainer.addView(tvName); 
 
             android.widget.LinearLayout btnLayout = new android.widget.LinearLayout(requireContext());
             btnLayout.setOrientation(android.widget.LinearLayout.HORIZONTAL);
 
-            // Nút Approve
+            
             com.google.android.material.button.MaterialButton btnApprove = new com.google.android.material.button.MaterialButton(requireContext());
             btnApprove.setText("Approve");
             btnApprove.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1DB954")));
@@ -260,7 +260,7 @@ public class AdminStatFragment extends Fragment {
             paramsApprove.setMargins(0, 0, 20, 0);
             btnApprove.setLayoutParams(paramsApprove);
 
-            // Nút Reject
+            
             com.google.android.material.button.MaterialButton btnReject = new com.google.android.material.button.MaterialButton(requireContext());
             btnReject.setText("Reject");
             btnReject.setTextColor(android.graphics.Color.RED);
@@ -273,32 +273,32 @@ public class AdminStatFragment extends Fragment {
                 loadingDialog.showLoading(requireActivity());
                 viewModel.processRequest(req, "approved");
                 currentPendingList.remove(req);
-                container.removeView(itemContainer); // Xóa ngay lập tức trên UI
+                container.removeView(itemContainer); 
 
-                updateDialogState(title, dialog);    // Cập nhật số lượng
+                updateDialogState(title, dialog);    
             });
 
             btnReject.setOnClickListener(v -> {
                 loadingDialog.showLoading(requireActivity());
                 viewModel.processRequest(req, "rejected");
                 currentPendingList.remove(req);
-                container.removeView(itemContainer); // Xóa ngay lập tức trên UI
+                container.removeView(itemContainer); 
 
-                updateDialogState(title, dialog);    // Cập nhật số lượng
+                updateDialogState(title, dialog);    
             });
 
             btnLayout.addView(btnApprove);
             btnLayout.addView(btnReject);
-            itemContainer.addView(btnLayout); // Thêm 2 nút vào hộp nhỏ
+            itemContainer.addView(btnLayout); 
 
             View divider = new View(requireContext());
             divider.setBackgroundColor(android.graphics.Color.parseColor("#EEEEEE"));
             android.widget.LinearLayout.LayoutParams divParams = new android.widget.LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 2);
             divParams.setMargins(0, 40, 0, 40);
             divider.setLayoutParams(divParams);
-            itemContainer.addView(divider); // Thêm đường kẻ vào hộp nhỏ
+            itemContainer.addView(divider); 
 
-            // CUỐI CÙNG: Nhét cái hộp nhỏ này vào container lớn của Dialog
+            
             container.addView(itemContainer);
         }
 
@@ -309,21 +309,21 @@ public class AdminStatFragment extends Fragment {
         currentDialog = dialog;
     }
 
-    // Hàm phụ trợ giúp cập nhật cả Dialog lẫn Badge ngoài màn hình chính
+    
     private void updateDialogState(TextView title, BottomSheetDialog dialog) {
         int remainingCount = currentPendingList.size();
 
         if (remainingCount == 0) {
-            // Nếu đã duyệt hết: Đóng dialog và Ẩn luôn cái Badge đỏ ở ngoài
+            
             dialog.dismiss();
             if (badgeArtistReqs != null) {
                 badgeArtistReqs.setVisibility(View.GONE);
             }
         } else {
-            // Nếu vẫn còn người: Cập nhật tiêu đề Dialog
+            
             title.setText("Request (" + remainingCount + ")");
 
-            // ĐỒNG THỜI: Cập nhật luôn con số "2 New" ở màn hình ngoài
+            
             if (tvPendingArtistReqs != null) {
                 tvPendingArtistReqs.setText(remainingCount + " New");
             }

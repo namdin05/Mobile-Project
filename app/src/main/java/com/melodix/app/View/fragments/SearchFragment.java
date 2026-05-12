@@ -91,14 +91,14 @@ public class SearchFragment extends Fragment {
         bindChips(view);
         renderRecentSearches();
 
-        // 1. NÚT XÓA (CLEAR) TRÊN THANH TÌM KIẾM
+        
         etSearch.setOnTouchListener((v, event) -> {
             final int DRAWABLE_RIGHT = 2;
             if (event.getAction() == MotionEvent.ACTION_UP) {
                 if (etSearch.getCompoundDrawables()[DRAWABLE_RIGHT] != null) {
-                    // Nếu bấm vào khu vực của dấu X (bên phải)
+                    
                     if (event.getRawX() >= (etSearch.getRight() - etSearch.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width() - etSearch.getPaddingRight() - 20)) {
-                        etSearch.setText(""); // Xóa nội dung
+                        etSearch.setText(""); 
                         return true;
                     }
                 }
@@ -111,13 +111,13 @@ public class SearchFragment extends Fragment {
             }
         });
 
-        // Bắt luôn cả sự kiện khi ô Search được Focus (nháy nháy con trỏ)
+        
         etSearch.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus && etSearch.getText().toString().trim().isEmpty()) {
                 showRecentSearchDropdown();
             }
         });
-        // 2. SỰ KIỆN GÕ PHÍM (Live Search + Hiện dấu X)
+        
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -126,7 +126,7 @@ public class SearchFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                // Tự động hiện/ẩn dấu X ở thanh tìm kiếm
+                
                 if (s.length() > 0) {
                     etSearch.setCompoundDrawablesWithIntrinsicBounds(0, 0, android.R.drawable.ic_menu_close_clear_cancel, 0);
                     if (recentSearchPopup != null && recentSearchPopup.isShowing()) {
@@ -143,11 +143,11 @@ public class SearchFragment extends Fragment {
                     debounceHandler.removeCallbacks(searchRunnable);
                 }
                 searchRunnable = () -> runSearch();
-                debounceHandler.postDelayed(searchRunnable, 500); // Debounce 500ms
+                debounceHandler.postDelayed(searchRunnable, 500); 
             }
         });
 
-        // 3. SỰ KIỆN LƯU LỊCH SỬ KHI BẤM ENTER
+        
         etSearch.setOnEditorActionListener((TextView v, int actionId, KeyEvent event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_DONE) {
                 String keyword = etSearch.getText().toString().trim();
@@ -193,22 +193,22 @@ public class SearchFragment extends Fragment {
         ArrayList<String> recent = repository.getRecentSearches();
         if (recent == null || recent.isEmpty()) return;
 
-        // Tạo 1 list MỚI để mình có thể can thiệp xóa (remove) item lúc bấm chữ X
+        
         java.util.List<String> top10 = new java.util.ArrayList<>(recent.subList(0, Math.min(recent.size(), 10)));
 
         if (recentSearchPopup == null) {
             recentSearchPopup = new android.widget.ListPopupWindow(requireContext());
             recentSearchPopup.setAnchorView(etSearch);
 
-            // Ép cái bảng rộng bằng y chang thanh Search (Không bị thò ra thụt vào)
+            
             etSearch.post(() -> recentSearchPopup.setWidth(etSearch.getWidth()));
 
-            // Dùng background card bo góc của sếp thay vì cục hình chữ nhật
+            
             recentSearchPopup.setBackgroundDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.bg_card));
-            recentSearchPopup.setVerticalOffset(10); // Cách thanh search xuống 10 pixel cho thoáng
+            recentSearchPopup.setVerticalOffset(10); 
         }
 
-        // TỰ TẠO ADAPTER ĐỂ VẼ GIAO DIỆN (CHỮ BÊN TRÁI, DẤU X BÊN PHẢI)
+        
         android.widget.BaseAdapter customAdapter = new android.widget.BaseAdapter() {
             @Override
             public int getCount() { return top10.size(); }
@@ -224,38 +224,38 @@ public class SearchFragment extends Fragment {
                 TextView tvClose;
 
                 if (convertView == null) {
-                    // Tạo một thanh ngang (Hàng)
+                    
                     layout = new LinearLayout(requireContext());
                     layout.setOrientation(LinearLayout.HORIZONTAL);
-                    layout.setPadding(40, 36, 40, 36); // Đệm trên dưới trái phải
+                    layout.setPadding(40, 36, 40, 36); 
                     layout.setGravity(android.view.Gravity.CENTER_VERTICAL);
 
-                    // Thêm hiệu ứng gợn sóng (Ripple) khi bấm vào hàng
+                    
                     android.util.TypedValue outValue = new android.util.TypedValue();
                     requireContext().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
                     layout.setBackgroundResource(outValue.resourceId);
 
-                    // Khúc hiển thị Từ khóa
+                    
                     tvKeyword = new TextView(requireContext());
                     tvKeyword.setTextColor(ContextCompat.getColor(requireContext(), R.color.mdx_text));
                     tvKeyword.setTextSize(16f);
                     tvKeyword.setSingleLine(true);
                     tvKeyword.setEllipsize(android.text.TextUtils.TruncateAt.END);
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-                    tvKeyword.setLayoutParams(params); // Chiếm hết phần không gian trống
+                    tvKeyword.setLayoutParams(params); 
 
-                    // Khúc hiển thị Dấu X
+                    
                     tvClose = new TextView(requireContext());
                     tvClose.setText("✕");
-                    tvClose.setTextColor(ContextCompat.getColor(requireContext(), R.color.mdx_text_secondary)); // Màu xám nhạt
+                    tvClose.setTextColor(ContextCompat.getColor(requireContext(), R.color.mdx_text_secondary)); 
                     tvClose.setTextSize(18f);
-                    tvClose.setPadding(30, 10, 10, 10); // Cho vùng bấm của dấu X bự ra tí
+                    tvClose.setPadding(30, 10, 10, 10); 
 
-                    // Ráp chữ và dấu X vào hàng
+                    
                     layout.addView(tvKeyword);
                     layout.addView(tvClose);
                 } else {
-                    // Tái sử dụng để cuộn không bị giật lag
+                    
                     layout = (LinearLayout) convertView;
                     tvKeyword = (TextView) layout.getChildAt(0);
                     tvClose = (TextView) layout.getChildAt(1);
@@ -267,20 +267,20 @@ public class SearchFragment extends Fragment {
                 layout.setOnClickListener(v -> {
                     etSearch.setText(keyword);
                     etSearch.setSelection(keyword.length());
-                    recentSearchPopup.dismiss(); // Thu dọn bảng
+                    recentSearchPopup.dismiss(); 
                     hideKeyboard();
-                    repository.saveToRecentSearch(keyword); // Lưu lên đầu
+                    repository.saveToRecentSearch(keyword); 
                     renderRecentSearches();
                     runSearch();
                 });
 
                 tvClose.setOnClickListener(v -> {
-                    repository.removeRecentSearch(keyword); // Xóa trong Database SharedPreferences
-                    top10.remove(position); // Xóa khỏi danh sách đang hiện
-                    notifyDataSetChanged(); // Load lại cái bảng thả xuống
-                    renderRecentSearches(); // Load lại luôn mấy cái Chip UI ở dưới
+                    repository.removeRecentSearch(keyword); 
+                    top10.remove(position); 
+                    notifyDataSetChanged(); 
+                    renderRecentSearches(); 
 
-                    // Nếu lỡ tay xóa sạch 10 cái rồi thì dọn cái bảng đi
+                    
                     if (top10.isEmpty() && recentSearchPopup != null) {
                         recentSearchPopup.dismiss();
                     }
@@ -293,7 +293,7 @@ public class SearchFragment extends Fragment {
         recentSearchPopup.setAdapter(customAdapter);
         recentSearchPopup.show();
     }
-    // 1. Thay thế hàm bindChips cũ bằng hàm này
+    
     private void bindChips(View view) {
         Chip chipAll = view.findViewById(R.id.chip_all);
         Chip chipSong = view.findViewById(R.id.chip_song);
@@ -301,19 +301,19 @@ public class SearchFragment extends Fragment {
         Chip chipAlbum = view.findViewById(R.id.chip_album);
         Chip chipPlaylist = view.findViewById(R.id.chip_playlist);
 
-        // Gắn sự kiện click: Khi bấm vào thì Cập nhật Filter -> Đổi màu UI -> Chạy tìm kiếm
+        
         if (chipAll != null) chipAll.setOnClickListener(v -> { filter = Constants.FILTER_ALL; updateChipUI(); runSearch(); });
         if (chipSong != null) chipSong.setOnClickListener(v -> { filter = Constants.FILTER_SONG; updateChipUI(); runSearch(); });
         if (chipArtist != null) chipArtist.setOnClickListener(v -> { filter = Constants.FILTER_ARTIST; updateChipUI(); runSearch(); });
         if (chipAlbum != null) chipAlbum.setOnClickListener(v -> { filter = Constants.FILTER_ALBUM; updateChipUI(); runSearch(); });
         if (chipPlaylist != null) chipPlaylist.setOnClickListener(v -> { filter = Constants.FILTER_PLAYLIST; updateChipUI(); runSearch(); });
 
-        // Gọi hàm này lần đầu tiên khi mở app để "bật sáng" thẻ mặc định (Tất cả)
+        
         updateChipUI();
     }
 
-    // 2. Thêm hàm mới này ngay bên dưới hàm bindChips
-    // Nhiệm vụ: Xử lý hiệu ứng thị giác (Làm mờ 50% thẻ chưa chọn, Sáng 100% thẻ đang chọn)
+    
+    
     private void updateChipUI() {
         View view = getView();
         if (view == null) return;
@@ -324,15 +324,15 @@ public class SearchFragment extends Fragment {
         Chip chipAlbum = view.findViewById(R.id.chip_album);
         Chip chipPlaylist = view.findViewById(R.id.chip_playlist);
 
-        // Đưa tất cả các thẻ về trạng thái "Ngủ" (Mờ đi một nửa để nhường "spotlight")
+        
         Chip[] allChips = {chipAll, chipSong, chipArtist, chipAlbum, chipPlaylist};
         for (Chip c : allChips) {
             if (c != null) {
-                c.setAlpha(0.4f); // Độ mờ 40% (Trông rất sang trọng và dịu mắt)
+                c.setAlpha(0.4f); 
             }
         }
 
-        // Bật sáng 100% (Alpha = 1.0f) cho duy nhất thẻ đang được kích hoạt
+        
         if (Constants.FILTER_ALL.equals(filter) && chipAll != null) chipAll.setAlpha(1.0f);
         if (Constants.FILTER_SONG.equals(filter) && chipSong != null) chipSong.setAlpha(1.0f);
         if (Constants.FILTER_ARTIST.equals(filter) && chipArtist != null) chipArtist.setAlpha(1.0f);
@@ -363,13 +363,13 @@ public class SearchFragment extends Fragment {
             tvKeyword.setTextColor(ContextCompat.getColor(requireContext(), R.color.mdx_text));
 
             TextView tvClose = new TextView(requireContext());
-            tvClose.setText(" ✕"); // Dấu X đẹp
+            tvClose.setText(" ✕"); 
             tvClose.setTextColor(ContextCompat.getColor(requireContext(), R.color.mdx_text));
             tvClose.setPadding(16, 0, 0, 0);
 
             tvKeyword.setOnClickListener(v -> {
                 etSearch.setText(keyword);
-                etSearch.setSelection(keyword.length()); // Đưa con trỏ về cuối
+                etSearch.setSelection(keyword.length()); 
                 hideKeyboard();
                 repository.saveToRecentSearch(keyword);
                 renderRecentSearches();
@@ -377,8 +377,8 @@ public class SearchFragment extends Fragment {
             });
 
             tvClose.setOnClickListener(v -> {
-                repository.removeRecentSearch(keyword); // Gọi hàm mới
-                renderRecentSearches(); // Cập nhật lại list ngay lập tức
+                repository.removeRecentSearch(keyword); 
+                renderRecentSearches(); 
             });
 
             chipLayout.addView(tvKeyword);
@@ -440,11 +440,11 @@ public class SearchFragment extends Fragment {
         String historyKeyword = null;
 
         if (item != null && !TextUtils.isEmpty(item.title)) {
-            historyKeyword = item.title.trim();   // ưu tiên lưu đúng item vừa bấm
+            historyKeyword = item.title.trim();   
         }
 
         if (TextUtils.isEmpty(historyKeyword)) {
-            historyKeyword = etSearch.getText().toString().trim(); // fallback
+            historyKeyword = etSearch.getText().toString().trim(); 
         }
 
         if (!TextUtils.isEmpty(historyKeyword)) {

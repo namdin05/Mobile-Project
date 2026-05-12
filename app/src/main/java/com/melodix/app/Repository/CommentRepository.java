@@ -6,7 +6,7 @@ import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
 
 import com.melodix.app.Model.Comment;
-import com.melodix.app.Utils.SessionManager; // IMPORT SESSION MỚI
+import com.melodix.app.Utils.SessionManager;
 import com.melodix.app.Service.CommentAPIService;
 import com.melodix.app.Service.RetrofitClient;
 

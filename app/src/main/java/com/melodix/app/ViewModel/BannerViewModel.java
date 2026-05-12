@@ -25,7 +25,7 @@ public class BannerViewModel extends AndroidViewModel {
     public BannerViewModel(@NonNull Application application) {
         super(application);
 
-        // Truyền thẳng cái 'application' (Context) xuống cho Repository
+        
         bannerRepository = new BannerRepository(application);
     }
 

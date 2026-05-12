@@ -194,14 +194,9 @@ public class ProfileRepository {
                 });
     }
 
-    // Interface callback đơn giản
     public interface OnPrivacyUpdateListener {
         void onComplete(boolean success);
     }
-    // =======================================================
-    // 2 HÀM MỚI BỔ SUNG ĐỂ PHỤC VỤ CHO ADMIN (VÀ CẢ USER)
-    // =======================================================
-
     public String getCurrentUserId() {
         return SessionManager.getInstance(context).getUserId();
     }

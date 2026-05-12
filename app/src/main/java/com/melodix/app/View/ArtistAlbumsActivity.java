@@ -25,7 +25,7 @@ public class ArtistAlbumsActivity extends AppCompatActivity {
 
         RecyclerView rvAllAlbums = findViewById(R.id.rv_all_albums);
 
-        // Setup Grid 2 cột
+        
         rvAllAlbums.setLayoutManager(new GridLayoutManager(this, 2));
 
         albumAdapter = new AlbumAdapter(this, new ArrayList<>());

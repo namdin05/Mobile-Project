@@ -19,7 +19,7 @@ import retrofit2.http.Query;
 
 public interface ProfileAPIService  {
 
-    // ===== GET METHODS =====
+    
     @GET("profiles")
     Call<List<Profile>> getAllProfiles();
 
@@ -28,14 +28,14 @@ public interface ProfileAPIService  {
             @Query("username") String emailFilter
     );
 
-    // Lấy thông tin của 1 user cụ thể dựa vào ID
+    
     @Headers("Cache-Control: no-cache")
     @GET("profiles?select=display_name,avatar_url,role,show_playlists,show_recent_artists")
     Call<List<Profile>> getProfileById(
             @Query("id") String idFilter
     );
 
-    // ===== PATCH METHODS =====
+    
     @PATCH("profiles")
     Call<ResponseBody> updateProfile(
             @Query("id") String idFilter,
@@ -48,17 +48,17 @@ public interface ProfileAPIService  {
             @Body Map<String, Object> bodyData
     );
 
-    // Cập nhật cài đặt quyền riêng tư
+    
     @PATCH("profiles")
     Call<Void> updatePrivacySettings(
             @Query("id") String idFilter,
             @Body Map<String, Object> body
     );
 
-    // ===== HEAD METHODS =====v
+    
     @HEAD("follows")
     Call<Void> getFollowerCount(
-            @Header("Prefer") String preferCount, // Bắt buộc truyền "count=exact"
+            @Header("Prefer") String preferCount, 
             @Query("artist_id") String artistIdQuery
     );
   
@@ -73,11 +73,11 @@ public interface ProfileAPIService  {
             @Query("artist_id") String artistIdEq
     );
 
-    // 4. Nhấn Follow (Thêm record)
+    
     @POST("follows")
     Call<Void> followUser(@Body Map<String, String> followData);
 
-    // 5. Bỏ Follow (Xóa record)
+    
     @DELETE("follows")
     Call<Void> unfollowUser(
             @Query("follower_id") String followerIdEq,

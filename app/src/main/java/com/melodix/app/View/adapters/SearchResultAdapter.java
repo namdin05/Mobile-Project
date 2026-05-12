@@ -9,7 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-// Thêm thư viện tải ảnh Glide
+
 import com.bumptech.glide.Glide;
 
 import com.melodix.app.Model.SearchResultItem;

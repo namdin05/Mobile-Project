@@ -10,7 +10,7 @@ import com.melodix.app.Constants;
 import com.melodix.app.Model.Genre;
 import com.melodix.app.Service.GenreAPIService;
 import com.melodix.app.Service.RetrofitClient;
-import com.melodix.app.Service.StorageAPIService; // Nhớ import Service Storage của bạn
+import com.melodix.app.Service.StorageAPIService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +58,6 @@ public class GenreRepository {
     public void saveGenreToDb(String genreId, String name, String oldImageUrl, byte[] newImageBytes,
                               MutableLiveData<Boolean> isSuccessLiveData, MutableLiveData<String> messageLiveData) {
         if (newImageBytes != null) {
-            // Có ảnh mới -> Upload ảnh trước
             String fileName = UUID.randomUUID().toString() + "_" + System.currentTimeMillis() + ".jpg";
             RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpeg"), newImageBytes);
 
@@ -116,9 +115,9 @@ public class GenreRepository {
         };
 
         if (genreId != null) {
-            genreAPIService.updateGenre("eq." + genreId, data).enqueue(dbCallback); // Update
+            genreAPIService.updateGenre("eq." + genreId, data).enqueue(dbCallback);
         } else {
-            genreAPIService.createGenre(data).enqueue(dbCallback); // Create
+            genreAPIService.createGenre(data).enqueue(dbCallback);
         }
     }
 

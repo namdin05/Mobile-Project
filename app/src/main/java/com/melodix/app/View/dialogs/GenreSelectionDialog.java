@@ -21,18 +21,18 @@ public class GenreSelectionDialog {
     private final Context context;
     private final OnGenreSelectedListener listener;
 
-    // 1. TẠO INTERFACE ĐỂ TRẢ KẾT QUẢ VỀ ACTIVITY
+    
     public interface OnGenreSelectedListener {
         void onSelected(int genreId, String genreName);
     }
 
-    // 2. CONSTRUCTOR
+    
     public GenreSelectionDialog(Context context, OnGenreSelectedListener listener) {
         this.context = context;
         this.listener = listener;
     }
 
-    // 3. HÀM BẬT DIALOG
+    
     public void show() {
         BottomSheetDialog dialog = new BottomSheetDialog(context, R.style.BottomSheetTheme);
 
@@ -63,12 +63,12 @@ public class GenreSelectionDialog {
             public void onResponse(Call<List<Genre>> call, Response<List<Genre>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     for (Genre genre : response.body()) {
-                        // Bỏ qua những thể loại đang bị ẩn
+                        
                         if (!genre.isVisible()) continue;
 
                         container.addView(createPremiumDialogItem("🎧", genre.getName(), v -> {
                             int gId = Integer.parseInt(genre.getId());
-                            // Bắn id và name về lại cho UploadSongActivity
+                            
                             listener.onSelected(gId, genre.getName());
                             dialog.dismiss();
                         }));
@@ -80,7 +80,7 @@ public class GenreSelectionDialog {
         dialog.show();
     }
 
-    // 4. HÀM VẼ GIAO DIỆN (Mang từ Activity qua)
+    
     private View createPremiumDialogItem(String icon, String text, View.OnClickListener onClick) {
         android.widget.LinearLayout layout = new android.widget.LinearLayout(context);
         layout.setOrientation(android.widget.LinearLayout.HORIZONTAL);

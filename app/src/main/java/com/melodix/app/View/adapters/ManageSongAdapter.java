@@ -49,33 +49,33 @@ public class ManageSongAdapter extends RecyclerView.Adapter<ManageSongAdapter.So
 
         holder.tvTitle.setText(song.getTitle());
 
-        // Format duration as mm:ss
+        
         int dur = song.getDurationSeconds();
         String timeString = String.format("%02d:%02d", dur / 60, dur % 60);
 
-        // Update subtitle text
+        
         holder.tvStats.setText("🎧 " + song.getPlays() + " streams • " + timeString);
         Glide.with(context).load(song.getCoverUrl()).into(holder.imgCover);
 
-        // Create rounded background for the status badge
+        
         GradientDrawable badgeBg = new GradientDrawable();
         badgeBg.setCornerRadius(40);
 
-        // Get status (make sure your Song model has getStatus())
+        
         String status = song.getStatus() != null ? song.getStatus().toLowerCase() : "pending";
 
         switch (status) {
             case "approved":
                 holder.tvStatus.setText("✓ Released");
-                badgeBg.setColor(Color.parseColor("#1DB954")); // Spotify green
+                badgeBg.setColor(Color.parseColor("#1DB954")); 
                 break;
             case "rejected":
                 holder.tvStatus.setText("✖ Rejected");
-                badgeBg.setColor(Color.parseColor("#FF453A")); // Red
+                badgeBg.setColor(Color.parseColor("#FF453A")); 
                 break;
-            default: // pending
+            default: 
                 holder.tvStatus.setText("⏳ Pending Review");
-                badgeBg.setColor(Color.parseColor("#FF9F0A")); // Orange
+                badgeBg.setColor(Color.parseColor("#FF9F0A")); 
                 break;
         }
 

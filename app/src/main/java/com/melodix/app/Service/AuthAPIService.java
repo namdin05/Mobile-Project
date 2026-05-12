@@ -50,7 +50,7 @@ public interface AuthAPIService {
             @Body java.util.Map<String, Object> body
     );
 
-    // Lấy thông tin chi tiết user (bao gồm banned_until) - Quyền Admin
+    
     @GET("admin/users/{uid}")
     Call<ResponseBody> getUserAdminDetails(@Path("uid") String uid);
 }

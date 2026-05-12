@@ -42,7 +42,7 @@ public class FollowManager {
         this.btnFollow = btnFollow;
         this.tvFollowerCount = tvFollowerCount;
 
-        // Lấy user ID hiện tại
+        
         SharedPreferences prefs = context.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
         this.myUserId = prefs.getString("USER_ID", null);
     }
@@ -86,7 +86,7 @@ public class FollowManager {
 
                     @Override
                     public void onFailure(Call<List<Object>> call, Throwable t) {
-                        // Không làm gì cả
+                        
                     }
                 });
     }
@@ -102,7 +102,7 @@ public class FollowManager {
 
         final boolean wasFollowing = isFollowing;
 
-        // Optimistic update
+        
         isFollowing = !isFollowing;
         updateFollowButtonUI();
 
@@ -114,7 +114,7 @@ public class FollowManager {
         updateFollowerCountUI();
 
         if (wasFollowing) {
-            // Unfollow
+            
             apiService.unfollowUser("eq." + myUserId, "eq." + artistId)
                     .enqueue(new Callback<Void>() {
                         @Override
@@ -137,7 +137,7 @@ public class FollowManager {
                         }
                     });
         } else {
-            // Follow
+            
             Map<String, String> data = new HashMap<>();
             data.put("follower_id", myUserId);
             data.put("artist_id", artistId);

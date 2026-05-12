@@ -30,7 +30,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-// Import 4 file Service API chuẩn
 import com.melodix.app.Service.AlbumAPIService;
 import com.melodix.app.Service.ArtistAPIService;
 import com.melodix.app.Service.ProfileAPIService;
@@ -65,7 +64,6 @@ public class AppRepository {
         this.prefs = appContext.getSharedPreferences(Constants.PREFS_DATA, Context.MODE_PRIVATE);
         this.gson = new GsonBuilder().create();
 
-        // Khởi tạo các Service gọi thẳng vào Supabase
         this.searchApiService = RetrofitClient.getClient(appContext).create(SearchAPIService.class);
         this.albumApiService = RetrofitClient.getClient(appContext).create(AlbumAPIService.class);
         this.artistApiService = RetrofitClient.getClient(appContext).create(ArtistAPIService.class);
@@ -423,7 +421,6 @@ public class AppRepository {
     private final ArrayList<Song> searchCacheSongs = new ArrayList<>();
 
     public void setCurrentQueue(ArrayList<Song> queue, String startSongId) {
-        // Giao quyền cho PlaybackRepository
         com.melodix.app.Repository.PlaybackRepository.getInstance().setQueue(queue, startSongId);
     }
 
@@ -449,7 +446,6 @@ public class AppRepository {
             android.util.Log.e("APPREPO", "Lỗi lấy bài hát từ PlaybackRepo", e);
         }
 
-        // 2. Kế tiếp quét trong Cache tìm kiếm phòng hờ
         if (searchCacheSongs != null) {
             for (Song song : searchCacheSongs) {
                 if (song.getId().equals(id)) return song;
@@ -507,7 +503,6 @@ public class AppRepository {
 
         java.util.Map<String, Object> body = new java.util.HashMap<>();
         body.put("p_song_id", songId.trim());
-        // Nếu userId rỗng thì truyền null để khớp với hàm SQL của bạn sếp
         body.put("p_user_id", (userId != null && !userId.isEmpty()) ? userId : null);
 
         android.util.Log.d("PLAY_COUNT", "🚀 Đang gọi hàm RPC add_song_stream...");
@@ -538,7 +533,6 @@ public class AppRepository {
         Log.d("PLAY_COUNT", "upsertListenHistory finished");
     }
 
-    // Trong AppRepository.java
     private void upsertListenHistory(String songId, String userId) {
         Log.d("LISTEN_HISTORY", "=== upsertListenHistory START ===");
         Log.d("LISTEN_HISTORY", "SongId: " + songId);
@@ -551,7 +545,6 @@ public class AppRepository {
 
         if (userId == null || userId.isEmpty()) {
             Log.e("LISTEN_HISTORY", "UserId is NULL or empty!");
-            // Vẫn cố gắng gọi với userId null
         }
 
         Map<String, Object> body = new HashMap<>();
@@ -597,12 +590,10 @@ public class AppRepository {
                 historyBody.put("user_id", userId);
             }
 
-            // Gọi trực tiếp bảng listen_history
             com.melodix.app.Service.SongAPIService apiService =
                     com.melodix.app.Service.RetrofitClient.getClient(appContext)
                             .create(com.melodix.app.Service.SongAPIService.class);
 
-            // Bạn cần thêm method này vào SongAPIService.java
             apiService.insertListenHistory(historyBody)
                     .enqueue(new retrofit2.Callback<Void>() {
                         @Override
@@ -675,8 +666,6 @@ public class AppRepository {
             }
         });
     }
-
-    // Lấy số Following
 
     public void getFollowingCount(String userId, CountCallback callback) {
         profileApiService.getFollowingCount("count=exact", "eq." + userId).enqueue(new Callback<Void>() {

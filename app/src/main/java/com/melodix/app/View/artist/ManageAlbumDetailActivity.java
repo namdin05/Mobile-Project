@@ -27,7 +27,7 @@ import com.melodix.app.R;
 import com.melodix.app.Service.AlbumAPIService;
 import com.melodix.app.Service.ArtistAPIService;
 import com.melodix.app.Service.RetrofitClient;
-import com.melodix.app.View.adapters.ManageSongAdapter; // Import Adapter của bạn
+import com.melodix.app.View.adapters.ManageSongAdapter; 
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +46,7 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
     private TextView tvTitle, tvStatus, tvEmptyTracks;
     private ProgressBar progressBar;
 
-    // Đã đổi sang RecyclerView
+    
     private RecyclerView rvTracklist;
     private ManageSongAdapter adapter;
 
@@ -62,13 +62,13 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
         albumApiService = RetrofitClient.getClient(getApplicationContext()).create(AlbumAPIService.class);
         artistApiService = RetrofitClient.getClient(getApplicationContext()).create(ArtistAPIService.class);
 
-        // Lấy dữ liệu từ Intent gửi sang
+        
         albumId = getIntent().getStringExtra("ALBUM_ID");
         albumTitle = getIntent().getStringExtra("ALBUM_TITLE");
         albumCover = getIntent().getStringExtra("ALBUM_COVER");
         albumStatus = getIntent().getStringExtra("ALBUM_STATUS");
 
-        // Ánh xạ View
+        
         imgCover = findViewById(R.id.img_cover_detail);
         tvTitle = findViewById(R.id.tv_title_detail);
         tvStatus = findViewById(R.id.tv_status_detail);
@@ -76,7 +76,7 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
         tvEmptyTracks = findViewById(R.id.tv_empty_tracks);
         rvTracklist = findViewById(R.id.rv_tracklist);
 
-        // Hiển thị thông tin Header
+        
         tvTitle.setText(albumTitle);
         if (albumCover != null && !albumCover.isEmpty()) {
             Glide.with(this).load(albumCover).into(imgCover);
@@ -92,7 +92,7 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
             intent.putExtra("EDIT_ALBUM_TITLE", albumTitle);
             intent.putExtra("EDIT_ALBUM_COVER", albumCover);
             startActivity(intent);
-            finish(); // Đóng trang này, sửa xong ở CreateAlbumActivity nó sẽ về trang Quản lý
+            finish(); 
         });
 
 
@@ -101,19 +101,19 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
         adapter = new ManageSongAdapter(this, songList, new ManageSongAdapter.OnSongOptionClickListener() {
             @Override
             public void onOptionClick(Song song) {
-                // Mở BottomSheet khi ấn nút 3 chấm
+                
                 showAlbumSongOptions(song);
             }
 
             @Override
             public void onSongClick(Song song) {
-                // Phát nhạc khi bấm vào thẻ bài hát
+                
                 com.melodix.app.Utils.PlaybackUtils.playSong(ManageAlbumDetailActivity.this, new ArrayList<>(songList), song.getId());
             }
         });
         rvTracklist.setAdapter(adapter);
 
-        // Load dữ liệu
+        
         loadTracks();
     }
 
@@ -147,7 +147,7 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     songList.clear();
                     songList.addAll(response.body());
-                    adapter.notifyDataSetChanged(); // Yêu cầu Adapter vẽ lại dữ liệu
+                    adapter.notifyDataSetChanged(); 
 
                     if (songList.isEmpty()) {
                         tvEmptyTracks.setVisibility(View.VISIBLE);
@@ -181,7 +181,7 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
         bgShape.setCornerRadii(new float[]{60, 60, 60, 60, 0, 0, 0, 0});
         container.setBackground(bgShape);
 
-        // Header: Tên bài hát
+        
         TextView title = new TextView(this);
         title.setText(song.getTitle());
         title.setTextSize(18);
@@ -190,7 +190,7 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
         title.setPadding(60, 20, 60, 30);
         container.addView(title);
 
-        // Nút Gỡ khỏi Album
+        
         container.addView(createOptionItem("🗑️", "Gỡ khỏi Album này", Color.parseColor("#FF453A"), v -> {
             dialog.dismiss();
             new AlertDialog.Builder(ManageAlbumDetailActivity.this)
@@ -235,19 +235,19 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
     }
 
     private void removeSong(String songId) {
-        // 1. Tự viết cứng một chuỗi JSON chuẩn xác
+        
         String jsonString = "{\"album_id\": null}";
 
-        // 2. Ép kiểu nó thành RequestBody (định dạng application/json)
+        
         okhttp3.RequestBody requestBody = okhttp3.RequestBody.create(okhttp3.MediaType.parse("application/json"), jsonString);
 
-        // 3. Gọi hàm API Raw mới tạo
+        
         artistApiService.removeSongFromAlbumRaw("eq." + songId, requestBody).enqueue(new Callback<okhttp3.ResponseBody>() {
             @Override
             public void onResponse(Call<okhttp3.ResponseBody> call, Response<okhttp3.ResponseBody> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(ManageAlbumDetailActivity.this, "Đã gỡ bài hát vĩnh viễn!", Toast.LENGTH_SHORT).show();
-                    loadTracks(); // Tải lại danh sách, thề luôn là bay màu!
+                    loadTracks(); 
                 } else {
                     Toast.makeText(ManageAlbumDetailActivity.this, "Lỗi: " + response.code(), Toast.LENGTH_SHORT).show();
                 }

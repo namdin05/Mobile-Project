@@ -45,14 +45,14 @@ public class AdminActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin);
 
         initViews();
-        //setupNavigation();
+        
 
         miniPlayerController = new MiniPlayerController(this);
 
-        // 1. Khởi tạo ViewModel
+        
         viewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
 
-        // 2. Quan sát (Observe) dữ liệu Profile
+        
         viewModel.getProfile().observe(this, profile -> {
             if (profile != null) {
                 currentAdminName = profile.getDisplayName();
@@ -79,21 +79,21 @@ public class AdminActivity extends AppCompatActivity {
 
         viewModel.getLogoutStatus().observe(this, isLoggedOut -> {
             if (isLoggedOut != null && isLoggedOut) {
-                // 1. Tạo Intent về lại màn hình Login
+                
                 Intent intent = new Intent(AdminActivity.this, LoginActivity.class);
 
-                // 2. CHỐT CHẶN BẢO MẬT: Xóa sạch lịch sử màn hình cũ
-                // Điều này giúp người dùng khi về Login mà bấm nút Back trên điện thoại
-                // thì app sẽ thoát ra ngoài Home chứ không bị chui ngược lại vào Admin.
+                
+                
+                
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
-                // 3. Chuyển màn hình
+                
                 startActivity(intent);
                 finish();
             }
         });
 
-        // 4. Mặc định mở màn hình Stat (Dashboard) khi vừa vào app
+        
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new AdminStatFragment())
@@ -106,7 +106,7 @@ public class AdminActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Ra lệnh cho ViewModel đi lấy data
+        
         if (viewModel != null) {
             viewModel.loadProfileInfo();
         }
@@ -185,7 +185,7 @@ public class AdminActivity extends AppCompatActivity {
                 startActivity(intent);
                 return true;
             } else if (item.getItemId() == R.id.action_logout) {
-                // Thay vì tự xóa biến, chỉ cần ra lệnh cho ViewModel
+                
                 viewModel.performLogout();
                 return true;
             }

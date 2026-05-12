@@ -19,13 +19,13 @@ import com.melodix.app.Utils.TimeUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-//Hiển thị danh sach bài hát đã tải
+
 public class DownloadedSongAdapter extends RecyclerView.Adapter<DownloadedSongAdapter.ViewHolder> {
 
     private final Context context;
     private List<DownloadedSong> downloadedSongs = new ArrayList<>();
 
-    // Listener khi click vào bài hát đã tải
+    
     public interface OnDownloadedSongClickListener {
         void onSongClick(DownloadedSong song);
         void onMoreClick(DownloadedSong song, int position);
@@ -43,7 +43,7 @@ public class DownloadedSongAdapter extends RecyclerView.Adapter<DownloadedSongAd
         this.listener = listener;
     }
 
-    //Cập nhật danh sách bài hát đã tải
+    
     public void updateList(List<DownloadedSong> newList) {
         this.downloadedSongs.clear();
         if (newList != null) {
@@ -63,18 +63,18 @@ public class DownloadedSongAdapter extends RecyclerView.Adapter<DownloadedSongAd
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         DownloadedSong song = downloadedSongs.get(position);
 
-        // Hiển thị tiêu đề và nghệ sĩ
+        
         holder.tvTitle.setText(song.title != null ? song.title : "Không có tiêu đề");
         holder.tvSubtitle.setText(song.artistName != null ? song.artistName : "Unknown Artist");
 
-        // Hiển thị thời lượng
+        
         if (song.durationSeconds > 0) {
             holder.tvMeta.setText(TimeUtils.formatDuration(song.durationSeconds));
         } else {
             holder.tvMeta.setText("--:--");
         }
 
-        // Load ảnh bìa (ưu tiên localCoverPath, nếu không có thì dùng coverUrl gốc)
+        
         if (song.localCoverPath != null && !song.localCoverPath.isEmpty()) {
             Glide.with(context)
                     .load(song.localCoverPath)
@@ -91,14 +91,14 @@ public class DownloadedSongAdapter extends RecyclerView.Adapter<DownloadedSongAd
             holder.imgCover.setImageResource(R.drawable.ic_music_placeholder);
         }
 
-        // Click vào item → phát nhạc offline
+        
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onSongClick(song);
             }
         });
 
-        // Click nút More
+        
         holder.btnMore.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onMoreClick(song, position);
@@ -111,7 +111,7 @@ public class DownloadedSongAdapter extends RecyclerView.Adapter<DownloadedSongAd
         return downloadedSongs.size();
     }
 
-   //ViewHolder
+   
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgCover;
         TextView tvTitle;

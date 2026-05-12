@@ -20,7 +20,7 @@ public interface SongAPIService {
     Call<List<Song>> getAllSongs();
 
     @GET("song_details_view?status=eq.approved&order=created_at.desc")
-    Call<List<Song>> getNewReleaseSongs( // quy dinh sau khi thuc hien Call thi se tra ve Song
+    Call<List<Song>> getNewReleaseSongs( 
             @Query("limit") int limit
     );
     @GET("trending_songs_view")
@@ -30,7 +30,7 @@ public interface SongAPIService {
 
     @GET("songs?select=*")
     Call<List<Song>> getSongsByAlbum(
-            @Query(value = "album_id", encoded = true) String albumIdFilter // Truyền "eq.MÃ_ALBUM" vào đây
+            @Query(value = "album_id", encoded = true) String albumIdFilter 
     );
 
     @PATCH("songs")
@@ -59,14 +59,14 @@ public interface SongAPIService {
 
 
 
-    // Gọi hàm RPC từ Supabase bằng phương thức POST
+    
     @retrofit2.http.POST("rpc/get_songs_by_genre")
     Call<List<Song>> getSongsByGenre(
             @retrofit2.http.Body java.util.Map<String, Integer> body
     );
 
-    // ĐỔI TÊN ĐƯỜNG DẪN Ở ĐÂY 👇
-    @retrofit2.http.POST("rpc/add_song_stream") // Bỏ rest/v1 vì BaseURL của SupabaseClient đã có rồi
+    
+    @retrofit2.http.POST("rpc/add_song_stream") 
     retrofit2.Call<Void> recordPlay(
             @retrofit2.http.Body java.util.Map<String, Object> body
     );

@@ -104,7 +104,7 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
         viewModel.getActionSuccess().observe(getViewLifecycleOwner(), isSuccess -> {
             if (isSuccess != null && isSuccess) {
                 edtComment.setText("");
-                fetchCommentsList(); // Tải lại danh sách
+                fetchCommentsList(); 
             }
         });
 
@@ -125,7 +125,7 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
             }
         });
 
-        // Lắng nghe lỗi nếu tải xịt
+        
         viewModel.getFetchMessage().observe(getViewLifecycleOwner(), message -> {
             if (message != null && !message.isEmpty()) {
                 showToast(message);
@@ -143,7 +143,7 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
         OkHttpClient client = new OkHttpClient();
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
-        // Đóng gói song_id thành JSON để gửi cho Edge Function
+        
         JSONObject jsonBody = new JSONObject();
         try {
             jsonBody.put("song_id", songId);
@@ -167,7 +167,7 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.isSuccessful() && response.body() != null) {
                     try {
-                        // Nhận JSON từ Edge Function trả về
+                        
                         String jsonResponse = response.body().string();
 
                         android.util.Log.e("MELODIX_DEBUG", "Server Supabase trả về: " + jsonResponse);
@@ -201,7 +201,7 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
 
     private void fetchCommentsList() {
         if (songId == null) return;
-        // Giao toàn bộ việc gọi mạng cho ViewModel lo!
+        
         viewModel.fetchComments(songId);
     }
 
@@ -209,11 +209,11 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
         String content = edtComment.getText().toString().trim();
         if (content.isEmpty()) return;
 
-        // Quăng xuống cho ViewModel lo hết!
+        
         viewModel.postNewComment(songId, content);
     }
 
-    // Hàm phụ trợ giúp an toàn cập nhật UI từ Background Thread của OkHttp
+    
     private void updateUi(String text) {
         new Handler(Looper.getMainLooper()).post(() -> {
             if (tvAiContent != null) {

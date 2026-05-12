@@ -77,7 +77,7 @@ public class PlaylistSelectionDialog extends BottomSheetDialogFragment {
 
         selectionManager = new PlaylistSelectionManager(getContext());
 
-        // Khởi tạo Image Picker Launcher cho CreatePlaylistDialog
+        
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
@@ -106,7 +106,7 @@ public class PlaylistSelectionDialog extends BottomSheetDialogFragment {
     private void loadPlaylists() {
         if (getContext() == null) return;
 
-        // ĐÃ SỬA: Lấy USER_ID từ SharedPreferences thay vì SessionManager
+        
         SharedPreferences prefs = getContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
         String userId = prefs.getString("USER_ID", null);
         boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
@@ -211,7 +211,7 @@ public class PlaylistSelectionDialog extends BottomSheetDialogFragment {
                 newPlaylist -> {
                     Toast.makeText(requireContext(), "Đã tạo playlist: " + newPlaylist.name, Toast.LENGTH_SHORT).show();
 
-                    // Load lại danh sách playlist trong dialog này
+                    
                     loadPlaylists();
 
                     if (getActivity() != null) {

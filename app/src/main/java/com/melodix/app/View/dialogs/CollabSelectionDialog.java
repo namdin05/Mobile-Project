@@ -38,18 +38,18 @@ public class CollabSelectionDialog {
     private final Context context;
     private final OnCollabSelectedListener listener;
 
-    // 1. TẠO INTERFACE TRẢ DỮ LIỆU VỀ
+    
     public interface OnCollabSelectedListener {
         void onSelected(String artistId, String artistName);
     }
 
-    // 2. CONSTRUCTOR
+    
     public CollabSelectionDialog(Context context, OnCollabSelectedListener listener) {
         this.context = context;
         this.listener = listener;
     }
 
-    // 3. HÀM HIỂN THỊ DIALOG TÌM KIẾM
+    
     public void show() {
         BottomSheetDialog dialog = new BottomSheetDialog(context, R.style.BottomSheetTheme);
 
@@ -62,7 +62,7 @@ public class CollabSelectionDialog {
         bgShape.setCornerRadii(new float[]{60, 60, 60, 60, 0, 0, 0, 0});
         container.setBackground(bgShape);
 
-        // Thanh tìm kiếm
+        
         EditText edtSearch = new EditText(context);
         edtSearch.setHint("🔍 Enter artist name...");
         edtSearch.setTextColor(Color.BLACK);
@@ -88,7 +88,7 @@ public class CollabSelectionDialog {
                 LinearLayout.LayoutParams.WRAP_CONTENT));
         container.addView(searchContainer);
 
-        // Khung chứa kết quả
+        
         FrameLayout resultFrame = new FrameLayout(context);
         LinearLayout.LayoutParams frameParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -132,7 +132,7 @@ public class CollabSelectionDialog {
         Handler searchHandler = new Handler(Looper.getMainLooper());
         final Runnable[] searchRunnable = {null};
 
-        // Bắt sự kiện gõ phím
+        
         edtSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
@@ -167,7 +167,7 @@ public class CollabSelectionDialog {
                                 } else {
                                     for (Artist artist : response.body()) {
                                         resultContainer.addView(createPremiumArtistDialogItem(artist.avatarRes, artist.name, v -> {
-                                            // Gọi ngược về Activity gốc
+                                            
                                             listener.onSelected(artist.id, artist.name);
                                             dialog.dismiss();
                                         }));
@@ -185,13 +185,13 @@ public class CollabSelectionDialog {
                         }
                     });
                 };
-                searchHandler.postDelayed(searchRunnable[0], 500); // 500ms delay chống spam API
+                searchHandler.postDelayed(searchRunnable[0], 500); 
             }
         });
 
         dialog.show();
 
-        // Ép BottomSheet cao 85% màn hình
+        
         int bottomSheetId = context.getResources().getIdentifier("design_bottom_sheet", "id", context.getPackageName());
         if (bottomSheetId == 0) bottomSheetId = context.getResources().getIdentifier("design_bottom_sheet", "id", "com.google.android.material");
         View bottomSheet = dialog.findViewById(bottomSheetId);
@@ -205,7 +205,7 @@ public class CollabSelectionDialog {
         }
     }
 
-    // 4. HÀM VẼ ITEM NGHỆ SĨ (Kèm Avatar)
+    
     private View createPremiumArtistDialogItem(String avatarUrl, String text, View.OnClickListener onClick) {
         LinearLayout layout = new LinearLayout(context);
         layout.setOrientation(LinearLayout.HORIZONTAL);

@@ -4,7 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.melodix.app.BuildConfig;
-import com.melodix.app.Model.AuthResponse; // Đảm bảo import đúng đường dẫn
+import com.melodix.app.Model.AuthResponse; 
 import com.melodix.app.Utils.SessionManager;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class RetrofitClient {
                             String role = sessionManager.getRole();
                             if (role == null) role = "user";
 
-                            // LẤY ĐƯỜNG DẪN URL ĐỂ PHÂN LUỒNG
+                            
                             Request original = chain.request();
                             String path = original.url().encodedPath();
 
@@ -58,20 +58,20 @@ public class RetrofitClient {
                             if ("admin".equals(role)) {
                                 apikey = BuildConfig.SERVICE_KEY;
 
-                                // PHÂN LUỒNG THÔNG MINH CHO ADMIN
+                                
                                 if (path.startsWith("/auth/v1/admin/")) {
-                                    // 1. Nhánh gọi API quản trị User (như Ban/Unban) -> Bắt buộc dùng Service Key
+                                    
                                     authBearer = BuildConfig.SERVICE_KEY;
                                 } else if (path.startsWith("/auth")) {
-                                    // 2. Gọi API Đăng nhập/Đổi mật khẩu cá nhân -> Dùng Token cá nhân
+                                    
                                     authBearer = (userToken != null && !userToken.isEmpty()) ? userToken : BuildConfig.SERVICE_KEY;
                                     Log.e("RetrofitClient", "userToken: " + authBearer);
                                 } else {
-                                    // 3. Gọi Database (rest) hoặc Storage -> Dùng Service Key để phá vỡ RLS
+                                    
                                     authBearer = BuildConfig.SERVICE_KEY;
                                 }
                             } else {
-                                // USER BÌNH THƯỜNG THÌ DÙNG API_KEY VÀ TOKEN CÁ NHÂN CHO MỌI TRƯỜNG HỢP
+                                
                                 apikey = BuildConfig.API_KEY;
                                 authBearer = (userToken != null && !userToken.isEmpty()) ? userToken : BuildConfig.API_KEY;
                             }
@@ -90,45 +90,45 @@ public class RetrofitClient {
                         }
                     })
 
-                    // 2. AUTHENTICATOR: Bắt lỗi 401 và tự động xin cấp lại Token mới
+                    
                     .authenticator(new Authenticator() {
                         @Override
                         public Request authenticate(Route route, Response response) throws IOException {
-                            // Chống lặp vô tận: Nếu đã thử đổi token rồi mà vẫn bị 401 thì từ bỏ
+                            
                             if (response.priorResponse() != null) {
                                 return null;
                             }
 
                             SessionManager sessionManager = SessionManager.getInstance(safeContext);
-                            String refreshToken = sessionManager.getRefreshToken(); // Cần viết thêm hàm này trong SessionManager
+                            String refreshToken = sessionManager.getRefreshToken(); 
 
                             if (refreshToken == null || refreshToken.isEmpty()) {
                                 return null;
                             }
 
-                            // Gọi API làm mới token một cách đồng bộ (chờ kết quả ngay)
+                            
                             AuthAPIService authService = getAuth(safeContext).create(AuthAPIService.class);
 
                             Map<String, String> body = new HashMap<>();
                             body.put("refresh_token", refreshToken);
 
-                            // Dùng execute() thay vì enqueue() để block luồng mạng hiện tại chờ token mới
+                            
                             retrofit2.Response<AuthResponse> refreshCall = authService.refreshToken(body).execute();
 
                             if (refreshCall.isSuccessful() && refreshCall.body() != null) {
-                                // Cập nhật Token mới vào két sắt
+                                
                                 String newAccessToken = refreshCall.body().getAccessToken();
                                 String newRefreshToken = refreshCall.body().getRefreshToken();
 
-                                sessionManager.updateTokens(newAccessToken, newRefreshToken); // Cần viết thêm hàm này
+                                sessionManager.updateTokens(newAccessToken, newRefreshToken); 
 
-                                // Sửa lại cái Request cũ vừa bị lỗi, gắn thẻ mới vào và gửi đi tiếp
+                                
                                 return response.request().newBuilder()
                                         .header("Authorization", "Bearer " + newAccessToken)
                                         .build();
                             } else {
-                                // Nếu Refresh Token cũng hết hạn (thường là sau 6 tháng hoặc bị thu hồi)
-                                // Xóa phiên làm việc để bắt người dùng đăng nhập lại
+                                
+                                
                                 sessionManager.clear();
                                 return null;
                             }

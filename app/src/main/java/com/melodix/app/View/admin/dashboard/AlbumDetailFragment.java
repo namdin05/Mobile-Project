@@ -74,7 +74,7 @@ public class AlbumDetailFragment extends Fragment {
             albumStatus = getArguments().getString("ALBUM_STATUS", "");
         }
 
-        // 2. ÁNH XẠ VIEW (Bắt buộc phải làm trước tiên)
+        
         tvAlbumName = view.findViewById(R.id.tvAlbumName);
         imgAlbumCover = view.findViewById(R.id.imgAlbumCover);
         layoutActionButtons = view.findViewById(R.id.layoutActionButtons);
@@ -88,7 +88,7 @@ public class AlbumDetailFragment extends Fragment {
         updateUIBasedOnStatus(albumStatus);
 
         view.findViewById(R.id.btnBack).setOnClickListener(v -> {
-            // Quay lại Fragment trước đó trong BackStack
+            
             if (getParentFragmentManager().getBackStackEntryCount() > 0) {
                 getParentFragmentManager().popBackStack();
             } else {
@@ -99,7 +99,7 @@ public class AlbumDetailFragment extends Fragment {
         tvAlbumName.setText(albumTitle);
         com.bumptech.glide.Glide.with(requireContext()).load(albumCover).into(imgAlbumCover);
 
-        // XỬ LÝ NÚT APPROVE / REJECT
+        
         btnApprove.setOnClickListener(v -> {
             loadingDialog.showLoading(requireActivity());
             viewModel.updateAlbumStatus(albumId, "approved");
@@ -121,7 +121,7 @@ public class AlbumDetailFragment extends Fragment {
             });
         }
 
-        // 3. SETUP RECYCLER VIEW (Sau khi đã có rvAlbumSongs)
+        
         songList = new ArrayList<>();
         setupRecyclerView();
 
@@ -147,10 +147,10 @@ public class AlbumDetailFragment extends Fragment {
                     if (result.equals("error")) {
                         Toast.makeText(requireContext(), "Lỗi cập nhật trạng thái Album!", Toast.LENGTH_SHORT).show();
                     } else {
-                        // Nếu thành công, result chính là chữ "approved" hoặc "rejected"
+                        
                         Toast.makeText(requireContext(), "Cập nhật trạng thái Album thành công!", Toast.LENGTH_SHORT).show();
 
-                        // Cập nhật lại biến cục bộ và gọi hàm vẽ lại giao diện (để ẩn nút đi)
+                        
                         albumStatus = result;
                         updateUIBasedOnStatus(albumStatus);
                     }
@@ -162,11 +162,11 @@ public class AlbumDetailFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        // Khởi tạo Adapter
+        
         songAdapter = new SongAdapter(requireContext(), new ArrayList<>(), new SongAdapter.OnSongActionListener() {
             @Override
             public void onSongClick(Song song, int position) {
-                // Truyền songList để PlaybackUtils lấy đúng danh sách đang lọc làm Queue
+                
                 SongActionHelper.playSongAndSetQueue(requireContext(), song, songList);
             }
 
@@ -176,14 +176,14 @@ public class AlbumDetailFragment extends Fragment {
             }
         });
 
-        // Gắn vào RecyclerView
+        
         rvAlbumSongs.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvAlbumSongs.setAdapter(songAdapter);
     }
 
     private void updateUIBasedOnStatus(String status) {
         if ("pending".equalsIgnoreCase(status)) {
-            // Nếu đang chờ duyệt -> Hiện Approve/Reject, Ẩn HIDE
+            
             btnApprove.setVisibility(View.VISIBLE);
             btnReject.setVisibility(View.VISIBLE);
             btnHide.setVisibility(View.GONE);
@@ -198,7 +198,7 @@ public class AlbumDetailFragment extends Fragment {
 
 
         else {
-            // Nếu đã duyệt (hoặc bất kỳ trạng thái nào khác) -> Hiện HIDE, Ẩn Approve/Reject
+            
             btnHide.setText("HIDE");
             btnHide.setBackgroundColor(Color.parseColor("#F44336"));
             btnApprove.setVisibility(View.GONE);

@@ -49,10 +49,10 @@ public class ManageAlbumActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_album);
 
-        // Initialize API
+        
         artistApiService = RetrofitClient.getClient(getApplication()).create(ArtistAPIService.class);
 
-        // Get USER_ID from SharedPreferences
+        
         SharedPreferences prefs = getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
         myArtistId = prefs.getString("USER_ID", null);
 
@@ -67,11 +67,11 @@ public class ManageAlbumActivity extends AppCompatActivity {
 
         albumList = new ArrayList<>();
 
-        // 1. INITIALIZE UPGRADED ADAPTER
+        
         adapter = new ManageAlbumAdapter(this, albumList, new ManageAlbumAdapter.OnAlbumOptionClickListener() {
             @Override
             public void onAlbumClick(Album album) {
-                // Tap on album card -> Open album detail screen
+                
                 Intent intent = new Intent(ManageAlbumActivity.this, ManageAlbumDetailActivity.class);
                 intent.putExtra("ALBUM_ID", album.id);
                 intent.putExtra("ALBUM_TITLE", album.title);
@@ -82,7 +82,7 @@ public class ManageAlbumActivity extends AppCompatActivity {
 
             @Override
             public void onOptionClick(Album album) {
-                // Tap the 3-dot menu -> Open options menu
+                
                 showAlbumOptionsBottomSheet(album);
             }
         });
@@ -142,7 +142,7 @@ public class ManageAlbumActivity extends AppCompatActivity {
         bgShape.setCornerRadii(new float[]{60, 60, 60, 60, 0, 0, 0, 0});
         container.setBackground(bgShape);
 
-        // Header: Album title
+        
         TextView title = new TextView(this);
         title.setText(album.title);
         title.setTextSize(18);
@@ -151,7 +151,7 @@ public class ManageAlbumActivity extends AppCompatActivity {
         title.setPadding(60, 20, 60, 30);
         container.addView(title);
 
-        // EDIT ALBUM BUTTON
+        
         container.addView(createOptionItem("✏️", "Edit Album Details", textColor, v -> {
             dialog.dismiss();
             Intent intent = new Intent(ManageAlbumActivity.this, CreateAlbumActivity.class);
@@ -162,7 +162,7 @@ public class ManageAlbumActivity extends AppCompatActivity {
             startActivity(intent);
         }));
 
-        // DELETE ALBUM BUTTON
+        
         container.addView(createOptionItem("🗑️", "Delete Album Permanently", Color.parseColor("#FF453A"), v -> {
             dialog.dismiss();
             confirmDeleteAlbum(album);
@@ -210,7 +210,7 @@ public class ManageAlbumActivity extends AppCompatActivity {
 
                     swipeRefresh.setRefreshing(true);
 
-                    // Call delete API (Make sure Supabase uses ON DELETE SET NULL for the songs table)
+                    
                     artistApiService.deleteAlbum("eq." + album.id).enqueue(new Callback<Void>() {
                         @Override
                         public void onResponse(Call<Void> call, Response<Void> response) {

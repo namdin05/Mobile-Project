@@ -15,7 +15,7 @@ import com.melodix.app.Repository.ProfileRepository;
 public class ProfileViewModel extends AndroidViewModel {
     private ProfileRepository repository;
 
-    // ĐÃ SỬA: Khởi tạo ngay để LiveData không bao giờ bị null
+    
     private final MutableLiveData<Profile> profile = new MutableLiveData<>();
     private final MutableLiveData<Boolean> logoutStatus = new MutableLiveData<>(false);
 

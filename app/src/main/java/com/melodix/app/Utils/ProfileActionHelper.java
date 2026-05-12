@@ -19,7 +19,7 @@ public class ProfileActionHelper {
                 authRepository.banUser(profile.getId()).observeForever(result -> {
                     if ("SUCCESS_BAN".equals(result)) {
                         Toast.makeText(context, "Đã khóa tài khoản " + profile.getDisplayName(), Toast.LENGTH_SHORT).show();
-                        // Vì cột nằm ở bảng Auth, ta cập nhật tạm Local để UI đổi nút Unban
+                        
                         profile.setBannedUntil("2099-12-31T23:59:59Z");
                     } else {
                         Toast.makeText(context, "Lỗi: " + result, Toast.LENGTH_SHORT).show();

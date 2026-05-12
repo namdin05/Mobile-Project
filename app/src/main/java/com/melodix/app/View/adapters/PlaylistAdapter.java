@@ -47,7 +47,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.Playli
 
         holder.tvName.setText(playlist.name);
 
-        // Load ảnh bìa
+        
         if (playlist.coverRes != null && !playlist.coverRes.isEmpty()) {
             Glide.with(context)
                     .load(playlist.coverRes)

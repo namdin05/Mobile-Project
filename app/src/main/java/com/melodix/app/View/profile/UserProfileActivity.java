@@ -20,8 +20,8 @@ import com.melodix.app.Repository.PlaylistRepository;
 import com.melodix.app.Repository.ProfileRepository;
 import com.melodix.app.View.adapters.PlaylistAdapter;
 import com.melodix.app.View.adapters.PlaylistSongAdapter;
-// IMPORT ADAPTER CỦA SẾP VÀO ĐÂY (Ví dụ:)
-// import com.melodix.app.View.adapters.PlaylistAdapter;
+
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,8 +47,8 @@ public class UserProfileActivity extends AppCompatActivity {
     private boolean showPlaylists = true;
     private String targetUserId;
     private String myUserId;
-    // KHAI BÁO ADAPTER: Sếp mở comment và đổi tên cho khớp với Adapter hiển thị Playlist của sếp nhé!
-    // private PlaylistAdapter playlistAdapter;
+    
+    
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +57,7 @@ public class UserProfileActivity extends AppCompatActivity {
 
         String userId = getIntent().getStringExtra(EXTRA_USER_ID);
 
-        // Lớp giáp 1: Check xem có ID truyền sang không
+        
         if (userId == null || userId.isEmpty()) {
             Toast.makeText(this, "Không tìm thấy thông tin người dùng", Toast.LENGTH_SHORT).show();
             finish();
@@ -65,27 +65,27 @@ public class UserProfileActivity extends AppCompatActivity {
         }
 
         initViews();
-//        loadUserInfo(userId);
-//        loadUserPlaylists(userId);
+
+
         targetUserId = userId;
 
-        // Lấy ID của chính mình từ AppRepository
-        // 👇 LẤY ID CHUẨN TỪ SHAREDPREFERENCES CỦA SẾP 👇
-        // 👇 LẤY ID CHUẨN TỪ SHAREDPREFERENCES CỦA SẾP 👇
+        
+        
+        
         android.content.SharedPreferences prefs = getSharedPreferences("MelodixPrefs", android.content.Context.MODE_PRIVATE);
         myUserId = prefs.getString("USER_ID", null);
         loadUserInfo(userId);
-        // Tải số lượng thống kê
+        
         loadFollowerCount();
         loadFollowingCount();
 
-        // Kiểm tra có phải hồ sơ của chính mình không?
+        
         if (myUserId != null && !myUserId.equals(targetUserId)) {
             btnFollow.setVisibility(android.view.View.VISIBLE);
             checkCurrentFollowStatus();
             btnFollow.setOnClickListener(v -> toggleFollowStatus());
         } else {
-            btnFollow.setVisibility(android.view.View.GONE); // Là mình thì giấu nút đi
+            btnFollow.setVisibility(android.view.View.GONE); 
         }
     }
 
@@ -107,7 +107,7 @@ public class UserProfileActivity extends AppCompatActivity {
         profileRepo.getProfileById(userId, new Callback<List<Profile>>() {
             @Override
             public void onResponse(Call<List<Profile>> call, Response<List<Profile>> response) {
-                // Lớp giáp 2: Chống crash nếu user đã thoát ra lúc mạng đang load
+                
                 if (isFinishing() || isDestroyed()) return;
                 android.util.Log.d("USER_PROFILE_DEBUG", "Response code: " + response.code());
                 android.util.Log.d("USER_PROFILE_DEBUG", "Response body: " +
@@ -124,10 +124,10 @@ public class UserProfileActivity extends AppCompatActivity {
                     if (rvPlaylists != null) {
                         rvPlaylists.setVisibility(showPlaylists ? View.VISIBLE : View.GONE);
                     }
-                    // 1. Hiển thị Tên
+                    
                     tvName.setText(profile.getDisplayName() != null ? profile.getDisplayName() : "Người dùng Melodix");
 
-                    // 2. Hiển thị Avatar (Dùng thư viện Glide bo tròn)
+                    
                     if (profile.getAvatarUrl() != null && !profile.getAvatarUrl().isEmpty()) {
                         Glide.with(UserProfileActivity.this)
                                 .load(profile.getAvatarUrl())
@@ -135,7 +135,7 @@ public class UserProfileActivity extends AppCompatActivity {
                                 .circleCrop()
                                 .into(imgAvatar);
                     } else {
-                        // Nếu user chưa có avatar thì set ảnh mặc định
+                        
                         imgAvatar.setImageResource(R.drawable.circle_placeholder);
                     }
                     if (showPlaylists) {
@@ -164,13 +164,13 @@ public class UserProfileActivity extends AppCompatActivity {
         playlistRepo.getUserPlaylists(userId, new Callback<List<Playlist>>() {
             @Override
             public void onResponse(Call<List<Playlist>> call, Response<List<Playlist>> response) {
-                // Lớp giáp bảo vệ: Chống crash nếu User đã đóng Activity
+                
                 if (isFinishing() || isDestroyed()) return;
 
                 if (response.isSuccessful() && response.body() != null) {
                     List<Playlist> publicPlaylists = new ArrayList<>();
 
-                    // 1. Lọc danh sách Playlist công khai
+                    
                     for (Playlist p : response.body()) {
                         if (p.isPublic) {
                             publicPlaylists.add(p);
@@ -178,37 +178,37 @@ public class UserProfileActivity extends AppCompatActivity {
                     }
 
                     if (!publicPlaylists.isEmpty()) {
-                        // 👇 CHIẾN THUẬT MỚI: Gom đủ data mới hiện lên
+                        
                         int totalRequests = publicPlaylists.size();
 
-                        // Dùng AtomicInteger để đếm số lượng API đã chạy xong một cách an toàn
+                        
                         AtomicInteger requestsCompleted = new AtomicInteger(0);
 
                         for (int i = 0; i < totalRequests; i++) {
                             final Playlist finalP = publicPlaylists.get(i);
 
-                            // Chạy ngầm đi đếm bài hát cho từng Playlist
+                            
                             playlistRepo.getPlaylistSongs(finalP.id, new Callback<List<PlaylistSong>>() {
                                 @Override
                                 public void onResponse(Call<List<PlaylistSong>> call, Response<List<PlaylistSong>> responseSongs) {
                                     if (responseSongs.isSuccessful() && responseSongs.body() != null) {
-                                        finalP.songCount = responseSongs.body().size(); // Gán số lượng thật
+                                        finalP.songCount = responseSongs.body().size(); 
                                     }
                                     checkIfAllDone();
                                 }
 
                                 @Override
                                 public void onFailure(Call<List<PlaylistSong>> call, Throwable t) {
-                                    // Dù lỗi mạng thì vẫn phải đếm để ứng dụng không bị kẹt
+                                    
                                     checkIfAllDone();
                                 }
 
-                                // Hàm kiểm tra xem đã đếm xong TẤT CẢ các playlist chưa
+                                
                                 private void checkIfAllDone() {
-                                    // Mỗi lần chạy xong 1 playlist thì tăng biến đếm lên 1
+                                    
                                     if (requestsCompleted.incrementAndGet() == totalRequests) {
 
-                                        // KHI ĐÃ ĐẾM XONG TOÀN BỘ -> MỚI RÁP ADAPTER VÀO
+                                        
                                         runOnUiThread(() -> {
                                             if (rvPlaylists != null && rvPlaylists.getVisibility() == View.VISIBLE) {
                                                 PlaylistAdapter adapter = new PlaylistAdapter(UserProfileActivity.this, publicPlaylists, playlist -> {
@@ -283,10 +283,10 @@ public class UserProfileActivity extends AppCompatActivity {
     private void updateFollowButtonUI() {
         if (isFollowing) {
             btnFollow.setText("Following");
-            btnFollow.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#535353"))); // Màu xám
+            btnFollow.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#535353"))); 
         } else {
             btnFollow.setText("Follow");
-            btnFollow.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1DB954"))); // Màu xanh Spotify
+            btnFollow.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1DB954"))); 
         }
     }
 
@@ -294,7 +294,7 @@ public class UserProfileActivity extends AppCompatActivity {
         com.melodix.app.Service.ProfileAPIService apiService = com.melodix.app.Service.RetrofitClient.getClient(getApplication()).create(com.melodix.app.Service.ProfileAPIService.class);
 
         if (isFollowing) {
-            // HÀNH ĐỘNG: BỎ THEO DÕI (Cập nhật UI ngay lập tức để tạo độ mượt)
+            
             isFollowing = false;
             followerCount = Math.max(0, followerCount - 1);
             updateFollowButtonUI();
@@ -305,7 +305,7 @@ public class UserProfileActivity extends AppCompatActivity {
                 @Override public void onFailure(retrofit2.Call<Void> call, Throwable t) {}
             });
         } else {
-            // HÀNH ĐỘNG: THEO DÕI
+            
             isFollowing = true;
             followerCount++;
             updateFollowButtonUI();
@@ -313,7 +313,7 @@ public class UserProfileActivity extends AppCompatActivity {
 
             java.util.Map<String, String> data = new java.util.HashMap<>();
             data.put("follower_id", myUserId);
-            data.put("artist_id", targetUserId); // Mượn cột artist_id làm target_user_id
+            data.put("artist_id", targetUserId); 
 
             apiService.followUser(data).enqueue(new retrofit2.Callback<Void>() {
                 @Override public void onResponse(retrofit2.Call<Void> call, retrofit2.Response<Void> response) {}

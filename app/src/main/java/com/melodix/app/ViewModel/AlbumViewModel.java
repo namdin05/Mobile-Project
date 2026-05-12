@@ -33,22 +33,22 @@ public class AlbumViewModel extends AndroidViewModel {
 
     public void updateAlbumStatus(String albumId, String newStatus) {
 
-        // Gọi sang Repository và tự định nghĩa cách xử lý kết quả
+        
         albumRepository.updateAlbumStatus(albumId, newStatus, new retrofit2.Callback<okhttp3.ResponseBody>() {
             @Override
             public void onResponse(retrofit2.Call<okhttp3.ResponseBody> call, retrofit2.Response<okhttp3.ResponseBody> response) {
                 if (response.isSuccessful()) {
-                    // Cập nhật thành công -> Báo cho Fragment chữ "approved" hoặc "rejected"
+                    
                     updateStatusResult.setValue(newStatus);
                 } else {
-                    // Lỗi từ server -> Báo chữ "error"
+                    
                     updateStatusResult.setValue("error");
                 }
             }
 
             @Override
             public void onFailure(retrofit2.Call<okhttp3.ResponseBody> call, Throwable t) {
-                // Lỗi đứt mạng -> Báo chữ "error"
+                
                 updateStatusResult.setValue("error");
             }
         });

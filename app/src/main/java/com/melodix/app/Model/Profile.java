@@ -22,7 +22,6 @@ public class Profile {
     @SerializedName("show_recent_artists")
     private boolean showRecentArtists = true;
 
-    // Constructor rỗng (Bắt buộc phải có cho Firebase/Supabase/Gson)
     @SerializedName("banned_until")
     private String bannedUntil;
 

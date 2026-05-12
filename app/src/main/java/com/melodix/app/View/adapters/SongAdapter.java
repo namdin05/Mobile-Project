@@ -28,7 +28,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     private final List<Song> songs;
     private final OnSongActionListener listener;
     private boolean isAnalyticsMode = false;
-    private boolean isAdminMode = false; // Thêm biến kiểm soát chế độ Admin
+    private boolean isAdminMode = false; 
 
     public interface OnSongActionListener {
         void onSongClick(Song song, int position);
@@ -39,7 +39,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         this.isAnalyticsMode = isAnalyticsMode;
     }
 
-    // Hàm để bật/tắt chế độ Admin (ẩn nút More)
+    
     public void setAdminMode(boolean isAdminMode) {
         this.isAdminMode = isAdminMode;
     }
@@ -106,7 +106,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             if (listener != null) listener.onSongClick(song, position);
         });
 
-        // XỬ LÝ HIỂN THỊ NÚT MORE
+        
         if (isAdminMode) {
             holder.more.setVisibility(View.GONE);
         } else {
@@ -121,7 +121,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         View bottomSheetView = LayoutInflater.from(context).inflate(R.layout.dialog_song_menu, null);
         bottomSheet.setContentView(bottomSheetView);
 
-        // ĐÃ XÓA: Phần ép nền trong suốt gây lỗi hiển thị
+        
 
         bottomSheetView.findViewById(R.id.menu_play).setOnClickListener(v -> {
             if (listener != null) listener.onMenuClick(song, position, "play");
@@ -194,7 +194,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     }
 
     private void handleLikeSong(Song song, int position) {
-        // Lấy userId từ SharedPreferences
+        
         android.content.SharedPreferences prefs = context.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
         String userId = prefs.getString("USER_ID", null);
 
@@ -206,7 +206,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         com.melodix.app.Repository.PlaylistRepository playlistRepo =
                 new com.melodix.app.Repository.PlaylistRepository(context);
 
-        // Hiển thị trạng thái đang xử lý
+        
         Toast.makeText(context, "Đang xử lý...", Toast.LENGTH_SHORT).show();
 
         playlistRepo.toggleLikeSong(userId, song.getId(), new retrofit2.Callback<Boolean>() {

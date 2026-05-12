@@ -47,7 +47,6 @@
         @GET("album_details_view?select=*")
         Call<List<Album>> getAlbumsByArtistId(@Query("artist_id") String artistIdQuery);
 
-        // NẾU CÓ HÀM NÀY CHO KHÁN GIẢ THÌ PHẢI CHẶN LẠI:
         @GET("album_details_view?select=*&status=eq.approved")
         Call<List<Album>> getAlbumsForPublic(@Query("artist_id") String artistIdQuery);
 
@@ -59,7 +58,6 @@
 
         @GET("artist_stats_view?select=*")
         Call<List<ArtistStats>> getArtistStats(@Query("artist_id") String artistIdQuery);
-        // NÂNG CẤP: Gọi hàm RPC để tạo album và thêm bài hát cùng lúc
 
 
         @retrofit2.http.PATCH("albums")

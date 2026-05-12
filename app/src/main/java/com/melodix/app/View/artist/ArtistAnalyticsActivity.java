@@ -1,4 +1,4 @@
-package com.melodix.app.View.artist; // Lưu ý package name của bạn (có thể là com.melodix.app.View tuỳ thư mục hiện tại)
+package com.melodix.app.View.artist; 
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -29,15 +29,15 @@ public class ArtistAnalyticsActivity extends AppCompatActivity {
 
     public static final String EXTRA_ARTIST_ID = "extra_artist_id";
 
-    // 1. Nhóm UI Components
+    
     private TextView tvStreams, tvLikes, tvSongs;
     private TextView tvSeeAllStreams, tvSeeAllLikes;
     private RecyclerView rvTopStreams, rvTopLikes;
 
-    // 2. Nhóm Adapters
+    
     private SongAdapter topStreamsAdapter, topLikesAdapter;
 
-    // 3. Tối ưu hóa: Khởi tạo NumberFormat 1 lần duy nhất để tiết kiệm RAM
+    
     private final NumberFormat numberFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
 
     private String currentArtistId;
@@ -50,7 +50,7 @@ public class ArtistAnalyticsActivity extends AppCompatActivity {
         initViews();
         setupListeners();
 
-        // 4. Kiểm tra dữ liệu đầu vào cực kỳ chặt chẽ
+        
         currentArtistId = getIntent().getStringExtra(EXTRA_ARTIST_ID);
 
         if (currentArtistId != null && !currentArtistId.trim().isEmpty()) {
@@ -75,7 +75,7 @@ public class ArtistAnalyticsActivity extends AppCompatActivity {
         rvTopStreams = findViewById(R.id.rv_top_streams);
         rvTopLikes = findViewById(R.id.rv_top_likes);
 
-        // Tắt NestedScrolling để cuộn mượt hơn khi nằm trong NestedScrollView
+        
         rvTopStreams.setLayoutManager(new LinearLayoutManager(this));
         rvTopStreams.setNestedScrollingEnabled(false);
 
@@ -108,7 +108,7 @@ public class ArtistAnalyticsActivity extends AppCompatActivity {
         AppRepository.getInstance(this).getArtistStats(artistId, new AppRepository.ArtistStatsCallback() {
             @Override
             public void onSuccess(ArtistStats stats) {
-                // Kiểm tra Activity còn sống không trước khi cập nhật UI (Chống crash rò rỉ bộ nhớ)
+                
                 if (isFinishing() || isDestroyed() || stats == null) return;
 
                 tvStreams.setText(numberFormat.format(stats.totalStreams));
@@ -118,7 +118,7 @@ public class ArtistAnalyticsActivity extends AppCompatActivity {
 
             @Override
             public void onError(String message) {
-                // Log lỗi ngầm hoặc hiển thị thông báo nhẹ nhàng
+                
             }
         });
     }
@@ -133,17 +133,17 @@ public class ArtistAnalyticsActivity extends AppCompatActivity {
                 if (isFinishing() || isDestroyed() || allSongs == null) return;
 
                 if (allSongs.isEmpty()) {
-                    // Xử lý UI khi nghệ sĩ chưa có bài hát nào (Giấu các nút xem tất cả đi)
+                    
                     tvSeeAllStreams.setVisibility(View.GONE);
                     tvSeeAllLikes.setVisibility(View.GONE);
                     return;
                 }
 
                 ArrayList<Song> byStreams = new ArrayList<>(allSongs);
-                // Dùng Integer.compare vì hàm getPlays() trả về kiểu int
+                
                 Collections.sort(byStreams, (s1, s2) -> Integer.compare(s2.getPlays(), s1.getPlays()));
 
-                // Cắt mảng an toàn (Math.min chống lỗi văng app khi list có ít hơn 5 bài)
+                
                 int streamLimit = Math.min(5, byStreams.size());
                 List<Song> top5Streams = byStreams.subList(0, streamLimit);
 
@@ -151,7 +151,7 @@ public class ArtistAnalyticsActivity extends AppCompatActivity {
                     @Override public void onSongClick(Song song, int position) { playSong(song, top5Streams); }
                     @Override public void onMenuClick(Song song, int position, String actionId) { /* Có thể bổ sung sau */ }
                 });
-                // THÊM DÒNG NÀY VÀO: Bật chế độ hiển thị số liệu
+                
                 topStreamsAdapter.setAnalyticsMode(true);
                 rvTopStreams.setAdapter(topStreamsAdapter);
                 tvSeeAllStreams.setVisibility(byStreams.size() > 5 ? View.VISIBLE : View.GONE);

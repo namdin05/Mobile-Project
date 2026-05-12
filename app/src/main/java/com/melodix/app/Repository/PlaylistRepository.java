@@ -35,9 +35,8 @@ public class PlaylistRepository {
         SharedPreferences prefs = context.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
         String savedToken = prefs.getString("AUTH_TOKEN", null);
         if (savedToken != null && !savedToken.isEmpty()) {
-            return "Bearer " + savedToken;   // Token JWT thật
+            return "Bearer " + savedToken;
         }
-        // Fallback nếu không có token
         return "Bearer " + BuildConfig.API_KEY;
     }
 
@@ -125,7 +124,6 @@ public class PlaylistRepository {
 
                             for (PlaylistSong ps : response.body()) {
                                 if (ps.song != null) {
-                                    // Debug: kiểm tra artistname từ view
                                     android.util.Log.d("PLAYLIST_DEBUG", "Song: " + ps.song.getTitle() +
                                             " | Artist from view: " + ps.artistname);
                                 }
@@ -167,7 +165,6 @@ public class PlaylistRepository {
         String token = getStoredToken();
         if (token == null || token.isEmpty()) {
             Log.e("ORDER_UPDATE", "❌ Không có token! Kiểm lại SharedPreferences");
-            // Debug thêm
             SharedPreferences prefs = context.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
             Log.e("ORDER_UPDATE", "ACCESS_TOKEN: " + (prefs.getString("ACCESS_TOKEN", null) != null ? "exists" : "NULL"));
             Log.e("ORDER_UPDATE", "AUTH_TOKEN: " + (prefs.getString("AUTH_TOKEN", null) != null ? "exists" : "NULL"));
@@ -178,7 +175,7 @@ public class PlaylistRepository {
         Log.d("ORDER_UPDATE", "✅ Có token, length=" + token.length());
 
         apiService.updatePlaylistSongOrderWithAuth(
-                "Bearer " + token,  // 👈 Header Authorization
+                "Bearer " + token,
                 "return=representation",
                 playlistFilter,
                 songFilter,
@@ -244,7 +241,7 @@ public class PlaylistRepository {
             ).enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                    // Success
+
                 }
 
                 @Override
@@ -270,7 +267,6 @@ public class PlaylistRepository {
             return;
         }
 
-        // ✅ Dùng Map để truyền nhiều filter
         Map<String, String> filters = new HashMap<>();
         filters.put("user_id", "eq." + userId);
         filters.put("is_liked_playlist", "eq.true");
@@ -301,7 +297,6 @@ public class PlaylistRepository {
                     String playlistId = response.body().get(0).id;
                     Log.d("TOGGLE_LIKE", "📝 Playlist liked ID: " + playlistId);
 
-                    // Kiểm tra bài hát đã có trong playlist chưa
                     checkSongInPlaylist(playlistId, songId, new Callback<Boolean>() {
                         @Override
                         public void onResponse(Call<Boolean> checkCall, Response<Boolean> checkResponse) {
@@ -310,7 +305,6 @@ public class PlaylistRepository {
                                 Log.d("TOGGLE_LIKE", "Trạng thái like hiện tại: " + isLiked);
 
                                 if (isLiked) {
-                                    // Unlike: xóa khỏi playlist
                                     removeSongFromPlaylist(playlistId, songId, new Callback<ResponseBody>() {
                                         @Override
                                         public void onResponse(Call<ResponseBody> call3, Response<ResponseBody> response3) {
@@ -330,7 +324,6 @@ public class PlaylistRepository {
                                         }
                                     });
                                 } else {
-                                    // Like: thêm vào playlist
                                     addSongToPlaylist(playlistId, songId, 0, new Callback<ResponseBody>() {
                                         @Override
                                         public void onResponse(Call<ResponseBody> call3, Response<ResponseBody> response3) {
@@ -390,7 +383,6 @@ public class PlaylistRepository {
                 }
                 Log.d("CHECK_SONG", "Bài hát " + songId + " tồn tại trong playlist? " + exists);
 
-                // ✅ Giải pháp: truyền null - callback không thực sự cần dùng đến call
                 callback.onResponse(null, Response.success(exists));
             }
 

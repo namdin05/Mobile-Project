@@ -50,7 +50,7 @@ public class LogManagementFragment extends Fragment {
 
         viewModel = new ViewModelProvider(this).get(AdminLogViewModel.class);
 
-        // 1. Lắng nghe dữ liệu đổ về
+        
         viewModel.getAuditLogs().observe(getViewLifecycleOwner(), auditLogs -> {
             if (auditLogs != null) {
                 logList.clear();
@@ -59,22 +59,22 @@ public class LogManagementFragment extends Fragment {
             }
         });
 
-        // 2. Kích hoạt lấy 20 dòng ĐẦU TIÊN khi vừa mở màn hình
+        
         viewModel.loadMoreLogs();
 
-        // 3. LẮP CẢM BIẾN CUỘN
+        
         rvAuditLogs.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
-                // dy > 0 có nghĩa là người dùng đang vuốt lên (cuộn danh sách xuống dưới)
+                
                 if (dy > 0) {
                     int visibleItemCount = layoutManager.getChildCount();
                     int totalItemCount = layoutManager.getItemCount();
                     int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
 
-                    // Nếu vị trí đang xem + số item hiển thị >= tổng số item -> Đã đến đáy
+                    
                     if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
                         viewModel.loadMoreLogs();
                     }
@@ -83,7 +83,7 @@ public class LogManagementFragment extends Fragment {
         });
 
         view.findViewById(R.id.btnBack).setOnClickListener(v -> {
-            // Quay lại Fragment trước đó trong BackStack
+            
             if (getParentFragmentManager().getBackStackEntryCount() > 0) {
                 getParentFragmentManager().popBackStack();
             } else {

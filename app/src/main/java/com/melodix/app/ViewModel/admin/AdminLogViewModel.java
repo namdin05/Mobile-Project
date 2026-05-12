@@ -26,7 +26,7 @@ public class AdminLogViewModel extends AndroidViewModel {
     private boolean isLoading = false;
     private boolean isLastPage = false;
     private int currentOffset = 0;
-    private final int LIMIT = 20; // Mỗi lần chỉ tải 20 dòng
+    private final int LIMIT = 20; 
 
     public AdminLogViewModel(@NotNull Application application) {
         super(application);
@@ -37,9 +37,9 @@ public class AdminLogViewModel extends AndroidViewModel {
         return auditLogsLiveData;
     }
 
-    // Hàm gọi lấy dữ liệu trang tiếp theo
+    
     public void loadMoreLogs() {
-        if (isLoading || isLastPage) return; // Đang tải hoặc hết dữ liệu thì chặn lại
+        if (isLoading || isLastPage) return; 
         isLoading = true;
 
         repository.fetchAuditLogsPaged(LIMIT, currentOffset, new Callback<List<AuditLog>>() {
@@ -50,15 +50,15 @@ public class AdminLogViewModel extends AndroidViewModel {
                     List<AuditLog> newLogs = response.body();
 
                     if (!newLogs.isEmpty()) {
-                        // Cộng dồn dữ liệu mới vào danh sách cũ
+                        
                         currentLogs.addAll(newLogs);
                         auditLogsLiveData.setValue(currentLogs);
 
-                        // Tăng mốc offset cho lần tải tiếp theo
+                        
                         currentOffset += LIMIT;
                     }
 
-                    // Nếu số lượng tải về ít hơn LIMIT, nghĩa là đã chạm đáy DB
+                    
                     if (newLogs.size() < LIMIT) {
                         isLastPage = true;
                     }
@@ -68,12 +68,12 @@ public class AdminLogViewModel extends AndroidViewModel {
             @Override
             public void onFailure(Call<List<AuditLog>> call, Throwable t) {
                 isLoading = false;
-                // Có thể xử lý thông báo lỗi mạng ở đây nếu cần
+                
             }
         });
     }
 
-    // Tiện ích để reset lại từ đầu khi Admin muốn làm mới (Kéo để refresh)
+    
     public void refreshLogs() {
         currentLogs.clear();
         currentOffset = 0;

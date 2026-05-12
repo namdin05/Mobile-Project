@@ -43,7 +43,7 @@ public class ArtistAdapter extends RecyclerView.Adapter<ArtistAdapter.ArtistView
         Artist artist = artists.get(position);
         holder.tvName.setText(artist.name);
 
-        // Tự động bo tròn ảnh bằng circleCrop()
+        
         Glide.with(context)
                 .load(artist.avatarRes)
                 .error(android.R.color.darker_gray)
@@ -51,7 +51,7 @@ public class ArtistAdapter extends RecyclerView.Adapter<ArtistAdapter.ArtistView
                 .transition(DrawableTransitionOptions.withCrossFade(200))
                 .into(holder.imgAvatar);
 
-        // Bấm vào thì mở TRANG MỚI của Nghệ sĩ đó (để xem Related Artist)
+        
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, ArtistDetailActivity.class);
             intent.putExtra(ArtistDetailActivity.EXTRA_ARTIST_ID, artist.id);

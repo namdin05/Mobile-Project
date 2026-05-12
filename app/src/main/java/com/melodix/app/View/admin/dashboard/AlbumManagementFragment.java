@@ -71,18 +71,18 @@ public class AlbumManagementFragment extends Fragment {
         viewModel.getAllAlbums().observe(getViewLifecycleOwner(), albums -> {
             loadingDialog.hideLoading();
             if (albums != null) {
-                // Đổ dữ liệu vào list gốc
+                
                 fullAlbumList.clear();
                 fullAlbumList.addAll(albums);
 
-                // Lọc lại dữ liệu dựa trên dropdown hiện tại
+                
                 String currentFilter = actvStatus.getText().toString();
                 filterAlbumByStatus(currentFilter);
             }
         });
 
         view.findViewById(R.id.btnBack).setOnClickListener(v -> {
-            // Quay lại Fragment trước đó trong BackStack
+            
             if (getParentFragmentManager().getBackStackEntryCount() > 0) {
                 getParentFragmentManager().popBackStack();
             } else {
@@ -96,7 +96,7 @@ public class AlbumManagementFragment extends Fragment {
         adapter = new AlbumAdapter(requireContext(), displayList, new AlbumAdapter.OnAlbumClickListener() {
             @Override
             public void onAlbumClick(Album album) {
-                // SỬA ĐỔI: Phải truyền thêm Cover và Status sang màn hình Chi tiết
+                
                 openAlbumSongsFragment(album.getId(), album.getTitle(), album.getCoverUrl(), album.getStatus());
             }
         });
@@ -124,8 +124,8 @@ public class AlbumManagementFragment extends Fragment {
             }
         }
 
-        // SỬA: Cần truyền displayList vào Adapter và gọi notifyDataSetChanged()
-        // Nếu AlbumAdapter của bạn chưa có hàm update(), hãy tự thêm vào hoặc gán lại list
+        
+        
         adapter.update(new ArrayList<>(displayList));
     }
 
@@ -136,14 +136,14 @@ public class AlbumManagementFragment extends Fragment {
         String[] statuses = {"All", "Pending", "Approved", "Hide", "Rejected"};
         android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
                 requireContext(),
-                R.layout.dropdown_item, // Đảm bảo bạn có file layout này (giống bên User)
+                R.layout.dropdown_item, 
                 statuses
         );
         actvStatus.setAdapter(adapter);
     }
 
 
-    // Hàm điều hướng
+    
     private void openAlbumSongsFragment(String albumId, String albumTitle, String coverUrl, String status) {
         AlbumDetailFragment detailFragment = new AlbumDetailFragment();
         Bundle bundle = new Bundle();

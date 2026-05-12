@@ -6,7 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;        // ← THÊM DÒNG NÀY
+import android.os.Handler;        
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
@@ -70,7 +70,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     private boolean firstLoad = true;
     private boolean isDragDropSetup = false;
 
-    // THÊM: Biến quản lý Mini Player
+    
     private com.melodix.app.Model.MiniPlayerController miniPlayerController;
 
     @Override
@@ -102,7 +102,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         loadPlaylistData();
         setupMoreMenu();
 
-        // THÊM: Khởi tạo MiniPlayer Controller
+        
         miniPlayerController = new com.melodix.app.Model.MiniPlayerController(this);
     }
 
@@ -118,7 +118,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         rvSongs.setLayoutManager(new LinearLayoutManager(this));
         rvSongs.setHasFixedSize(true);
         songAdapter = new PlaylistSongAdapter(this, playlistSongList,
-                new PlaylistSongAdapter.OnSongActionListener() {   // ← Sửa thành OnSongActionListener
+                new PlaylistSongAdapter.OnSongActionListener() {   
                     @Override
                     public void onSongClick(PlaylistSong playlistSong) {
                         playSongFromPlaylist(playlistSong);
@@ -132,7 +132,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
         rvSongs.setAdapter(songAdapter);
 
-        // Bắt sự kiện Click cho nút Phát tất cả
+        
         View btnPlayAll = findViewById(R.id.btn_play_all);
         btnPlayAll.setOnClickListener(v -> {
             if (songListForPlayback != null && !songListForPlayback.isEmpty()) {
@@ -175,7 +175,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                // Không dùng
+                
             }
 
             @Override
@@ -184,7 +184,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
                 Log.d("DRAG_DROP", "Thả tay → Chuẩn bị lưu thứ tự");
 
-                // Delay nhẹ và chạy an toàn trên Main Thread
+                
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     if (!isFinishing() && !isDestroyed()) {
                         saveNewOrderToDatabase();
@@ -267,7 +267,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                                     .into(imgCover);
                         }
 
-//                        setupDragAndDrop();
+
 
                         boolean isOwner = currentPlaylist != null && currentUserId.equals(currentPlaylist.ownerUserId);
                         View btnAddSong = findViewById(R.id.btn_add_song);
@@ -396,19 +396,19 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         View parent = (View) bottomSheetView.getParent();
         if (parent != null) parent.setBackgroundColor(android.graphics.Color.TRANSPARENT);
 
-        // Play
+        
         bottomSheetView.findViewById(R.id.menu_play).setOnClickListener(v -> {
             playSongFromPlaylist(playlistSong);
             bottomSheet.dismiss();
         });
 
-        // LIKE - SỬA THÀNH CHỨC NĂNG THẬT
+        
         bottomSheetView.findViewById(R.id.menu_like).setOnClickListener(v -> {
             bottomSheet.dismiss();
-            handleLikeSong(song);   // Gọi hàm like thật
+            handleLikeSong(song);   
         });
 
-        // Add to playlist
+        
         bottomSheetView.findViewById(R.id.menu_add_playlist).setOnClickListener(v -> {
             bottomSheet.dismiss();
             com.melodix.app.View.dialogs.PlaylistSelectionDialog dialog =
@@ -416,20 +416,20 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             dialog.show(getSupportFragmentManager(), "playlist_selection");
         });
 
-        // Comments - ĐÃ SỬA: Hoạt động giống SongAdapter
+        
         bottomSheetView.findViewById(R.id.menu_comments).setOnClickListener(v -> {
             bottomSheet.dismiss();
             CommentsBottomSheet commentsBottomSheet = CommentsBottomSheet.newInstance(song.getId());
             commentsBottomSheet.show(getSupportFragmentManager(), "comments_bottom_sheet");
         });
 
-        // Share - ĐÃ SỬA
-        // Share - ĐÃ SỬA VÀ DỌN DẸP SẠCH SẼ
+        
+        
         bottomSheetView.findViewById(R.id.menu_share).setOnClickListener(v -> {
-            // 1. Đóng cái menu 3 chấm lại trước cho mượt
+            
             bottomSheet.dismiss();
 
-            // 2. Gọi hàm Share 1 LẦN DUY NHẤT
+            
             if (playlistSong != null && playlistSong.song != null && playlistSong.song.getId() != null) {
                 com.melodix.app.Utils.ShareUtils.shareContent(
                         PlaylistDetailActivity.this,
@@ -439,14 +439,14 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                 );
             }
         });
-        // Download - ĐÃ SỬA
+        
         bottomSheetView.findViewById(R.id.menu_download).setOnClickListener(v -> {
             bottomSheet.dismiss();
             DownloadRepository repo = new DownloadRepository(this);
             repo.enqueueDownload(song);
         });
 
-        // Remove khỏi playlist hiện tại
+        
         TextView menuRemove = bottomSheetView.findViewById(R.id.menu_remove_playlist);
         boolean isOwner = currentPlaylist != null && currentUserId.equals(currentPlaylist.ownerUserId);
 
@@ -487,7 +487,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                 });
     }
 
-    // Edit playlist
+    
     private void showEditPlaylistDialog() {
         if (currentPlaylist == null) return;
 
@@ -568,7 +568,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         });
     }
 
-    // THÊM: Quản lý vòng đời của Mini Player (Đánh thức và Ngủ đông)
+    
     @Override
     protected void onResume() {
         super.onResume();

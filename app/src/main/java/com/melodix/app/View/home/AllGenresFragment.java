@@ -38,7 +38,7 @@ public class AllGenresFragment extends Fragment {
                                 .addToBackStack(null)
                                 .commit();
 
-                        // MÁY QUAY 2: Kiểm tra xem lệnh chuyển trang có chạy mượt không
+                        
                         android.util.Log.d("TEST_CLICK", "Đã gọi lệnh chuyển trang thành công!");
                     } catch (Exception e) {
                         android.util.Log.e("TEST_CLICK", "Lỗi chuyển trang: " + e.getMessage());

@@ -46,7 +46,7 @@ public class PlaylistSelectAdapter extends RecyclerView.Adapter<PlaylistSelectAd
         Playlist playlist = playlists.get(position);
         boolean isSelected = selectedPlaylistIds.contains(playlist.id);
 
-        // Xử lý tên playlist đặc biệt
+        
         if (playlist.isLikedPlaylist) {
             holder.tvName.setText("Bài hát đã thích");
         } else {
@@ -55,7 +55,7 @@ public class PlaylistSelectAdapter extends RecyclerView.Adapter<PlaylistSelectAd
 
         holder.tvSongCount.setText(playlist.songCount + " bài hát");
 
-        // Load ảnh bìa
+        
         if (playlist.coverRes != null && !playlist.coverRes.isEmpty()) {
             Glide.with(context).load(playlist.coverRes)
                     .placeholder(R.drawable.ic_music_placeholder)
@@ -64,7 +64,7 @@ public class PlaylistSelectAdapter extends RecyclerView.Adapter<PlaylistSelectAd
             holder.imgCover.setImageResource(R.drawable.ic_music_placeholder);
         }
 
-        // Xử lý icon toggle
+        
         if (playlist.isLikedPlaylist) {
             holder.btnToggle.setImageResource(isSelected ?
                     R.drawable.ic_check: R.drawable.ic_add_playlist);

@@ -78,7 +78,7 @@ public class ArtistSongsActivity extends AppCompatActivity {
             }
         });
 
-        // Bật chế độ hiện analytics giống màn top
+        
         songAdapter.setAnalyticsMode(true);
 
         rvAllSongs.setAdapter(songAdapter);

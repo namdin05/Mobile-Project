@@ -50,7 +50,7 @@ public class UploadSongActivity extends AppCompatActivity {
 
     private Uri coverUri = null;
     private Uri audioUri = null;
-    private Uri lyricUri = null; // Biến chứa file lời bài hát
+    private Uri lyricUri = null; 
 
     private String selectedAlbumId = null;
     private final List<Integer> selectedGenreIds = new ArrayList<>();
@@ -64,9 +64,9 @@ public class UploadSongActivity extends AppCompatActivity {
 
     private String currentUserId;
 
-    // =========================================================================
-    // CÁC BỘ PHÓNG (LAUNCHER) CHỌN FILE
-    // =========================================================================
+    
+    
+    
 
     private final ActivityResultLauncher<String> pickCoverLauncher = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
@@ -114,19 +114,19 @@ public class UploadSongActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_song);
 
-        // Lấy USER_ID từ SharedPreferences
+        
         SharedPreferences prefs = getSharedPreferences("MelodixPrefs", MODE_PRIVATE);
         currentUserId = prefs.getString("USER_ID", null);
 
         View btnBack = findViewById(R.id.btn_back);
         btnBack.setOnClickListener(v -> finish());
 
-        // Mặc định thêm chính mình vào danh sách tác giả
+        
         if (currentUserId != null) {
             selectedArtistIds.add(currentUserId);
         }
 
-        // Ánh xạ View
+        
         edtSongTitle = findViewById(R.id.edt_song_title);
         btnPickCover = findViewById(R.id.btn_pick_cover);
         btnPickAudio = findViewById(R.id.btn_pick_audio);
@@ -152,7 +152,7 @@ public class UploadSongActivity extends AppCompatActivity {
         tvSelectedAlbum = findViewById(R.id.tv_selected_album);
         btnAddGenre = findViewById(R.id.btn_add_genre);
 
-        // Xử lý chế độ Chỉnh sửa (Edit Mode)
+        
         isEditMode = getIntent().getBooleanExtra("IS_EDIT_MODE", false);
         if (isEditMode) {
             editSongId = getIntent().getStringExtra("EDIT_SONG_ID");
@@ -172,14 +172,14 @@ public class UploadSongActivity extends AppCompatActivity {
             tvAudioStatus.setText("Select only if you want to replace the current MP3");
         }
 
-        // Bắt sự kiện chọn file
+        
         btnPickCover.setOnClickListener(v -> pickCoverLauncher.launch("image/*"));
         btnPickAudio.setOnClickListener(v -> pickAudioLauncher.launch("audio/*"));
 
-        // Dùng */* để dễ dàng chọn file .lrc trên mọi dòng máy Android
+        
         btnPickLyric.setOnClickListener(v -> pickLyricLauncher.launch("*/*"));
 
-        // Bắt sự kiện mở Dialog
+        
         btnSelectAlbum.setOnClickListener(v -> {
             AlbumSelectionDialog dialog = new AlbumSelectionDialog(this, currentUserId, (albumId, albumTitle) -> {
                 selectedAlbumId = albumId;
@@ -205,12 +205,12 @@ public class UploadSongActivity extends AppCompatActivity {
             dialog.show();
         });
 
-        // =========================================================================
-        // KẾT NỐI VIEW_MODEL
-        // =========================================================================
+        
+        
+        
         uploadViewModel = new androidx.lifecycle.ViewModelProvider(this).get(com.melodix.app.ViewModel.UploadSongViewModel.class);
 
-        // Lắng nghe trạng thái
+        
         uploadViewModel.getUploadStatus().observe(this, status -> {
             btnSubmitUpload.setText(status);
         });
@@ -232,7 +232,7 @@ public class UploadSongActivity extends AppCompatActivity {
             }
         });
 
-        // Bắt sự kiện Upload
+        
         btnSubmitUpload.setOnClickListener(v -> {
             String songTitle = edtSongTitle.getText().toString().trim();
 
@@ -249,18 +249,18 @@ public class UploadSongActivity extends AppCompatActivity {
                 return;
             }
 
-            btnSubmitUpload.setEnabled(false); // Khóa nút chống spam
+            btnSubmitUpload.setEnabled(false); 
 
-            // Truyền đủ tham số (đã có lyricUri) sang ViewModel
+            
             uploadViewModel.startUploadProcess(songTitle, coverUri, audioUri, lyricUri, existingCoverUrl,
                     isEditMode, editSongId, selectedAlbumId,
                     selectedGenreIds, selectedArtistIds);
         });
     }
 
-    // =========================================================================
-    // CÁC HÀM TIỆN ÍCH UI
-    // =========================================================================
+    
+    
+    
 
     @Override
     public boolean dispatchTouchEvent(android.view.MotionEvent ev) {
@@ -334,7 +334,7 @@ public class UploadSongActivity extends AppCompatActivity {
         tvAudioStatus.setTextColor(android.graphics.Color.GRAY);
         imgAudioIcon.setColorFilter(android.graphics.Color.WHITE);
 
-        // Dọn dẹp phần Lyric
+        
         lyricUri = null;
         tvLyricTitle.setText("Đính kèm file lời bài hát");
         tvLyricTitle.setTextColor(android.graphics.Color.WHITE);
