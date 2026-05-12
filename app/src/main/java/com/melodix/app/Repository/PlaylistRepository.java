@@ -30,8 +30,6 @@ public class PlaylistRepository {
         apiService = RetrofitClient.getClient(context).create(PlaylistAPIService.class);
 
     }
-
-    // ĐÃ SỬA: Lấy Token từ SharedPreferences
     private String getAuthToken() {
         SharedPreferences prefs = context.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
         String savedToken = prefs.getString("AUTH_TOKEN", null);
@@ -42,13 +40,11 @@ public class PlaylistRepository {
         return "Bearer " + BuildConfig.API_KEY;
     }
 
-    // ĐÃ SỬA: Lấy User ID từ SharedPreferences
     private String getCurrentUserId() {
         SharedPreferences prefs = context.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
         return prefs.getString("USER_ID", null);
     }
 
-    // ==================== PLAYLIST ====================
     public void createPlaylist(String name, String coverUrl, Callback<List<Playlist>> callback) {
         Map<String, Object> data = new HashMap<>();
         data.put("name", name);
@@ -64,14 +60,12 @@ public class PlaylistRepository {
 
         Log.d("CREATE_PLAYLIST", "Bắt đầu tạo playlist: " + name + " | userId=" + userId);
 
-        // Vì RLS của playlists đang tắt → dùng API Key cố định
         apiService.createPlaylist(
                 "return=representation",
                 data
         ).enqueue(callback);
     }
 
-    //Query lại playlist vừa tạo theo user_id và nam
     private void fetchNewlyCreatedPlaylist(String userId, String playlistName, Callback<List<Playlist>> finalCallback) {
         if (userId == null) {
             android.util.Log.e("CREATE_PLAYLIST", "Cannot fetch playlist: userId is null");
@@ -79,7 +73,6 @@ public class PlaylistRepository {
             return;
         }
 
-        // Filter an toàn: lấy theo user_id và name
         String filter = "user_id=eq." + userId + "&name=eq." + playlistName;
 
         android.util.Log.d("CREATE_PLAYLIST", "Đang query lại playlist với filter: " + filter);
@@ -96,7 +89,6 @@ public class PlaylistRepository {
                             android.util.Log.d("CREATE_PLAYLIST", "Playlist mới tạo: ID = " + created.id + " | Name = " + created.name);
                         }
 
-                        // Trả về kết quả cho callback gốc
                         finalCallback.onResponse(call, response);
                     }
 
@@ -158,7 +150,6 @@ public class PlaylistRepository {
         apiService.deletePlaylist("eq." + playlistId).enqueue(callback);
     }
 
-    // ==================== PLAYLIST_SONGS ====================
 
     public void addSongToPlaylist(String playlistId, String songId, int orderIndex, Callback<ResponseBody> callback) {
         Map<String, Object> data = new HashMap<>();
@@ -176,7 +167,6 @@ public class PlaylistRepository {
     }
 
 
-    //Lấy danh sách bài hát trong playlist + tên artist
 
     public void getPlaylistSongs(String playlistId, Callback<List<PlaylistSong>> callback) {
         String filter = "eq." + playlistId;

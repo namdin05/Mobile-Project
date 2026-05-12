@@ -38,7 +38,6 @@ public class AdminRepository {
             @Override
             public void onResponse(Call<List<AppMetric>> call, Response<List<AppMetric>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // 2. CÓ DỮ LIỆU THÌ ĐẨY VÀO HỘP NGAY LẬP TỨC BẰNG setValue()
                     appMetricLiveData.setValue(response.body());
                     Log.e("ADMIN_STAT", "Lấy dữ liệu thống kê thành công: " + response.body().size() + " dòng");
 
@@ -89,7 +88,6 @@ public class AdminRepository {
     public void processArtistRequest(ArtistRequest request, String newStatus,
                                      MutableLiveData<Boolean> isSuccess, MutableLiveData<String> message) {
 
-        // 1. Cập nhật bảng user_request_to_artist
         Map<String, Object> reqBody = new HashMap<>();
         reqBody.put("status", newStatus);
 
@@ -97,8 +95,6 @@ public class AdminRepository {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
-
-                    // 2. Nếu Approve, gọi tiếp API để đổi quyền trong bảng profiles
                     if ("approved".equals(newStatus)) {
                         Map<String, Object> roleBody = new HashMap<>();
                         roleBody.put("role", "artist");
@@ -121,7 +117,6 @@ public class AdminRepository {
                             }
                         });
                     } else {
-                        // Nếu chỉ Reject thì báo thành công luôn
                         message.postValue("Đã từ chối yêu cầu.");
                         isSuccess.postValue(true);
                     }

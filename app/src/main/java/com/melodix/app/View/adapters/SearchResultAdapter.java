@@ -44,11 +44,8 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
     public void onBindViewHolder(@NonNull ResultHolder holder, int position) {
         SearchResultItem item = items.get(position);
 
-        // ==========================================
-        // SỰ THAY ĐỔI ĐÁNG GIÁ: DÙNG GLIDE TẢI ẢNH MẠNG
-        // ==========================================
         Glide.with(context)
-                .load(item.coverRes) // Truyền thẳng đường link https://... vào đây
+                .load(item.coverRes)
                 .into(holder.cover);
 
         holder.title.setText(item.title);

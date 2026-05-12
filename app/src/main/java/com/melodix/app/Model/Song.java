@@ -39,11 +39,9 @@ public class Song {
     @SerializedName("status")
     private String status;
 
-    // ĐÃ THÊM SERIALIZED NAME Ở ĐÂY ĐỂ NHẬN CHUỖI GỘP NHIỀU NGHỆ SĨ
     @SerializedName("artistName")
     public String artistName;
 
-    // THÊM SERIALIZED NAME ĐỂ NHẬN SỐ LƯỢT THÍCH TỪ SUPABASE
     @SerializedName("like_count")
     private int likes;
     @SerializedName("artist_id")
@@ -127,7 +125,6 @@ public class Song {
             BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
             String line;
 
-            // Mẫu tìm kiếm chuẩn của file .lrc: [mm:ss.xx] Lời bài hát
             Pattern pattern = Pattern.compile("\\[(\\d{2}):(\\d{2})\\.(\\d{2,3})\\](.*)");
 
             while ((line = reader.readLine()) != null) {
@@ -137,7 +134,6 @@ public class Song {
                     int sec = Integer.parseInt(matcher.group(2));
                     int millis = Integer.parseInt(matcher.group(3));
 
-                    // Chuẩn hóa mili-giây (nếu file lrc chỉ ghi 2 số thì nhân 10)
                     if (matcher.group(3).length() == 2) millis *= 10;
 
                     int totalTimeMs = (min * 60 * 1000) + (sec * 1000) + millis;

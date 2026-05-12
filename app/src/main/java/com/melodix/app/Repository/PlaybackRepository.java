@@ -9,7 +9,6 @@ public class PlaybackRepository {
     private List<Song> currentQueue;
     private int currentIndex;
 
-   // block default constructor
     private PlaybackRepository() {
         currentQueue = new ArrayList<>();
         currentIndex = -1;
@@ -28,13 +27,11 @@ public class PlaybackRepository {
         this.currentIndex = findSongIndex(startSongId);
     }
 
-    // Lấy bài hát hiện tại
     public Song getCurrentSong() {
         if (currentQueue.isEmpty() || currentIndex < 0 || currentIndex >= currentQueue.size()) return null;
         return currentQueue.get(currentIndex);
     }
 
-    // Chuyển bài tiếp theo
     public Song moveNext() {
         if (currentQueue.isEmpty()) return null;
         currentIndex = (currentIndex + 1) % currentQueue.size(); // neu currentIndex la cuoi bai thi ve dau bai
@@ -50,11 +47,10 @@ public class PlaybackRepository {
                 return currentQueue.get(i);
             }
         }
-        return null; // Không tìm thấy thì trả về null
+        return null;
     }
 
 
-    // Lùi bài trước đó
     public Song movePrevious() {
         if (currentQueue.isEmpty()) return null;
         currentIndex = (currentIndex - 1 + currentQueue.size()) % currentQueue.size();
@@ -68,17 +64,11 @@ public class PlaybackRepository {
         return 0; // Mặc định phát bài đầu tiên nếu không tìm thấy
     }
 
-    // =========================================================
-    // THIẾT LẬP BÀI HÁT HIỆN TẠI (DÀNH CHO DEEP LINK / PHÁT LẺ)
-    // =========================================================
+
     public void setCurrentSong(Song song) {
         if (song == null) return;
-
-        // Tạo một hàng đợi mới chỉ chứa đúng 1 bài hát được share
         this.currentQueue = new ArrayList<>();
         this.currentQueue.add(song);
-
-        // Đặt vị trí đang phát về bài đầu tiên (và cũng là duy nhất)
         this.currentIndex = 0;
     }
 }

@@ -125,9 +125,7 @@ public class ManageAlbumActivity extends AppCompatActivity {
         });
     }
 
-    // ==========================================
-    // 2. BOTTOM SHEET MENU (EDIT & DELETE ALBUM)
-    // ==========================================
+
     private void showAlbumOptionsBottomSheet(Album album) {
         BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.BottomSheetTheme);
 
@@ -203,9 +201,7 @@ public class ManageAlbumActivity extends AppCompatActivity {
         return layout;
     }
 
-    // ==========================================
-    // 3. DELETE ALBUM LOGIC
-    // ==========================================
+
     private void confirmDeleteAlbum(Album album) {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Album Warning")

@@ -162,11 +162,8 @@ public class SearchFragment extends Fragment {
             return false;
         });
 
-        // ==========================================
-        // 4. HẠ BÀN PHÍM KHI TƯƠNG TÁC VỚI MÀN HÌNH
-        // ==========================================
 
-        // 4.1. Khi bắt đầu cuộn danh sách kết quả
+
         rvResults.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
@@ -177,10 +174,9 @@ public class SearchFragment extends Fragment {
             }
         });
 
-       //  4.2. Khi chạm vào vùng của danh sách kết quả (nhưng không trúng item nào)
         rvResults.setOnTouchListener((v, event) -> {
             hideKeyboard();
-            return false; // Giữ nguyên false để không chặn sự kiện click vào bài hát
+            return false;
         });
 
         setupUI(view);
@@ -192,12 +188,7 @@ public class SearchFragment extends Fragment {
         super.onResume();
         renderRecentSearches();
     }
-    // ==========================================
-    // HIỂN THỊ BẢNG THẢ XUỐNG 10 LỊCH SỬ TÌM KIẾM
-    // ==========================================
-// ==========================================
-    // BẢNG THẢ XUỐNG 10 LỊCH SỬ (BẢN ĐỘ KIỂNG)
-    // ==========================================
+
     private void showRecentSearchDropdown() {
         ArrayList<String> recent = repository.getRecentSearches();
         if (recent == null || recent.isEmpty()) return;
@@ -273,7 +264,6 @@ public class SearchFragment extends Fragment {
                 String keyword = top10.get(position);
                 tvKeyword.setText(keyword);
 
-                // SỰ KIỆN 1: Bấm vào dòng đó -> Tìm kiếm bài hát
                 layout.setOnClickListener(v -> {
                     etSearch.setText(keyword);
                     etSearch.setSelection(keyword.length());
@@ -284,7 +274,6 @@ public class SearchFragment extends Fragment {
                     runSearch();
                 });
 
-                // SỰ KIỆN 2: Bấm vào dấu X -> Xóa khỏi hệ mặt trời
                 tvClose.setOnClickListener(v -> {
                     repository.removeRecentSearch(keyword); // Xóa trong Database SharedPreferences
                     top10.remove(position); // Xóa khỏi danh sách đang hiện
@@ -358,9 +347,7 @@ public class SearchFragment extends Fragment {
         if (recent == null || recent.isEmpty()) return;
 
         for (String keyword : recent) {
-            // =======================================================
-            // TẠO THẺ TÌM KIẾM CÓ CHỨA DẤU X BÊN TRONG
-            // =======================================================
+
             LinearLayout chipLayout = new LinearLayout(requireContext());
             chipLayout.setOrientation(LinearLayout.HORIZONTAL);
             chipLayout.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.bg_badge));
@@ -371,18 +358,15 @@ public class SearchFragment extends Fragment {
             params.bottomMargin = 16;
             chipLayout.setLayoutParams(params);
 
-            // 1. Chữ từ khóa
             TextView tvKeyword = new TextView(requireContext());
             tvKeyword.setText(keyword);
             tvKeyword.setTextColor(ContextCompat.getColor(requireContext(), R.color.mdx_text));
 
-            // 2. Chữ X
             TextView tvClose = new TextView(requireContext());
             tvClose.setText(" ✕"); // Dấu X đẹp
             tvClose.setTextColor(ContextCompat.getColor(requireContext(), R.color.mdx_text));
             tvClose.setPadding(16, 0, 0, 0);
 
-            // Sự kiện: Bấm vào chữ để tìm kiếm lại
             tvKeyword.setOnClickListener(v -> {
                 etSearch.setText(keyword);
                 etSearch.setSelection(keyword.length()); // Đưa con trỏ về cuối
@@ -392,7 +376,6 @@ public class SearchFragment extends Fragment {
                 runSearch();
             });
 
-            // Sự kiện: Bấm vào dấu X để xóa lẻ từ khóa này
             tvClose.setOnClickListener(v -> {
                 repository.removeRecentSearch(keyword); // Gọi hàm mới
                 renderRecentSearches(); // Cập nhật lại list ngay lập tức
@@ -402,10 +385,6 @@ public class SearchFragment extends Fragment {
             chipLayout.addView(tvClose);
             recentContainer.addView(chipLayout);
         }
-
-        // Nút Xóa tất cả lịch sử
-
-
         LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         btnParams.topMargin = 20;
 
@@ -506,7 +485,6 @@ public class SearchFragment extends Fragment {
                 break;
         }
     }
-    // Hàm hỗ trợ hạ bàn phím và bỏ con trỏ nhấp nháy ở ô Search
     private void hideKeyboard() {
         View view = requireActivity().getCurrentFocus();
         if (view != null) {
@@ -516,20 +494,13 @@ public class SearchFragment extends Fragment {
         }
     }
 
-    // ==========================================
-    // BÍ THUẬT HẠ BÀN PHÍM HOÀN HẢO CHO FRAGMENT
-    // ==========================================
     public void setupUI(View view) {
-        // Nếu cái view đang chạm vào KHÔNG PHẢI là ô gõ chữ (EditText)
         if (!(view instanceof EditText)) {
             view.setOnTouchListener((v, event) -> {
                 hideKeyboard();
                 return false;
             });
         }
-
-        // Nếu cái view này là một cái hộp chứa (ViewGroup) nhiều phần tử khác
-        // Dùng vòng lặp đệ quy để quét hết tất cả mọi ngóc ngách bên trong nó
         if (view instanceof ViewGroup) {
             for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
                 View innerView = ((ViewGroup) view).getChildAt(i);

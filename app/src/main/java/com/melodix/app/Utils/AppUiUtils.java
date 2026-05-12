@@ -59,9 +59,6 @@ public class AppUiUtils {
         dialog.show();
     }
 
-    // ==========================================
-    // TÍNH NĂNG TỐC ĐỘ PHÁT NHẠC (ĐÃ THÊM LOGIC ĐỔI MÀU XANH)
-    // ==========================================
     public static void showSpeedDialog(Context context) {
         com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet =
                 new com.google.android.material.bottomsheet.BottomSheetDialog(context, R.style.BottomSheetTheme);
@@ -75,9 +72,6 @@ public class AppUiUtils {
             parent.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         }
 
-        // ==========================================
-        // DÙNG APPLICATION_CONTEXT ĐỂ CHỐNG LỆCH PHA GIỮA CÁC FRAGMENT
-        // ==========================================
         android.content.SharedPreferences prefs = context.getApplicationContext().getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
         float currentSpeed = prefs.getFloat("saved_speed", 1.0f); // Mặc định là 1.0f
 
@@ -105,10 +99,6 @@ public class AppUiUtils {
 
         android.widget.TextView tv = view.findViewById(viewId);
 
-        // ==========================================
-        // KHẮC PHỤC LỖI SO SÁNH FLOAT TRONG JAVA BẰNG Math.abs
-        // (Kiểm tra xem 2 số trừ đi nhau có gần bằng 0 không)
-        // ==========================================
         if (Math.abs(currentSpeed - targetSpeed) < 0.01f) {
             tv.setTextColor(colorPrimary);
             tv.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -128,9 +118,7 @@ public class AppUiUtils {
         });
     }
 
-    // ==========================================
-    // TÍNH NĂNG HẸN GIỜ TẮT NHẠC
-    // ==========================================
+
     public static void showSleepTimerDialog(Context context) {
         com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet =
                 new com.google.android.material.bottomsheet.BottomSheetDialog(context, R.style.BottomSheetTheme);

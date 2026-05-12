@@ -271,9 +271,6 @@ public class AdminStatFragment extends Fragment {
             btnReject.setStrokeWidth(3);
             btnReject.setLayoutParams(new android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1));
 
-            // ========================================================
-            // BẮT SỰ KIỆN: Xóa luôn cái "hộp" (itemContainer) khỏi màn hình
-            // ========================================================
             btnApprove.setOnClickListener(v -> {
                 loadingDialog.showLoading(requireActivity());
                 viewModel.processRequest(req, "approved");

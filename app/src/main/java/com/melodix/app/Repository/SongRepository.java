@@ -38,12 +38,10 @@ public class SongRepository {
         java.util.Map<String, Integer> body = new java.util.HashMap<>();
         body.put("p_genre_id", genreId);
 
-        // 2. Gọi hàm và truyền đủ 3 tham số (apiKey, authHeader, body)
         songAPIService.getSongsByGenre(body).enqueue(new retrofit2.Callback<List<Song>>() {
             @Override
             public void onResponse(retrofit2.Call<List<Song>> call, retrofit2.Response<List<Song>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // MÁY QUAY 1: Xem API trả về bao nhiêu bài
                     android.util.Log.d("DEBUG_API", "Thành công! Supabase trả về: " + response.body().size() + " bài hát.");
                     liveData.setValue(response.body());
                 } else {
@@ -136,7 +134,6 @@ public class SongRepository {
     }
 
     public void updateSongStatus(String songId, String newStatus, MutableLiveData<Boolean> isSuccess, MutableLiveData<String> message) {
-        // Tái sử dụng model StatusUpdateRequest của bạn
         com.melodix.app.Model.StatusUpdateRequest body = new com.melodix.app.Model.StatusUpdateRequest(newStatus);
 
         songAPIService.updateRequestStatus("eq." + songId, body).enqueue(new Callback<Void>() {

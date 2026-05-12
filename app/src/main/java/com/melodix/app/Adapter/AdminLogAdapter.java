@@ -45,7 +45,6 @@ public class AdminLogAdapter extends RecyclerView.Adapter<AdminLogAdapter.LogVie
         holder.tvTable.setText("bảng: " + log.getTableName());
         holder.tvRecordId.setText("Record ID: " + log.getRecordId());
 
-        // Đổi màu Action cho trực quan
         String action = log.getAction() != null ? log.getAction().toUpperCase() : "UNKNOWN";
         holder.tvAction.setText(action);
 
@@ -57,18 +56,11 @@ public class AdminLogAdapter extends RecyclerView.Adapter<AdminLogAdapter.LogVie
             holder.tvAction.setTextColor(Color.parseColor("#F44336")); // Đỏ
         }
 
-        // Format thời gian
         holder.tvTime.setText(formatDate(log.getChangedAt()));
-
-        // Giao diện bên ngoài chỉ để chữ mời gọi click
         holder.tvDataDetail.setText("Nhấn để xem chi tiết dữ liệu thay đổi");
         holder.tvDataDetail.setTextColor(Color.parseColor("#03A9F4")); // Màu xanh click được
-
-        // Bắt sự kiện Click vào Item để hiện chi tiết
         holder.itemView.setOnClickListener(v -> {
             String details = parseDataChanges(log, action);
-
-            // Hiện Dialog siêu đẹp
             new AlertDialog.Builder(context)
                     .setTitle("Chi tiết hành động: " + action)
                     .setMessage(details)
@@ -81,10 +73,6 @@ public class AdminLogAdapter extends RecyclerView.Adapter<AdminLogAdapter.LogVie
     public int getItemCount() {
         return logList != null ? logList.size() : 0;
     }
-
-    // =========================================================================
-    // HÀM "PHÉP THUẬT": SO SÁNH JSON VÀ CHUYỂN THÀNH TIẾNG VIỆT DỄ ĐỌC
-    // =========================================================================
     private String parseDataChanges(AuditLog log, String action) {
         StringBuilder sb = new StringBuilder();
 
@@ -95,12 +83,10 @@ public class AdminLogAdapter extends RecyclerView.Adapter<AdminLogAdapter.LogVie
 
                 int changeCount = 0;
 
-                // Lặp qua tất cả các key của dữ liệu mới
                 for (String key : newObj.keySet()) {
                     String oldVal = getJsonValueAsString(oldObj.get(key));
                     String newVal = getJsonValueAsString(newObj.get(key));
 
-                    // Nếu giá trị khác nhau, và không phải là cái ID hay ngày cập nhật vô nghĩa
                     if (!oldVal.equals(newVal) && !key.equals("updated_at") && !key.equals("fts")) {
                         sb.append("• [").append(key).append("]:\n")
                                 .append("  Từ: ").append(oldVal).append("\n")
@@ -139,16 +125,12 @@ public class AdminLogAdapter extends RecyclerView.Adapter<AdminLogAdapter.LogVie
         return sb.toString().trim();
     }
 
-    // Hàm hỗ trợ bóc tách giá trị từ JSON cho an toàn (Tránh lỗi văng app khi dính Null)
     private String getJsonValueAsString(JsonElement element) {
         if (element == null || element.isJsonNull()) return "Trống (Null)";
         if (element.isJsonPrimitive()) return element.getAsString(); // Lấy chữ không có ngoặc kép
         return element.toString(); // Nếu là mảng hay obj thì lấy nguyên chuỗi
     }
 
-    // =========================================================================
-    // HÀM FORMAT THỜI GIAN NHƯ ĐÃ SỬA CHỮ 'T'
-    // =========================================================================
     private String formatDate(String supabaseDate) {
         if (supabaseDate == null || supabaseDate.isEmpty()) return "";
         try {

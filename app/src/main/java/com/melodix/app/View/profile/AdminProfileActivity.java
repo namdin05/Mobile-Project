@@ -80,9 +80,6 @@ public class AdminProfileActivity extends AppCompatActivity {
             Glide.with(this).load(currentAvatarUrl).into(imgProfileAvatar);
         }
 
-        // ==========================================
-        // 1. CÀI ĐẶT CÔNG CỤ CHỌN ẢNH TỪ THƯ VIỆN
-        // ==========================================
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -135,9 +132,7 @@ public class AdminProfileActivity extends AppCompatActivity {
         authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
     }
 
-    // ==========================================
-    // 2. LOGIC UPLOAD ẢNH LÊN STORAGE
-    // ==========================================
+
     private void uploadImageAndSaveProfile(String newName) {
         try {
             // Chuyển ảnh từ thẻ nhớ thành mảng byte nhị phân để gửi qua mạng
@@ -197,9 +192,7 @@ public class AdminProfileActivity extends AppCompatActivity {
         }
     }
 
-    // ==========================================
-    // 3. LOGIC CẬP NHẬT TÊN VÀ LINK VÀO DATABASE
-    // ==========================================
+
     private void updateDatabaseOnly(String newName, String newAvatarUrl) {
         ProfileAPIService apiService = RetrofitClient.getClient(getApplicationContext()).create(ProfileAPIService.class);
         String idFilter = "eq." + adminUid;

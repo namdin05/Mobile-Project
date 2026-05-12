@@ -79,9 +79,6 @@ public class ArtistDetailActivity extends AppCompatActivity {
 
 //        findViewById(R.id.btn_follow).setOnClickListener(v -> Toast.makeText(this, "Đang phát triển", Toast.LENGTH_SHORT).show());
 
-        // ==========================================
-        // KÍCH HOẠT NÚT "PHÁT TẤT CẢ"
-        // ==========================================
         findViewById(R.id.btn_play_all).setOnClickListener(v -> {
             if (songAdapter != null && songAdapter.getSongs() != null && !songAdapter.getSongs().isEmpty()) {
                 playSongAndSetQueue(songAdapter.getSongs().get(0), songAdapter.getSongs());
@@ -109,9 +106,6 @@ public class ArtistDetailActivity extends AppCompatActivity {
         rvAlbums.setAdapter(albumAdapter);
         rvRelated.setAdapter(artistAdapter);
 
-        // ==========================================
-        // BẮT SỰ KIỆN CLICK BÀI HÁT
-        // ==========================================
         songAdapter = new SongAdapter(this, repository.getAllApprovedSongs(), new SongAdapter.OnSongActionListener() {
             @Override
             public void onSongClick(Song song, int position) {

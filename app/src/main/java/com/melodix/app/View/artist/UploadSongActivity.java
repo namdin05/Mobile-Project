@@ -162,9 +162,6 @@ public class UploadSongActivity extends AppCompatActivity {
         btnSubmitUpload.setOnClickListener(v -> startUploadProcess());
     }
 
-    // =================================================================================
-    // HÀM DÙNG CHUNG ĐỂ UPLOAD BẤT KỲ FILE NÀO (DRY Principle)
-    // =================================================================================
     private void uploadFileToSupabase(Uri fileUri, String bucketName, String fileName, String mimeType, Callback<ResponseBody> callback) {
         // Tạo RequestBody dùng cơ chế stream trực tiếp (Okio)
         RequestBody requestBody = new RequestBody() {
@@ -368,10 +365,6 @@ public class UploadSongActivity extends AppCompatActivity {
         }
         return super.dispatchTouchEvent(ev);
     }
-
-    // =========================================================================
-    // Các hàm UI (Mở Dialog Chọn Album, Thể Loại, Nghệ sĩ...) GIỮ NGUYÊN BÊN DƯỚI
-    // =========================================================================
 
     private void openAlbumDialog() {
         com.google.android.material.bottomsheet.BottomSheetDialog dialog =
@@ -794,10 +787,7 @@ public class UploadSongActivity extends AppCompatActivity {
             selectedArtistIds.add(currentUserId);
         }
     }
-    // ==========================================
-    // HÀM CHUYỂN TÊN CÓ DẤU THÀNH KHÔNG DẤU VIẾT LIỀN
-    // Vd: "Chắc Ai Đó Sẽ Về!" -> "chacaidoseve"
-    // ==========================================
+
     private String generateSlug(String input) {
         if (input == null || input.isEmpty()) return "unknown_song";
 

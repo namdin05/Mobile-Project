@@ -205,9 +205,6 @@ public class MainActivity extends AppCompatActivity {
         handleNotificationIntent(getIntent());
     }
 
-    // ==========================================
-    // LƯU TRẠNG THÁI TRƯỚC KHI BỊ "GIẾT" BỞI DARK MODE
-    // ==========================================
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -308,9 +305,7 @@ public class MainActivity extends AppCompatActivity {
         mainHandler.removeCallbacks(miniPlayerWatcher);
     }
 
-    // ==========================================
-    // LOGIC XỬ LÝ PUSH NOTIFICATION (FIREBASE)
-    // ==========================================
+
     private void askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -391,9 +386,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // ==========================================
-    // LỄ TÂN ĐÓN KHÁCH TỪ PUSH NOTIFICATION
-    // ==========================================
     private void handleNotificationIntent(android.content.Intent intent) {
         if (intent != null && intent.getExtras() != null) {
             // Lấy dữ liệu từ "balo" Extras do Firebase nhét vào

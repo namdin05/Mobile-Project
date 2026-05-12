@@ -45,16 +45,13 @@ public class AdminGenreAdapter extends RecyclerView.Adapter<AdminGenreAdapter.Ge
 
         holder.tvGenreName.setText(genre.getName());
 
-        // Dùng Glide để load ảnh
         if (genre.getCoverUrl() != null && !genre.getCoverUrl().isEmpty()) {
             Glide.with(context)
                     .load(genre.getCoverUrl())
-                    // Thay ic_music_note bằng ảnh placeholder của bạn
                     .placeholder(R.drawable.ic_person)
                     .into(holder.imgGenreCover);
         }
 
-        // 4. Bắt sự kiện Click vào toàn bộ Item và báo về cho Fragment
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onGenreClick(genre);
@@ -62,9 +59,9 @@ public class AdminGenreAdapter extends RecyclerView.Adapter<AdminGenreAdapter.Ge
         });
 
         if (!genre.isVisible()) {
-            holder.itemView.setAlpha(0.4f); // Làm mờ 60% nếu bị xóa mềm
+            holder.itemView.setAlpha(0.4f);
         } else {
-            holder.itemView.setAlpha(1.0f); // Sáng rõ nếu bình thường
+            holder.itemView.setAlpha(1.0f);
         }
     }
 
@@ -72,11 +69,9 @@ public class AdminGenreAdapter extends RecyclerView.Adapter<AdminGenreAdapter.Ge
     public int getItemCount() {
         return genreList != null ? genreList.size() : 0;
     }
-
     public static class GenreViewHolder extends RecyclerView.ViewHolder {
         ImageView imgGenreCover;
         TextView tvGenreName;
-
         public GenreViewHolder(@NonNull View itemView) {
             super(itemView);
             imgGenreCover = itemView.findViewById(R.id.img_genre);

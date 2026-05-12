@@ -218,9 +218,7 @@ public class PlayerActivity extends AppCompatActivity {
         setupUIEvents();
     }
 
-    // =========================================================
-    // HÀM GOM CÁC SỰ KIỆN GIAO DIỆN (GIỮ NGUYÊN CODE CỦA BẠN)
-    // =========================================================
+
     private void setupUIEvents() {
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
 
@@ -632,17 +630,6 @@ public class PlayerActivity extends AppCompatActivity {
         progressHandler.removeCallbacks(progressRunnable);
     }
 
-    // =========================================================
-    // TÍNH NĂNG CHIA SẺ BÀI HÁT CHO NGƯỜI NGHE
-    // =========================================================
-
-
-    // =========================================================
-    // LẤY DỮ LIỆU TỪ DATABASE KHI VÀO TỪ LINK CHIA SẺ
-    // =========================================================
-    // =========================================================
-    // HÀM CHUYÊN DÙNG CHO DEEP LINK (LINK CHIA SẺ)
-    // =========================================================
     private void fetchSongFromDbAndPlay(String songId) {
         repository.getSongByIdAsync(songId, new AppRepository.SingleSongCallback() {
             @Override

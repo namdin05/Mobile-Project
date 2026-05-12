@@ -136,9 +136,7 @@ public class CreateAlbumActivity extends AppCompatActivity {
         songSelectionAdapter = new com.melodix.app.View.adapters.SongSelectionAdapter(this, allMySongs, selectedSongIds);
         rvAvailableSongs.setAdapter(songSelectionAdapter);
     }
-    // ==========================================
-    // TỰ ĐỘNG LOAD LẠI BÀI HÁT KHI QUAY TRỞ VỀ TỪ TRANG UPLOAD
-    // ==========================================
+
     @Override
     protected void onResume() {
         super.onResume();

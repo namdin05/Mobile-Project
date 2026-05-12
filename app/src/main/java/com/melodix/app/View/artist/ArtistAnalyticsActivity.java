@@ -139,9 +139,6 @@ public class ArtistAnalyticsActivity extends AppCompatActivity {
                     return;
                 }
 
-                // ==========================================
-                // 1. LỌC TOP 5 LƯỢT NGHE
-                // ==========================================
                 ArrayList<Song> byStreams = new ArrayList<>(allSongs);
                 // Dùng Integer.compare vì hàm getPlays() trả về kiểu int
                 Collections.sort(byStreams, (s1, s2) -> Integer.compare(s2.getPlays(), s1.getPlays()));
@@ -159,10 +156,6 @@ public class ArtistAnalyticsActivity extends AppCompatActivity {
                 rvTopStreams.setAdapter(topStreamsAdapter);
                 tvSeeAllStreams.setVisibility(byStreams.size() > 5 ? View.VISIBLE : View.GONE);
 
-
-                // ==========================================
-                // 2. LỌC TOP 5 LƯỢT THÍCH
-                // ==========================================
                 ArrayList<Song> byLikes = new ArrayList<>(allSongs);
                 Collections.sort(byLikes, (s1, s2) -> Integer.compare(s2.getLikes(), s1.getLikes()));
 

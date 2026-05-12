@@ -56,10 +56,9 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
 
         Glide.with(context)
                 .load(album.getCoverUrl())
-                .placeholder(R.drawable.ic_launcher_background) // Thay bằng ảnh placeholder của bạn
+                .placeholder(R.drawable.ic_launcher_background)
                 .into(holder.imgCover);
 
-        // Bắt sự kiện click
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onAlbumClick(album);

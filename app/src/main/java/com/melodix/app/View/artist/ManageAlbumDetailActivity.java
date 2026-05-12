@@ -85,9 +85,6 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
 
-        // ==========================================
-        // 1. SỰ KIỆN NÚT CHỈNH SỬA ALBUM (ĐÃ MỞ KHÓA)
-        // ==========================================
         findViewById(R.id.btn_edit_album).setOnClickListener(v -> {
             Intent intent = new Intent(ManageAlbumDetailActivity.this, CreateAlbumActivity.class);
             intent.putExtra("IS_EDIT_MODE", true);
@@ -98,9 +95,7 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
             finish(); // Đóng trang này, sửa xong ở CreateAlbumActivity nó sẽ về trang Quản lý
         });
 
-        // ==========================================
-        // 2. SETUP RECYCLERVIEW & ADAPTER
-        // ==========================================
+
         rvTracklist.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new ManageSongAdapter(this, songList, new ManageSongAdapter.OnSongOptionClickListener() {
@@ -170,9 +165,6 @@ public class ManageAlbumDetailActivity extends AppCompatActivity {
         });
     }
 
-    // ==========================================
-    // 3. BOTTOM SHEET LỰA CHỌN (GỠ KHỎI ALBUM)
-    // ==========================================
     private void showAlbumSongOptions(Song song) {
         BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.BottomSheetTheme);
 

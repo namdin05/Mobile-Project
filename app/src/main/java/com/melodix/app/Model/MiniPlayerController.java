@@ -30,7 +30,6 @@ public class MiniPlayerController {
     private TextView miniSubtitle;
     private ImageButton miniPlayPause;
 
-    // Bộ đếm giờ để cập nhật nút Play/Pause
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final Runnable miniPlayerWatcher = new Runnable() {
         @Override
@@ -42,7 +41,6 @@ public class MiniPlayerController {
         }
     };
 
-    // Bộ lắng nghe sóng Broadcast
     private final BroadcastReceiver stateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -50,10 +48,9 @@ public class MiniPlayerController {
         }
     };
 
-    // Constructor: Nạp Activity và tìm các thành phần giao diện
     public MiniPlayerController(AppCompatActivity activity) {
         this.activity = activity;
-        this.miniPlayer = activity.findViewById(R.id.mini_player_root); // Đảm bảo ID này khớp với file XML include
+        this.miniPlayer = activity.findViewById(R.id.mini_player_root);
 
         if (this.miniPlayer != null) {
             miniCover = miniPlayer.findViewById(R.id.mini_cover);
@@ -76,7 +73,6 @@ public class MiniPlayerController {
         }
     }
 
-    // Cập nhật giao diện
     private void updateMiniPlayer() {
         String currentSongId = AudioPlayerService.getCurrentSongId();
         Song song = PlaybackRepository.getInstance().getCurrentSong();
@@ -99,7 +95,6 @@ public class MiniPlayerController {
         }
     }
 
-    // Bật radar (Gọi trong onResume của Activity)
     public void onResume() {
         if (miniPlayer == null) return;
         ContextCompat.registerReceiver(activity, stateReceiver,
@@ -109,7 +104,6 @@ public class MiniPlayerController {
         mainHandler.post(miniPlayerWatcher);
     }
 
-    // Tắt radar (Gọi trong onPause của Activity)
     public void onPause() {
         if (miniPlayer == null) return;
         try { activity.unregisterReceiver(stateReceiver); } catch (Exception ignored) {}

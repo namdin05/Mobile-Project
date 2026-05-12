@@ -48,9 +48,7 @@ public class UploadSongViewModel extends AndroidViewModel {
     public LiveData<Boolean> getUploadSuccess() { return uploadSuccess; }
     public LiveData<String> getErrorMessage() { return errorMessage; }
 
-    // =========================================================================
-    // NHỊP 1: BẮT ĐẦU TẢI ẢNH BÌA
-    // =========================================================================
+
     public void startUploadProcess(String songTitle, Uri coverUri, Uri audioUri, Uri lyricUri, String existingCoverUrl,
                                    boolean isEditMode, String editSongId, String selectedAlbumId,
                                    List<Integer> selectedGenreIds, List<String> selectedArtistIds) {
@@ -81,9 +79,7 @@ public class UploadSongViewModel extends AndroidViewModel {
         }
     }
 
-    // =========================================================================
-    // NHỊP 2: TẢI FILE NHẠC
-    // =========================================================================
+
     private void uploadAudioStep(String finalCoverUrl, String songTitle, Uri audioUri, Uri lyricUri,
                                  boolean isEditMode, String editSongId, String selectedAlbumId,
                                  List<Integer> selectedGenreIds, List<String> selectedArtistIds) {
@@ -114,9 +110,7 @@ public class UploadSongViewModel extends AndroidViewModel {
         }
     }
 
-    // =========================================================================
-    // NHỊP 3: TẢI FILE LYRIC (.LRC)
-    // =========================================================================
+
     private void uploadLyricStep(String finalCoverUrl, String songTitle, Uri audioUri, String finalAudioUrl, Uri lyricUri,
                                  boolean isEditMode, String editSongId, String selectedAlbumId,
                                  List<Integer> selectedGenreIds, List<String> selectedArtistIds) {
@@ -148,9 +142,7 @@ public class UploadSongViewModel extends AndroidViewModel {
         }
     }
 
-    // =========================================================================
-    // NHỊP 4: LƯU DATABASE
-    // =========================================================================
+
     private void submitToDatabase(String songTitle, String coverUrl, String audioUrl, Uri audioUri, String lyricUrl,
                                   boolean isEditMode, String editSongId, String selectedAlbumId,
                                   List<Integer> selectedGenreIds, List<String> selectedArtistIds) {
@@ -225,9 +217,7 @@ public class UploadSongViewModel extends AndroidViewModel {
         }
     }
 
-    // =========================================================================
-    // HÀM GỌI API SUPABASE STORAGE CHUNG
-    // =========================================================================
+
     private void uploadFileToSupabase(Uri fileUri, String bucketName, String fileName, String mimeType, Callback<ResponseBody> callback) {
         RequestBody requestBody = new RequestBody() {
             @Override

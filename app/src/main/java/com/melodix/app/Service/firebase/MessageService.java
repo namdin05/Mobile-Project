@@ -56,9 +56,7 @@ public class MessageService extends FirebaseMessagingService {
         }
     }
 
-    // ==========================================
-    // HÀM TỰ DỰNG THÔNG BÁO VÀ NHÉT DỮ LIỆU NGẦM
-    // ==========================================
+
     private void sendNotification(String title, String messageBody, Map<String, String> dataPayload) {
         // Tạo chuyến xe chở khách về MainActivity
         Intent intent = new Intent(this, MainActivity.class);

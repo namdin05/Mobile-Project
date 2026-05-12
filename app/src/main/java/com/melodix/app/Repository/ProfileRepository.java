@@ -30,7 +30,6 @@ public class ProfileRepository {
     }
 
     public MutableLiveData<List<Profile>> fetchAllProfiles() {
-        // ... (Giữ nguyên code của bạn) ...
         MutableLiveData<List<Profile>> profile = new MutableLiveData<>();
         profileAPIService.getAllProfiles().enqueue(new Callback<List<Profile>>() {
             @Override
@@ -94,8 +93,6 @@ public class ProfileRepository {
     public void updateTokenToServer(String token) {
         String userId = SessionManager.getInstance(context).getUserId();
 
-        // Đã sửa lại an toàn hơn
-        // ĐÃ SỬA: Chặn luôn trường hợp userId bị null để chống văng app (Crash)
         if (userId == null || userId.trim().isEmpty()) {
             Log.w("MELODIX_FCM", "Chưa đăng nhập, không lưu Token");
             return;
@@ -122,16 +119,12 @@ public class ProfileRepository {
                     }
                 });
     }
-    // =======================================================
-    // 2 HÀM MỚI BỔ SUNG ĐỂ PHỤC VỤ CHO ADMIN (VÀ CẢ USER)
-    // =======================================================
 
-    // Lấy ID người dùng đang đăng nhập hiện tại
+
     public String getCurrentUserId() {
         return SessionManager.getInstance(context).getUserId();
     }
 
-    // Xóa bộ nhớ đệm khi Đăng xuất
     public void clearSession() {
         SessionManager.getInstance(context).clear();
     }
