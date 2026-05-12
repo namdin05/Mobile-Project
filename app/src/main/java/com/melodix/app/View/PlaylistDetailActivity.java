@@ -70,7 +70,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     private boolean firstLoad = true;
     private boolean isDragDropSetup = false;
 
-    // THÊM: Biến quản lý Mini Player
     private com.melodix.app.Model.MiniPlayerController miniPlayerController;
 
     @Override
@@ -568,7 +567,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         });
     }
 
-    // THÊM: Quản lý vòng đời của Mini Player (Đánh thức và Ngủ đông)
     @Override
     protected void onResume() {
         super.onResume();

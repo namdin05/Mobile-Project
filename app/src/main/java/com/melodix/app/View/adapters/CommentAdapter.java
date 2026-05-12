@@ -65,8 +65,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
             holder.imgAvatar.setImageResource(R.drawable.ic_default_avatar);
         }
 
-        // Mood emoji (tạm thời để mặc định, bạn có thể thêm logic random hoặc theo nội dung sau)
-        holder.tvMood.setText("❤️");   // Có thể thay đổi thành 🔥, 👍, 🎵... tùy theo cảm xúc
+        holder.tvMood.setText("❤️");
     }
 
     @Override

@@ -72,7 +72,6 @@ public class EditPlaylistDialog {
         btnSave = dialogView.findViewById(R.id.btn_save);
         Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
 
-        // Điền dữ liệu hiện tại
         edtName.setText(currentPlaylist.name != null ? currentPlaylist.name : "");
 
         if (currentPlaylist.coverRes != null && !currentPlaylist.coverRes.isEmpty()) {
