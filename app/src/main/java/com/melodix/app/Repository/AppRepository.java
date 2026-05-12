@@ -50,7 +50,7 @@ public class AppRepository {
     private final SearchAPIService searchApiService;
     private final AlbumAPIService albumApiService;
     private final ArtistAPIService artistApiService;
-    private final ProfileAPIService profileApiService; // Thêm Profile API cho User Profile/Follow
+    private final ProfileAPIService profileApiService;
 
     private long lastSearchTime = 0;
 
@@ -79,9 +79,6 @@ public class AppRepository {
         return instance;
     }
 
-    // =========================================================================
-    // QUẢN LÝ USER HIỆN TẠI (ĐỒNG BỘ 100% VỚI LOGIN_ACTIVITY BẰNG PREFS)
-    // =========================================================================
 
     public String getCurrentUserId() {
         SharedPreferences melodixPrefs = appContext.getSharedPreferences("MelodixPrefs", Context.MODE_PRIVATE);
@@ -93,17 +90,13 @@ public class AppRepository {
         return melodixPrefs.getString("USER_ROLE", "user");
     }
 
-    // =========================================================================
-    // CÁC HÀM GET DỮ LIỆU ĐÃ CHUYỂN SANG API (BỎ MOCK HOÀN TOÀN)
-    // =========================================================================
 
     public ArrayList<Song> getAllApprovedSongs() {
-        // Tương lai sếp nên viết API cho hàm này. Tạm thời trả về rỗng vì giao diện đã gọi API riêng.
         return new ArrayList<>();
     }
 
     public ArrayList<Playlist> getCurrentUserPlaylists() {
-        return new ArrayList<>(); // Đã chuyển sang PlaylistRepository lo vụ này
+        return new ArrayList<>();
     }
 
     public void getAlbumById(String id, AlbumCallback callback) {
@@ -148,9 +141,6 @@ public class AppRepository {
         });
     }
 
-    // =========================================================================
-    // HÀM LƯU LỊCH SỬ TÌM KIẾM (LƯU LOCAL BẰNG SHAREDPREFERENCES)
-    // =========================================================================
 
     public ArrayList<String> getRecentSearches() {
         String json = prefs.getString(KEY_RECENT_SEARCHES, "[]");
@@ -181,9 +171,7 @@ public class AppRepository {
         }
     }
 
-    // =========================================================================
-    // HÀM SEARCH FULL-TEXT (CÚ PHÁP CHUẨN SUPABASE KẾT HỢP DEBOUNCE)
-    // =========================================================================
+
     public void search(String keyword, String filter, SearchCallback callback) {
         ArrayList<SearchResultItem> results = new ArrayList<>();
         String q = keyword == null ? "" : keyword.trim();
@@ -431,9 +419,7 @@ public class AppRepository {
         });
     }
 
-    // =========================================================================
-    // QUẢN LÝ HÀNG ĐỢI PHÁT NHẠC (ĐÃ CHUYỂN GIAO QUYỀN CHO PLAYBACK_REPOSITORY)
-    // =========================================================================
+
     private final ArrayList<Song> searchCacheSongs = new ArrayList<>();
 
     public void setCurrentQueue(ArrayList<Song> queue, String startSongId) {
@@ -456,7 +442,6 @@ public class AppRepository {
     public Song getSongById(String id) {
         if (id == null) return null;
 
-        // 1. Ưu tiên quét trong Hàng đợi xịn (PlaybackRepository)
         try {
             Song s = com.melodix.app.Repository.PlaybackRepository.getInstance().getSongById(id);
             if (s != null) return s;
@@ -473,9 +458,7 @@ public class AppRepository {
         return null;
     }
 
-    // =========================================================================
-    // HÀM GỌI API LẤY 1 BÀI HÁT TỪ SUPABASE (DÀNH CHO DEEP LINK / PLAY LẺ)
-    // =========================================================================
+
     public void getSongByIdAsync(String songId, SingleSongCallback callback) {
         searchApiService.getSongById("eq." + songId).enqueue(new Callback<List<Song>>() {
             @Override
@@ -494,9 +477,6 @@ public class AppRepository {
         });
     }
 
-    // =========================================================================
-    // CÁC HÀM XỬ LÝ LỊCH SỬ / DOWNLOAD / AI MÀ PLAYER ACTIVITY ĐANG GỌI
-    // =========================================================================
 
     public ArrayList<String> getDownloadedSongIds() {
         String json = prefs.getString(KEY_DOWNLOADED_SONGS, "[]");
@@ -518,7 +498,6 @@ public class AppRepository {
     }
 
     public java.io.File getPlayableFileIfDownloaded(String songId) {
-        // Tạm thời luôn trả về NULL để ép App stream nhạc trực tiếp từ URL Supabase mạng!
         return null;
     }
 
@@ -533,7 +512,6 @@ public class AppRepository {
 
         android.util.Log.d("PLAY_COUNT", "🚀 Đang gọi hàm RPC add_song_stream...");
 
-        // 👇 DÙNG getSupabaseClient() - Nó đã có sẵn Interceptor lấy Key xịn từ Constants rồi
         com.melodix.app.Service.SongAPIService apiService =
                 com.melodix.app.Service.RetrofitClient.getClient(appContext).create(com.melodix.app.Service.SongAPIService.class);
 
@@ -668,9 +646,6 @@ public class AppRepository {
         });
     }
 
-    // =========================================================================
-    // QUẢN LÝ SỐ LƯỢNG FOLLOW
-    // =========================================================================
 
     public interface CountCallback {
         void onSuccess(int count);

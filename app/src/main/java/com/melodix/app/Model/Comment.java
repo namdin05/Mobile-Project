@@ -19,11 +19,9 @@ public class Comment {
     @SerializedName("created_at")
     public String createdAt;
 
-    // Join từ bảng profiles
     @SerializedName("profiles")
     public Profile profiles;
 
-    // Getter an toàn
     public String getDisplayName() {
         if (profiles != null && profiles.getDisplayName() != null) {
             return profiles.getDisplayName();

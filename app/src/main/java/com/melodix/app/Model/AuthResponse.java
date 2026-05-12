@@ -14,7 +14,6 @@ public class AuthResponse {
     @SerializedName("user")
     private Profile user;
 
-    // 2. THÊM HÀM GETTER NÀY LÀ HẾT LỖI ĐỎ Ở REPOSITORY
     public Profile getUser() {
         return user;
     }

@@ -32,14 +32,12 @@ public interface AdminAPIService {
     @GET("user_request_to_artist?select=*,profiles(*)&status=eq.pending")
     Call<List<ArtistRequest>> getPendingArtistRequests();
 
-    // Cập nhật trạng thái duyệt/từ chối
     @PATCH("user_request_to_artist")
     Call<ResponseBody> updateArtistRequestStatus(
             @Query("id") String idFilter,
             @Body Map<String, Object> body
     );
 
-    // Nâng cấp quyền User lên Artist trong bảng profiles
     @PATCH("profiles")
     Call<ResponseBody> updateUserRole(
             @Query("id") String userIdFilter,

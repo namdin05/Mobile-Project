@@ -237,9 +237,7 @@ public class UserProfileActivity extends AppCompatActivity {
         });
 
     }
-    // ==========================================
-    // LOGIC FOLLOW & THỐNG KÊ
-    // ==========================================
+
     private void loadFollowerCount() {
         com.melodix.app.Repository.AppRepository.getInstance(this).getFollowerCount(targetUserId, count -> {
             if (isFinishing() || isDestroyed()) return;

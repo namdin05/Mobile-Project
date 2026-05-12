@@ -219,9 +219,6 @@ public class AccountFragment extends Fragment {
         }
     }
 
-    // ========================================================
-    // BỘ 3 HÀM XỬ LÝ LOGIC API GỬI / HỦY / KIỂM TRA
-    // ========================================================
 
     private void checkRequestStatus(String userId) {
         com.melodix.app.Service.ProfileAPIService apiService = com.melodix.app.Service.RetrofitClient.getClient(getActivity().getApplication()).create(com.melodix.app.Service.ProfileAPIService.class);

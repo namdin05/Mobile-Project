@@ -75,9 +75,7 @@ public class HomeFragment extends Fragment {
 
         loadingDialog.showLoading(requireActivity());
 
-        // ==========================================
-        // FETCH NEW RELEASE
-        // ==========================================
+
         // goi API lay danh sach bai hat moi nhat
         viewModel.getNewReleases().observe(getViewLifecycleOwner(), songs -> {
             loadingDialog.hideLoading();

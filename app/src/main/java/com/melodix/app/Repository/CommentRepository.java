@@ -21,7 +21,7 @@ import retrofit2.Response;
 
 public class CommentRepository {
     private CommentAPIService apiService;
-    private Context context; // Giữ lại context để gọi SessionManager
+    private Context context;
 
     public CommentRepository(Context context) {
         this.context = context;
@@ -48,12 +48,8 @@ public class CommentRepository {
 
     public void postComment(String songId, String content, MutableLiveData<Boolean> isSuccess, MutableLiveData<String> message) {
 
-        // =======================================================
-        // 1. TỰ ĐỘNG LẤY ID TỪ SESSION MANAGER (Cực kỳ nhàn nhã)
-        // =======================================================
         String currentUserId = SessionManager.getInstance(context).getUserId();
 
-        // 2. Chốt chặn an toàn: Tránh lỗi UUID rỗng đâm sập Server
         if (currentUserId == null || currentUserId.isEmpty()) {
             message.postValue("Phiên đăng nhập đã hết hạn. Vui lòng đăng xuất và đăng nhập lại!");
             isSuccess.postValue(false);
@@ -62,13 +58,11 @@ public class CommentRepository {
 
         Log.e("COMMENT_DEBUG", "Posting - SongId: " + songId + ", UserId: " + currentUserId + ", Content: " + content);
 
-        // 3. Đóng gói dữ liệu gửi lên
         Map<String, Object> body = new HashMap<>();
         body.put("song_id", songId);
         body.put("user_id", currentUserId);
         body.put("content", content);
 
-        // 4. Bắn API
         apiService.postComment(body).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {

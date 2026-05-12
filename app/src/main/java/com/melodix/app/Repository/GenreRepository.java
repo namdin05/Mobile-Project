@@ -29,7 +29,6 @@ public class GenreRepository {
     private StorageAPIService storageService;
 
     public GenreRepository(Context context) {
-        // Dùng AdminClient cho quyền ghi/xóa
         genreAPIService = RetrofitClient.getClient(context).create(GenreAPIService.class);
         storageService = RetrofitClient.getStorage(context).create(StorageAPIService.class);
     }
@@ -56,7 +55,6 @@ public class GenreRepository {
         return genres;
     }
 
-    // Gộp quá trình xử lý ảnh và DB vào cùng 1 hàm, trả kết quả về qua LiveData
     public void saveGenreToDb(String genreId, String name, String oldImageUrl, byte[] newImageBytes,
                               MutableLiveData<Boolean> isSuccessLiveData, MutableLiveData<String> messageLiveData) {
         if (newImageBytes != null) {
@@ -73,7 +71,6 @@ public class GenreRepository {
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                     if (response.isSuccessful()) {
                         String newImageUrl = Constants.STORAGE_BASE_URL + Constants.GENRE_COVER_BUCKET + fileName;
-                        // Ảnh lên thành công -> Lưu vào Database
                         saveToDatabase(genreId, name, newImageUrl, isSuccessLiveData, messageLiveData);
                     } else {
                         messageLiveData.postValue("Lỗi Upload ảnh lên Storage");
@@ -88,12 +85,10 @@ public class GenreRepository {
                 }
             });
         } else {
-            // Không có ảnh mới -> Lưu DB luôn
             saveToDatabase(genreId, name, oldImageUrl, isSuccessLiveData, messageLiveData);
         }
     }
 
-    // Tách riêng hàm lưu DB cho gọn (Đã bỏ apiKey, token vì Interceptor đã lo)
     private void saveToDatabase(String genreId, String name, String imageUrl,
                                 MutableLiveData<Boolean> isSuccessLiveData, MutableLiveData<String> messageLiveData) {
         Map<String, Object> data = new HashMap<>();
@@ -101,7 +96,6 @@ public class GenreRepository {
         data.put("cover_url", imageUrl);
         data.put("is_visible", true);
 
-        // ĐÃ SỬA: Đổi Void thành ResponseBody cho khớp với Interface
         Callback<ResponseBody> dbCallback = new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -133,7 +127,6 @@ public class GenreRepository {
         Map<String, Object> data = new HashMap<>();
         data.put("is_visible", false);
 
-        // ĐÃ SỬA: Đổi Void thành ResponseBody
         genreAPIService.updateGenre("eq." + genreId, data).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -158,7 +151,6 @@ public class GenreRepository {
         Map<String, Object> data = new HashMap<>();
         data.put("is_visible", true);
 
-        // ĐÃ SỬA: Đổi Void thành ResponseBody
         genreAPIService.updateGenre("eq." + genreId, data).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {

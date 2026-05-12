@@ -27,7 +27,7 @@ import com.melodix.app.Utils.ResourceUtils;
 import com.melodix.app.PlayerActivity;
 
 public class AudioPlayerService extends Service {
-    private static boolean hasRecordedPlay = false; // Bấm nút chặn spam view
+    private static boolean hasRecordedPlay = false;
     private PlaybackRepository playbackRepo = PlaybackRepository.getInstance();
     public static final int NOTIFICATION_ID = 991;
     private static final String CHANNEL_ID = "melodix_playback_channel";
@@ -216,17 +216,14 @@ public class AudioPlayerService extends Service {
 
             Log.d("TEST_MUSIC", "Đang phát từ: " + audioSource);
 
-            // === PHÂN BIỆT LOCAL FILE VÀ URL MẠNG ===
             if (audioSource != null &&
                     (audioSource.startsWith("/") ||
                             audioSource.startsWith("content://") ||
                             audioSource.startsWith("file://"))) {
 
-                // Đây là file local (offline)
                 mediaPlayer.setDataSource(audioSource);
                 Log.d("TEST_MUSIC", "→ Phát từ file local");
             } else {
-                // Đây là URL từ Supabase (online)
                 mediaPlayer.setDataSource(audioSource);
                 Log.d("TEST_MUSIC", "→ Phát từ URL mạng");
             }
@@ -288,15 +285,12 @@ public class AudioPlayerService extends Service {
         }
     }
 
-    // Trong AudioPlayerService.java
     private void playNext() {
         Song next = playbackRepo.moveNext();
         if (next != null) {
-            // Nếu bài tiếp theo khác bài hiện tại -> Phát bài mới
             if (!next.getId().equals(currentSongId)) {
                 playSong(next.getId());
             } else {
-                // Nếu chỉ có 1 bài (ID trùng nhau) thì lặp lại bài đó
                 mediaPlayer.seekTo(0);
                 mediaPlayer.start();
                 broadcastState();
@@ -383,16 +377,13 @@ public class AudioPlayerService extends Service {
                         .setShowActionsInCompactView(0, 1, 2)
                         .setMediaSession(mediaSession.getSessionToken()));
 
-        // Gắn luôn logo mặc định trong lúc chờ tải ảnh thật
         Bitmap placeholder = BitmapFactory.decodeResource(getResources(), R.drawable.ic_logo);
         if (placeholder != null) {
             builder.setLargeIcon(placeholder);
         }
 
-        // Hiện thông báo lên liền
         startForeground(NOTIFICATION_ID, builder.build());
 
-        // Cập nhật trạng thái Play/Pause cho MediaSession
         android.support.v4.media.session.PlaybackStateCompat.Builder stateBuilder = new android.support.v4.media.session.PlaybackStateCompat.Builder()
                 .setActions(android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY |
                         android.support.v4.media.session.PlaybackStateCompat.ACTION_PAUSE |
@@ -403,7 +394,6 @@ public class AudioPlayerService extends Service {
                         position, playbackSpeed);
         mediaSession.setPlaybackState(stateBuilder.build());
 
-        // 2. TẢI ẢNH QUA MẠNG BẰNG GLIDE VÀ CẬP NHẬT LẠI KHI TẢI XONG
         if (currentSong.getCoverUrl() != null && !currentSong.getCoverUrl().isEmpty()) {
             com.bumptech.glide.Glide.with(this)
                     .asBitmap()
@@ -411,10 +401,8 @@ public class AudioPlayerService extends Service {
                     .into(new com.bumptech.glide.request.target.CustomTarget<Bitmap>() {
                         @Override
                         public void onResourceReady(@androidx.annotation.NonNull Bitmap resource, @androidx.annotation.Nullable com.bumptech.glide.request.transition.Transition<? super Bitmap> transition) {
-                            // Ảnh đã tải xong! Bơm ảnh vào Thông báo
                             builder.setLargeIcon(resource);
 
-                            // Bơm ảnh vào màn hình khóa (Lockscreen)
                             android.support.v4.media.MediaMetadataCompat.Builder metadataBuilder = new android.support.v4.media.MediaMetadataCompat.Builder()
                                     .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE, currentSong.getTitle())
                                     .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST, currentSong.getArtistName())
@@ -434,7 +422,6 @@ public class AudioPlayerService extends Service {
                         }
                     });
         } else {
-            // Nếu bài hát không có link ảnh, chỉ update Text
             android.support.v4.media.MediaMetadataCompat.Builder metadataBuilder = new android.support.v4.media.MediaMetadataCompat.Builder()
                     .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE, currentSong.getTitle())
                     .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST, currentSong.getArtistName())
@@ -479,10 +466,9 @@ public class AudioPlayerService extends Service {
                 }
             } catch (Exception ignored) {}
         }
-        return 1.0f; // Trả về tốc độ chuẩn nếu có lỗi
+        return 1.0f;
     }
 
-    // Kiểm tra xem có đang hẹn giờ hay không
     public static boolean isTimerActive() {
         // Biến sleepRunnable là biến bạn đã dùng trong hàm setSleepTimer()
         return instance != null && instance.sleepRunnable != null;

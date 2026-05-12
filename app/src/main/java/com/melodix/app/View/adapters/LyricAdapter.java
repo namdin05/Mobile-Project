@@ -53,9 +53,7 @@ public class LyricAdapter extends RecyclerView.Adapter<LyricAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull List<Object> payloads) {
         holder.tvText.setText(list.get(position).text);
 
-        // ==========================================
-        // ĐÃ SỬA: TỰ ĐỘNG LẤY MÀU SÁNG/TỐI TỪ THEME
-        // ==========================================
+
         int activeColor = ContextCompat.getColor(holder.itemView.getContext(), R.color.mdx_primary); // Xanh Spotify cho dòng đang hát
         int inactiveColor = ContextCompat.getColor(holder.itemView.getContext(), R.color.mdx_text);  // Trắng/Đen cho dòng chưa hát
 

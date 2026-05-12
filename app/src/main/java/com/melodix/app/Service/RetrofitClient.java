@@ -28,9 +28,6 @@ public class RetrofitClient {
     private static Retrofit storageRetrofit = null;
     private static Retrofit authRetrofit = null;
 
-    // =========================================================================
-    // HÀM CHUNG: SETUP OKHTTP CLIENT (Gắn Chìa Khóa + Token + Tự động Refresh)
-    // =========================================================================
     private static OkHttpClient getSharedHttpClient(Context context) {
         if (sharedHttpClient == null) {
             final Context safeContext = context.getApplicationContext();
@@ -142,9 +139,7 @@ public class RetrofitClient {
         return sharedHttpClient;
     }
 
-    // =========================================================================
-    // NHÁNH 1: DATABASE (rest/v1/)
-    // =========================================================================
+
     public static Retrofit getClient(Context context) {
         if (databaseRetrofit == null) {
             databaseRetrofit = new Retrofit.Builder()
@@ -156,9 +151,6 @@ public class RetrofitClient {
         return databaseRetrofit;
     }
 
-    // =========================================================================
-    // NHÁNH 2: STORAGE (storage/v1/)
-    // =========================================================================
     public static Retrofit getStorage(Context context) {
         if (storageRetrofit == null) {
             storageRetrofit = new Retrofit.Builder()
@@ -170,9 +162,7 @@ public class RetrofitClient {
         return storageRetrofit;
     }
 
-    // =========================================================================
-    // NHÁNH 3: AUTH (auth/v1/)
-    // =========================================================================
+
     public static Retrofit getAuth(Context context) {
         if (authRetrofit == null) {
             authRetrofit = new Retrofit.Builder()

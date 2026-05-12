@@ -79,9 +79,6 @@ public class AdminProfileActivity extends AppCompatActivity {
             Glide.with(this).load(currentAvatarUrl).into(imgProfileAvatar);
         }
 
-        // ==========================================
-        // 1. CÀI ĐẶT CÔNG CỤ CHỌN ẢNH TỪ THƯ VIỆN
-        // ==========================================
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {

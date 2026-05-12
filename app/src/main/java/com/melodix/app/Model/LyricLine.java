@@ -8,7 +8,6 @@ public class LyricLine implements Serializable {
 
     public LyricLine() {
     }
-
     public LyricLine(long timeMs, String text) {
         this.timeMs = timeMs;
         this.text = text;

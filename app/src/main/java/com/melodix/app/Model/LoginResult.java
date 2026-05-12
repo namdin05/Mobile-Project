@@ -5,17 +5,13 @@ public class LoginResult {
     private String role;
     private String errorMessage;
 
-    // 1. THÊM BIẾN LƯU ID
     private String userId;
 
-    // 2. CẬP NHẬT CONSTRUCTOR THÀNH CÔNG (Thêm tham số userId)
     public LoginResult(boolean isSuccess, String role, String userId) {
         this.isSuccess = isSuccess;
         this.role = role;
         this.userId = userId;
     }
-
-    // Trạng thái thất bại (Giữ nguyên)
     public LoginResult(boolean isSuccess, String errorMessage, boolean isError) {
         this.isSuccess = isSuccess;
         this.errorMessage = errorMessage;

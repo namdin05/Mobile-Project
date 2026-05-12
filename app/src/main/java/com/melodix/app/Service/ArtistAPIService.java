@@ -23,13 +23,11 @@
 
     public interface ArtistAPIService {
 
-        // 3. GỌI HÀM RPC ĐỂ TỰ ĐỘNG LƯU BÀI HÁT & DANH SÁCH CA SĨ COLLAB
         @POST("rpc/upload_song_with_artists")
         Call<Void> submitSongWithArtists(
                 @Body SongRequestUpload body
         );
 
-        // Đổi "albums" thành "rpc/create_album_with_songs"
         @POST("rpc/create_album_with_songs")
         Call<ResponseBody> createAlbum(
                 @Body Map<String, Object> albumData
@@ -59,7 +57,6 @@
         @GET("artist_songs_view?select=*")
         Call<List<Song>> getMyUploadSongs(@Query("artist_id") String artistIdQuery);
 
-        // Lấy thống kê của 1 nghệ sĩ
         @GET("artist_stats_view?select=*")
         Call<List<ArtistStats>> getArtistStats(@Query("artist_id") String artistIdQuery);
         // NÂNG CẤP: Gọi hàm RPC để tạo album và thêm bài hát cùng lúc
@@ -71,32 +68,26 @@
                 @retrofit2.http.Body java.util.Map<String, Object> albumData
         );
 
-        // Thêm hàm này vào để ép gửi JsonObject có chứa JsonNull
-        // Dùng RequestBody của OkHttp để cấm Retrofit tự động can thiệp dữ liệu
-        @retrofit2.http.PATCH("songs")
+
         Call<okhttp3.ResponseBody> removeSongFromAlbumRaw(
                 @retrofit2.http.Query("id") String operatorAndId,
                 @retrofit2.http.Body okhttp3.RequestBody body
         );
 
-        // Hàm gọi RPC để Cập nhật Album và Danh sách bài hát cùng lúc
         @retrofit2.http.POST("rpc/update_album_with_songs")
         Call<okhttp3.ResponseBody> updateAlbumWithSongs(
                 @retrofit2.http.Body java.util.Map<String, Object> bodyData
         );
-        // Lệnh xóa file mp3 khỏi bucket "song"
         @retrofit2.http.DELETE("storage/v1/object/song/{file_name}")
         Call<Void> deleteAudioFile(
                 @retrofit2.http.Path("file_name") String fileName
         );
 
-        // Lệnh xóa file ảnh khỏi bucket "cover_song"
         @retrofit2.http.DELETE("storage/v1/object/cover_song/{file_name}")
         Call<Void> deleteCoverFile(
                 @retrofit2.http.Path("file_name") String fileName
         );
 
-        // Gửi lệnh xóa Album
         @retrofit2.http.DELETE("albums")
         Call<Void> deleteAlbum(@retrofit2.http.Query("id") String operatorAndId);
     }

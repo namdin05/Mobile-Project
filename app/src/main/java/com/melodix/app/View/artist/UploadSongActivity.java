@@ -317,7 +317,6 @@ public class UploadSongActivity extends AppCompatActivity {
         chipGroupCollab.addView(chip);
     }
 
-    // 👇 CHỖ NÀY ĐÃ FIX LỖI QUÊN DỌN FILE LYRIC NHÉ SẾP
     private void resetForm() {
         btnSubmitUpload.setEnabled(true);
         btnSubmitUpload.setText("PHÁT HÀNH TÁC PHẨM");

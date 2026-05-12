@@ -8,9 +8,8 @@ import androidx.room.RoomDatabase;
 @Database(
         entities = {
                 DownloadedSong.class,
-                // Thêm các entity khác của ở đây
         },
-        version = 2,   // Tăng version nếu đã có database cũ
+        version = 2,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -25,7 +24,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "melodix_database")
-                            .fallbackToDestructiveMigration()   // Xóa database khi thay đổi schema (dev)
+                            .fallbackToDestructiveMigration()
                             .build();
                 }
             }

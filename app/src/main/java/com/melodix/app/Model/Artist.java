@@ -17,7 +17,6 @@ public class Artist implements Serializable {
     @SerializedName("biography")
     public String bio;
 
-    // Giữ nguyên để không lỗi code cũ
     public String userId;
     public String heroCoverRes;
     public ArrayList<String> albumIds = new ArrayList<>();
